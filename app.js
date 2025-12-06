@@ -470,31 +470,18 @@ function renderActiveRow(p, now) {
   const valetLabelTime =
     valetSeconds != null ? formatDuration(valetSeconds) : "–";
 
-  // DO NOT tint entire row anymore (only timers show severity)
-  const rowClass = "";
-
-  const washLabel = humanWashStatus(p.wash_status);
-  const washNeedsClass =
-    p.wash_status === "NEEDS_REWASH" ? "wash-needs" : "";
-
   const currentWash = p.wash_status || "NONE";
   const currentValet = p.keys_holder || "";
 
   return `
-    <tr class="${rowClass}">
+    <tr>
       <td>${escapeHtml(p.tag_number)}</td>
       <td>${escapeHtml(p.customer_name)}</td>
       <td>
         <div>
           <span class="status-badge">${statusLabel}</span>
         </div>
-        <div class="wash-buttons" style="margin-top:0.15rem;">
-          <button class="btn small keymachine-only ${
-            p.status === "KEYS_IN_MACHINE" ? "btn-selected" : ""
-          }" data-action="keys-machine" data-id="${p.id}">
-            Keys in key machine
-          </button>
-        </div>
+        <!-- Status / location buttons – alphabetically grouped, 2 per row -->
         <div class="wash-buttons" style="margin-top:0.15rem;">
           <button class="btn small ${
             currentWash === "IN_WASH_AREA" ? "btn-selected" : ""
@@ -505,17 +492,21 @@ function renderActiveRow(p, now) {
         </div>
         <div class="wash-buttons" style="margin-top:0.15rem;">
           <button class="btn small ${
-            currentWash === "REWASH" ? "btn-selected" : ""
-          }" data-action="wash-rewash" data-id="${p.id}">Re wash</button>
-          <button class="btn small ${
-            currentWash === "NEEDS_REWASH" ? "btn-selected" : ""
-          }" data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
-          <button class="btn small ${
             currentWash === "DUSTY" ? "btn-selected" : ""
           }" data-action="wash-dusty" data-id="${p.id}">Dusty</button>
+          <button class="btn small keymachine-only ${
+            p.status === "KEYS_IN_MACHINE" ? "btn-selected" : ""
+          }" data-action="keys-machine" data-id="${p.id}">
+            Key machine
+          </button>
         </div>
-        <div class="section-subtitle ${washNeedsClass}" style="margin-top:0.15rem;">
-          ${washLabel}
+        <div class="wash-buttons" style="margin-top:0.15rem;">
+          <button class="btn small ${
+            currentWash === "NEEDS_REWASH" ? "btn-selected wash-needs" : ""
+          }" data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
+          <button class="btn small ${
+            currentWash === "REWASH" ? "btn-selected" : ""
+          }" data-action="wash-rewash" data-id="${p.id}">Re wash</button>
         </div>
       </td>
       <td>
@@ -553,10 +544,8 @@ function renderActiveRow(p, now) {
         </button>
       </td>
       <td>
-        <button class="btn small notes-button ${
-          p.notes ? "btn-selected" : ""
-        }" data-action="edit-note" data-id="${p.id}">
-          ${p.notes ? "Edit" : "Add"}
+        <button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">
+          ${p.notes ? "Edit note" : "Add note"}
         </button>
         ${
           p.notes
@@ -593,20 +582,18 @@ function renderWaitingRow(p, now) {
   const masterClass = timerClass(masterSeverity);
   const masterLabel = formatDuration(masterSeconds);
 
-  const rowClass = "";
-
   return `
-    <tr class="${rowClass}">
+    <tr>
       <td>${escapeHtml(p.tag_number)}</td>
       <td>${escapeHtml(p.customer_name)}</td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
       <td><span class="timer ${masterClass}">${masterLabel}</span></td>
       <td>
-        <button class="btn small notes-button ${
-          p.notes ? "btn-selected" : ""
-        } dispatcher-only" data-action="edit-note" data-id="${p.id}">
-          ${p.notes ? "Edit" : "Add"}
+        <button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${
+          p.id
+        }">
+          ${p.notes ? "Edit note" : "Add note"}
         </button>
         ${
           p.notes
@@ -755,7 +742,7 @@ function humanStatus(p) {
     case "NEW":
       return "New";
     case "KEYS_IN_MACHINE":
-      return "Keys in key machine";
+      return "Key machine";
     case "KEYS_WITH_VALET":
       return "Keys with valet";
     case "WAITING_FOR_CUSTOMER":
@@ -790,7 +777,6 @@ function computeSeconds(startIso, endIso, now) {
   const start = new Date(startIso);
   let end = endIso ? new Date(endIso) : now;
 
-  // If somehow end < start due to out-of-order timestamps, clamp to now
   if (end < start) end = now;
   const diffMs = end - start;
   if (Number.isNaN(diffMs) || diffMs < 0) return 0;
