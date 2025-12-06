@@ -20,8 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function setupForm() {
   const form = document.getElementById("new-pickup-form");
-  // IMPORTANT: if there is no form on this page (e.g. keymachine), bail out
-  if (!form) return;
+  if (!form) return; // key machine page has no form
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -150,15 +149,12 @@ async function loadPickups() {
 }
 
 function subscribeRealtime() {
+  // Supabase v1 realtime: listen to any changes on the pickups table
   supabase
-    .channel("public:pickups")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "pickups" },
-      () => {
-        loadPickups();
-      }
-    )
+    .from("pickups")
+    .on("*", () => {
+      loadPickups();
+    })
     .subscribe();
 }
 
