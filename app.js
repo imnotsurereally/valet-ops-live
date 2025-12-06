@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function setupForm() {
   const form = document.getElementById("new-pickup-form");
+  // IMPORTANT: if there is no form on this page (e.g. keymachine), bail out
   if (!form) return;
 
   form.addEventListener("submit", async (e) => {
