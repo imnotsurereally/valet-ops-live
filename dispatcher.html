@@ -22,7 +22,12 @@
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Dispatcher – Live Valet Operations</div>
         </div>
-        <div class="role-pill">Dispatcher</div>
+        <div class="header-right">
+          <button id="pqi-toggle" class="pqi-toggle-global off">
+            PQI: Off
+          </button>
+          <div class="role-pill">Dispatcher</div>
+        </div>
       </header>
 
       <main class="app-main layout-grid">
@@ -107,7 +112,7 @@
           </section>
 
           <!-- Active pickups -->
-          <section class="section">
+          <section class="section section-active">
             <div class="section-header">
               <div>
                 <div class="section-title">
@@ -180,7 +185,8 @@
             <div class="section-header">
               <div>
                 <div class="section-title">
-                  <span class="check-icon">✔</span> Completed (Last 50)
+                  <span class="check-icon">✔</span> Completed
+                  <span class="section-count" id="count-completed">0</span>
                 </div>
                 <div class="section-subtitle">
                   Final time, notes, and full timeline history.
