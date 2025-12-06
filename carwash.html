@@ -29,9 +29,12 @@
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">Cars in Flow</div>
+              <div class="section-title">
+                Cars in Flow
+                <span class="section-count" id="count-active">0</span>
+              </div>
               <div class="section-subtitle">
-                See which cars are in wash area or flagged for rewash.
+                See which cars are in wash area, dusty, rewash, etc.
               </div>
             </div>
           </div>
@@ -42,14 +45,15 @@
                 <tr>
                   <th>Tag #</th>
                   <th>Customer</th>
-                  <th>Wash Status</th>
-                  <th>Set Wash State</th>
+                  <th>Status/Location</th>
+                  <th>Keys with</th>
+                  <th>Valet Time</th>
                   <th>Notes</th>
                   <th>Master Time</th>
                 </tr>
               </thead>
               <tbody id="active-tbody">
-                <tr><td colspan="6" class="empty">Loading…</td></tr>
+                <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
