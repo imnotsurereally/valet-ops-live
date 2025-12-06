@@ -106,10 +106,10 @@ a {
 }
 
 /* Layout grid for dispatcher */
-/* Make staged skinny, middle ~85%, stats skinny on right */
+/* Skinny fixed side columns hugging the edges, big middle column */
 .layout-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.1fr) minmax(0, 0.85fr) minmax(0, 0.05fr);
+  grid-template-columns: 220px minmax(0, 1fr) 220px;
   gap: 0.75rem;
   align-items: flex-start;
 }
@@ -302,15 +302,9 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Remove row background severity for now (just keep timers colored) */
-.row-green td {}
-.row-yellow td {}
-.row-orange td {}
-.row-red td {}
-
-/* Active pickups main box stands out */
+/* Active pickups main box stands out more (thicker border) */
 .section-active .table-wrapper {
-  border-width: 2px;
+  border-width: 4px;
   border-color: #3f3f46;
 }
 
@@ -339,11 +333,16 @@ tr:nth-child(even) td {
   border-style: dashed;
 }
 
-/* Notes preview */
+/* Notes preview – blue pill */
 .notes-preview {
   margin-top: 0.15rem;
   font-size: 0.7rem;
-  color: #a0a0a0;
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid #3b82f6;
+  background: #0b1c3a;
+  color: #bfdbfe;
 }
 
 /* Timers */
@@ -380,20 +379,23 @@ tr:nth-child(even) td {
   color: #ff9b9b;
 }
 
-/* Needs rewash blinking */
+/* Needs rewash – blink the blue box, not the text */
 .wash-needs {
   animation: washBlink 0.9s infinite;
 }
 
 @keyframes washBlink {
   0% {
-    color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
   }
   50% {
-    color: #4b5563;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
   }
   100% {
-    color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
   }
 }
 
@@ -420,7 +422,7 @@ tr:nth-child(even) td {
   display: none;
 }
 
-/* Metrics sidebar (already a good size) */
+/* Metrics sidebar */
 .section-metrics {
   background: #070711;
   border-radius: 10px;
@@ -452,7 +454,7 @@ tr:nth-child(even) td {
   margin-top: 0.05rem;
 }
 
-/* Valet list looks cleaner / aligned */
+/* Valet list */
 .valet-list {
   list-style: none;
   margin: 0.35rem 0 0;
