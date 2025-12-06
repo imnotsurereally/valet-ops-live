@@ -264,7 +264,7 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Row severity highlighting */
+/* Row severity highlighting (gentle pre-alert) */
 .row-green td {
   /* keep dark */
 }
@@ -410,7 +410,7 @@ tr:nth-child(even) td {
   display: none;
 }
 
-/* Metrics sidebar */
+/* Metrics sidebar (super skinny, hugging right) */
 .section-metrics {
   background: #070711;
   border-radius: 10px;
