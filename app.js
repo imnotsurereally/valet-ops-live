@@ -5,6 +5,7 @@ let pickups = [];
 let role = "dispatcher";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Determine which screen we're on
   role = document.body.classList.contains("role-keymachine")
     ? "keymachine"
     : "dispatcher";
@@ -14,20 +15,25 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPickups();
   subscribeRealtime();
 
-  // refresh stopwatch every minute
+  // Refresh stopwatch every minute
   setInterval(renderTables, 60 * 1000);
 });
 
+// ---------------------------
+// New pickup form (dispatcher)
+// ---------------------------
 function setupForm() {
   const form = document.getElementById("new-pickup-form");
-  if (!form) return; // key machine page has no form
+  if (!form) return; // Key machine page has no form
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const tagInput = document.getElementById("tag-number");
     const nameInput = document.getElementById("customer-name");
     const tag = tagInput.value.trim();
     const name = nameInput.value.trim();
+
     if (!tag || !name) return;
 
     const { error } = await supabase.from("pickups").insert({
@@ -47,6 +53,9 @@ function setupForm() {
   });
 }
 
+// ---------------------------
+// Table actions (buttons)
+// ---------------------------
 function setupTableActions() {
   const activeTbody = document.getElementById("active-tbody");
   if (!activeTbody) return;
@@ -54,9 +63,11 @@ function setupTableActions() {
   activeTbody.addEventListener("click", async (e) => {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
+
     const id = btn.getAttribute("data-id");
     const action = btn.getAttribute("data-action");
     if (!id || !action) return;
+
     await handleAction(id, action);
   });
 }
@@ -71,55 +82,66 @@ async function handleAction(id, action) {
       updates.keys_holder = "KEY_MACHINE";
       updates.keys_at_machine_at = now;
       break;
+
     case "wash-today":
       updates.wash_status = "WASHED_TODAY";
       updates.wash_status_at = now;
       break;
+
     case "wash-yesterday":
       updates.wash_status = "WASHED_YESTERDAY";
       updates.wash_status_at = now;
       break;
+
     case "wash-notsure":
       updates.wash_status = "NOT_SURE";
       updates.wash_status_at = now;
       break;
+
     case "with-fernando":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Fernando";
       updates.keys_with_valet_at = now;
       break;
+
     case "with-juan":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Juan";
       updates.keys_with_valet_at = now;
       break;
+
     case "with-miguel":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Miguel";
       updates.keys_with_valet_at = now;
       break;
+
     case "with-maria":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Maria";
       updates.keys_with_valet_at = now;
       break;
+
     case "waiting":
       updates.status = "CAR_WAITING_CLIENT";
       updates.waiting_client_at = now;
       break;
+
     case "complete":
       updates.status = "COMPLETE";
       updates.completed_at = now;
       break;
+
     case "edit-note": {
       const current = pickups.find((p) => p.id === id);
       const existing = current?.notes || "";
       const next = window.prompt("Notes for this pickup:", existing);
-      if (next === null) return;
+      if (next === null) return; // cancel
       updates.notes = next;
       updates.notes_updated_at = now;
       break;
     }
+
     default:
       return;
   }
@@ -127,12 +149,16 @@ async function handleAction(id, action) {
   if (Object.keys(updates).length === 0) return;
 
   const { error } = await supabase.from("pickups").update(updates).eq("id", id);
+
   if (error) {
     console.error(error);
     alert("Error saving update. Check console.");
   }
 }
 
+// ---------------------------
+// Data loading + realtime
+// ---------------------------
 async function loadPickups() {
   const { data, error } = await supabase
     .from("pickups")
@@ -149,7 +175,7 @@ async function loadPickups() {
 }
 
 function subscribeRealtime() {
-  // Supabase v1 realtime: listen to any changes on the pickups table
+  // Supabase v1 realtime – listen to any changes on pickups table
   supabase
     .from("pickups")
     .on("*", () => {
@@ -158,6 +184,9 @@ function subscribeRealtime() {
     .subscribe();
 }
 
+// ---------------------------
+// Rendering
+// ---------------------------
 function renderTables() {
   const activeTbody = document.getElementById("active-tbody");
   const completedTbody = document.getElementById("completed-tbody");
@@ -166,6 +195,7 @@ function renderTables() {
   const active = pickups.filter((p) => p.status !== "COMPLETE");
   const completed = pickups.filter((p) => p.status === "COMPLETE").slice(0, 50);
 
+  // Active
   if (active.length === 0) {
     activeTbody.innerHTML =
       '<tr><td colspan="10" class="empty">No active pickups.</td></tr>';
@@ -173,6 +203,7 @@ function renderTables() {
     activeTbody.innerHTML = active.map(renderActiveRow).join("");
   }
 
+  // Completed (dispatcher only)
   if (completedTbody) {
     if (completed.length === 0) {
       completedTbody.innerHTML =
@@ -301,6 +332,9 @@ function renderCompletedRow(p) {
   `;
 }
 
+// ---------------------------
+// Helpers
+// ---------------------------
 function humanStatus(status) {
   switch (status) {
     case "NEW":
@@ -324,8 +358,7 @@ function computeMinutes(startIso, endIso) {
   const end = endIso ? new Date(endIso) : new Date();
   const diffMs = end - start;
   if (Number.isNaN(diffMs) || diffMs < 0) return null;
-  const minutes = Math.round(diffMs / 60000);
-  return minutes;
+  return Math.round(diffMs / 60000);
 }
 
 function formatTime(iso) {
