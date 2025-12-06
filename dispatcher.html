@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Optima Dealer Services – Dispatcher</title>
+    <title>Valet Ops Live – Dispatcher</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="stylesheet" href="style.css" />
@@ -13,118 +13,229 @@
     <script type="module" src="app.js"></script>
   </head>
   <body class="role-dispatcher">
+    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
+
     <div class="app-shell">
       <header class="app-header">
         <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Staff Management &amp; Logistics for Auto Dealerships</div>
+          <div class="subtitle">Dispatcher – Live Valet Operations</div>
         </div>
         <div class="role-pill">Dispatcher</div>
       </header>
 
-      <main class="app-main">
-        <!-- New Pickup -->
-        <section class="section dispatcher-only">
-          <div class="section-header">
-            <div>
-              <div class="section-title">New Pickup</div>
-              <div class="section-subtitle">
-                Dispatcher #1: only place where Tag # and Customer Name are typed.
+      <main class="app-main layout-grid">
+        <!-- Left column: staged / non-urgent -->
+        <div class="layout-left dispatcher-only">
+          <!-- Staged -->
+          <section class="section section-staged">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Staged (Non-Urgent)</div>
+                <div class="section-subtitle">
+                  Cars expected later – not under time pressure yet.
+                </div>
               </div>
             </div>
-          </div>
 
-          <form id="new-pickup-form" class="new-pickup-form">
-            <div class="input-group">
-              <label for="tag-number">Tag #</label>
-              <input
-                id="tag-number"
-                name="tag-number"
-                class="input-text"
-                placeholder="e.g. 1432"
-                required
-              />
+            <div class="table-wrapper small">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Staged At</th>
+                    <th>Activate</th>
+                  </tr>
+                </thead>
+                <tbody id="staged-tbody">
+                  <tr><td colspan="4" class="empty">No staged tickets.</td></tr>
+                </tbody>
+              </table>
             </div>
-            <div class="input-group">
-              <label for="customer-name">Customer name</label>
-              <input
-                id="customer-name"
-                name="customer-name"
-                class="input-text"
-                placeholder="e.g. Maria Lopez"
-                required
-              />
-            </div>
-            <div class="input-group" style="align-self: flex-end">
-              <button type="submit" class="btn btn-primary">Create Pickup</button>
-            </div>
-          </form>
-        </section>
+          </section>
+        </div>
 
-        <!-- Active pickups -->
-        <section class="section">
-          <div class="section-header">
-            <div>
-              <div class="section-title">Active Pickups</div>
-              <div class="section-subtitle">
-                Live view – updates instantly as Key Machine and Valets click.
+        <!-- Center column: form + active + waiting + completed -->
+        <div class="layout-center">
+          <!-- New pickup form -->
+          <section class="section dispatcher-only">
+            <div class="section-header">
+              <div>
+                <div class="section-title">New Pickup</div>
+                <div class="section-subtitle">
+                  Dispatcher #1: only place where Tag # and Customer Name are typed.
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Status</th>
-                  <th class="keymachine-only">Keys in Machine</th>
-                  <th class="keymachine-only">Wash</th>
-                  <th class="keymachine-only">Keys With</th>
-                  <th class="dispatcher-only">Waiting for Client</th>
-                  <th class="dispatcher-only">Complete</th>
-                  <th>Notes</th>
-                  <th>Time (min)</th>
-                </tr>
-              </thead>
-              <tbody id="active-tbody">
-                <tr><td colspan="10" class="empty">Loading…</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+            <form id="new-pickup-form" class="new-pickup-form">
+              <div class="input-group">
+                <label for="tag-number">Tag #</label>
+                <input
+                  id="tag-number"
+                  name="tag-number"
+                  class="input-text"
+                  placeholder="e.g. 1432"
+                  required
+                />
+              </div>
+              <div class="input-group">
+                <label for="customer-name">Customer name</label>
+                <input
+                  id="customer-name"
+                  name="customer-name"
+                  class="input-text"
+                  placeholder="e.g. Maria Lopez"
+                  required
+                />
+              </div>
+              <div class="input-group checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="stage-only" />
+                  Stage only (not active yet)
+                </label>
+              </div>
+              <div class="input-group" style="align-self: flex-end">
+                <button type="submit" class="btn btn-primary">Create</button>
+              </div>
+            </form>
+          </section>
 
-        <!-- Completed -->
-        <section class="section dispatcher-only">
-          <div class="section-header">
-            <div>
-              <div class="section-title">Completed (Last 50)</div>
-              <div class="section-subtitle">
-                History of cars marked COMPLETE.
+          <!-- Active pickups -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Active Pickups</div>
+                <div class="section-subtitle">
+                  Live flow – keys, wash, valets. Master time on the right.
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Total Time (min)</th>
-                  <th>Created</th>
-                  <th>Completed</th>
-                  <th>Last Notes</th>
-                </tr>
-              </thead>
-              <tbody id="completed-tbody">
-                <tr><td colspan="6" class="empty">Loading…</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Wash</th>
+                    <th>Keys with</th>
+                    <th>Valet Time</th>
+                    <th class="dispatcher-only">Waiting</th>
+                    <th>Notes</th>
+                    <th>Master Time</th>
+                  </tr>
+                </thead>
+                <tbody id="active-tbody">
+                  <tr><td colspan="9" class="empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Waiting for customer -->
+          <section class="section dispatcher-only">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Waiting for Customer</div>
+                <div class="section-subtitle">
+                  Keys secure, car ready – now waiting on pick up.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Delivered by</th>
+                    <th>Waiting Time</th>
+                    <th>Notes</th>
+                    <th>Customer Picked Up</th>
+                  </tr>
+                </thead>
+                <tbody id="waiting-tbody">
+                  <tr><td colspan="6" class="empty">None currently waiting.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Completed -->
+          <section class="section section-completed dispatcher-only">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  <span class="check-icon">✔</span> Completed (Last 50)
+                </div>
+                <div class="section-subtitle">
+                  Final time, notes, and who delivered.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Total Time</th>
+                    <th>Delivered by</th>
+                    <th>Created</th>
+                    <th>Completed</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="completed-tbody">
+                  <tr><td colspan="7" class="empty">No completed tickets yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right column: metrics -->
+        <aside class="layout-right dispatcher-only">
+          <section class="section section-metrics">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Today’s Stats</div>
+              </div>
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">Completed Today</div>
+                <div class="metric-value" id="metrics-completed-today">0</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Avg Cycle Time</div>
+                <div class="metric-value" id="metrics-avg-cycle">–</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Active Tickets</div>
+                <div class="metric-value" id="metrics-active-count">0</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Waiting for Customer</div>
+                <div class="metric-value" id="metrics-waiting-count">0</div>
+              </div>
+            </div>
+
+            <div class="section-subtitle" style="margin-top: 0.75rem;">
+              Valet Activity Today
+            </div>
+            <ul class="valet-list" id="metrics-valets">
+              <!-- Filled dynamically -->
+            </ul>
+          </section>
+        </aside>
       </main>
     </div>
   </body>
