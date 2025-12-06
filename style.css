@@ -1,4 +1,4 @@
-/* Global dark theme */
+/* Global resets */
 *,
 *::before,
 *::after {
@@ -17,13 +17,14 @@ a {
   text-decoration: none;
 }
 
+/* Shell */
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Header with logo */
+/* Header */
 .app-header {
   display: flex;
   align-items: center;
@@ -34,8 +35,8 @@ a {
 }
 
 .app-header img.logo {
-  height: 44px;
-  width: 44px;
+  height: 40px;
+  width: 40px;
   border-radius: 999px;
   object-fit: cover;
 }
@@ -45,20 +46,19 @@ a {
   flex-direction: column;
 }
 
-.app-header .titles .brand {
-  font-size: 1rem;
-  letter-spacing: 0.06em;
+.app-header .brand {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
   font-weight: 600;
   text-transform: uppercase;
 }
 
-.app-header .titles .subtitle {
+.app-header .subtitle {
   font-size: 0.7rem;
   text-transform: uppercase;
   color: #a0a0a0;
 }
 
-/* Role label */
 .role-pill {
   margin-left: auto;
   padding: 0.15rem 0.6rem;
@@ -70,27 +70,47 @@ a {
   color: #ccc;
 }
 
-/* Main layout */
+/* Main */
 .app-main {
   padding: 1.25rem 1.5rem 2rem;
-  max-width: 1300px;
+  max-width: 1400px;
   margin: 0 auto;
+}
+
+.app-main-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Layout grid for dispatcher */
+.layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 2.3fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.layout-left,
+.layout-center,
+.layout-right {
+  min-width: 0;
 }
 
 /* Sections */
 .section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.7rem;
 }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -99,12 +119,43 @@ a {
   color: #a0a0a0;
 }
 
-/* Form */
+/* Buttons */
+.btn {
+  border-radius: 999px;
+  border: 1px solid #f5f5f5;
+  background: transparent;
+  color: #f5f5f5;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+  background: #f5f5f5;
+  color: #050608;
+}
+
+.btn-primary {
+  font-weight: 600;
+}
+
+.btn.small {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+}
+
+.btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* New pickup form */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  background: #0a0b0f;
+  background: #0a0b10;
   border-radius: 10px;
   border: 1px solid #191b22;
   padding: 0.9rem 1rem;
@@ -128,36 +179,30 @@ a {
   padding: 0.45rem 0.6rem;
   font-size: 0.85rem;
   color: #f5f5f5;
+  min-width: 170px;
 }
 
 .input-text::placeholder {
   color: #555;
 }
 
-/* Buttons */
-.btn {
-  border-radius: 999px;
-  border: 1px solid #f5f5f5;
-  background: transparent;
-  color: #f5f5f5;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+.checkbox-group {
+  justify-content: flex-end;
 }
 
-.btn:hover {
-  background: #f5f5f5;
-  color: #050608;
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #b0b0b0;
 }
 
-.btn-primary {
-  font-weight: 600;
-}
-
-.btn.small {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
+/* Screen links for index */
+.screen-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 /* Tables */
@@ -166,6 +211,10 @@ a {
   border-radius: 10px;
   border: 1px solid #181820;
   overflow: auto;
+}
+
+.table-wrapper.small {
+  max-height: 280px;
 }
 
 table {
@@ -199,7 +248,7 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Status badges */
+/* Status badge */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -211,7 +260,7 @@ tr:nth-child(even) td {
   color: #d0d0d0;
 }
 
-/* Wash / keys buttons */
+/* Wash / keys layout */
 .wash-buttons,
 .keys-buttons {
   display: flex;
@@ -219,31 +268,43 @@ tr:nth-child(even) td {
   gap: 0.2rem;
 }
 
-/* Disabled buttons */
-.btn[disabled] {
-  opacity: 0.4;
-  cursor: default;
-}
-
-/* Notes */
+/* Notes button */
 .notes-button {
   border-style: dashed;
 }
 
-/* Stopwatch cell */
-.time-cell {
+/* Timers */
+.timer {
   font-family: "Menlo", "Consolas", monospace;
   font-size: 0.75rem;
-  color: #c0c0c0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
 }
 
-/* Role-based visibility */
-body.role-dispatcher .keymachine-only {
-  display: none;
+/* Timer severity colors */
+.timer-green {
+  border-color: #204d2a;
+  background: #0b1b10;
+  color: #a9ffb7;
 }
 
-body.role-keymachine .dispatcher-only {
-  display: none;
+.timer-yellow {
+  border-color: #5c5213;
+  background: #1b1808;
+  color: #ffe28a;
+}
+
+.timer-orange {
+  border-color: #7a4418;
+  background: #221109;
+  color: #ffb47a;
+}
+
+.timer-red {
+  border-color: #7a1c1c;
+  background: #220a0a;
+  color: #ff9b9b;
 }
 
 /* Empty state */
@@ -253,18 +314,144 @@ body.role-keymachine .dispatcher-only {
   color: #888;
 }
 
+/* Completed gap + check icon */
+.section-completed {
+  margin-top: 2.5rem;
+}
+
+.check-icon {
+  display: inline-block;
+  color: #4ade80;
+  margin-right: 0.25rem;
+}
+
+/* Metrics sidebar */
+.section-metrics {
+  background: #070711;
+  border-radius: 10px;
+  border: 1px solid #19192b;
+  padding: 0.8rem 0.9rem 1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.metric-card {
+  background: #05050c;
+  border-radius: 8px;
+  border: 1px solid #181822;
+  padding: 0.4rem 0.55rem;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: #9b9bb5;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.valet-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  font-size: 0.75rem;
+  color: #c5c5dd;
+}
+
+.valet-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.1rem 0;
+}
+
+/* Role visibility */
+body.role-dispatcher .dispatcher-only {
+  display: block;
+}
+
+body.role-keymachine .dispatcher-only,
+body.role-carwash .dispatcher-only,
+body.role-wallboard .dispatcher-only {
+  display: none !important;
+}
+
+body.role-keymachine .keymachine-only,
+body.role-dispatcher .keymachine-only,
+body.role-carwash .keymachine-only {
+  display: block;
+}
+
+body.role-wallboard .keymachine-only {
+  display: none !important;
+}
+
+body.role-carwash .carwash-only {
+  display: block;
+}
+
+/* Wallboard styling */
+.wallboard-main {
+  max-width: 1600px;
+}
+
+.wallboard-table th,
+.wallboard-table td {
+  font-size: 1rem;
+  padding: 0.6rem 0.7rem;
+}
+
+/* Wallboard: hide all buttons */
+body.role-wallboard button {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Key machine & carwash can still click buttons. */
+
 /* Responsive */
+@media (max-width: 1100px) {
+  .layout-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.8fr);
+    grid-template-areas:
+      "center center"
+      "left right";
+  }
+
+  .layout-left {
+    grid-area: left;
+  }
+
+  .layout-center {
+    grid-area: center;
+  }
+
+  .layout-right {
+    grid-area: right;
+  }
+}
+
 @media (max-width: 900px) {
   .app-main {
     padding: 0.75rem 0.75rem 1.5rem;
   }
 
-  th,
-  td {
-    padding: 0.4rem 0.45rem;
+  .layout-grid {
+    display: block;
   }
 
   .new-pickup-form {
     flex-direction: column;
+  }
+
+  th,
+  td {
+    padding: 0.4rem 0.45rem;
   }
 }
