@@ -5,8 +5,8 @@ let pickups = [];
 let role = "dispatcher";
 let severityMap = new Map(); // id -> 'green'|'yellow'|'orange'|'red'
 
-// PQI + UI state for auto-recovery
-let pqiMap = new Map(); // id -> true
+// Global PQI toggle
+let pqiEnabled = false;
 let uiStateLoaded = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,14 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupForm();
   setupTableActions();
   setupCompletedToggle();
-  loadUIState(); // restore collapsed completed + PQI flags
+  setupPqiToggle();
+  loadUIState(); // restore collapsed completed + PQI
 
   loadPickups();
   subscribeRealtime();
 
   // Timers every 15 seconds
   setInterval(() => {
-    renderTables(true); // true = timer-only update (for sounds, row colors)
+    renderTables(true); // true = timer-only update (for sounds)
   }, 15 * 1000);
 });
 
@@ -49,9 +50,10 @@ function loadUIState() {
     if (btn) btn.textContent = "Show";
   }
 
-  // PQI active tickets
-  if (Array.isArray(state.pqiActiveIds)) {
-    state.pqiActiveIds.forEach((id) => pqiMap.set(String(id), true));
+  // PQI enabled
+  if (typeof state.pqiEnabled === "boolean") {
+    pqiEnabled = state.pqiEnabled;
+    applyPqiToggleUI();
   }
 }
 
@@ -60,15 +62,37 @@ function saveUIState() {
   const completedCollapsed = !!(
     section && section.classList.contains("completed-collapsed")
   );
-  const pqiActiveIds = Array.from(pqiMap.entries())
-    .filter(([, val]) => val)
-    .map(([id]) => id);
 
-  const state = { completedCollapsed, pqiActiveIds };
+  const state = { completedCollapsed, pqiEnabled };
   try {
     localStorage.setItem("valetOpsState", JSON.stringify(state));
   } catch {
     // ignore
+  }
+}
+
+// --------------- PQI global toggle -----------------
+
+function setupPqiToggle() {
+  const btn = document.getElementById("pqi-toggle");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    pqiEnabled = !pqiEnabled;
+    applyPqiToggleUI();
+    saveUIState();
+  });
+}
+
+function applyPqiToggleUI() {
+  const btn = document.getElementById("pqi-toggle");
+  if (!btn) return;
+  if (pqiEnabled) {
+    btn.classList.remove("off");
+    btn.textContent = "PQI: On";
+  } else {
+    btn.classList.add("off");
+    btn.textContent = "PQI: Off";
   }
 }
 
@@ -117,18 +141,10 @@ function setupTableActions() {
   const waitingTbody = document.getElementById("waiting-tbody");
   const completedTbody = document.getElementById("completed-tbody");
 
-  if (activeTbody) {
-    activeTbody.addEventListener("click", onTableClick);
-  }
-  if (stagedTbody) {
-    stagedTbody.addEventListener("click", onTableClick);
-  }
-  if (waitingTbody) {
-    waitingTbody.addEventListener("click", onTableClick);
-  }
-  if (completedTbody) {
-    completedTbody.addEventListener("click", onTableClick);
-  }
+  if (activeTbody) activeTbody.addEventListener("click", onTableClick);
+  if (stagedTbody) stagedTbody.addEventListener("click", onTableClick);
+  if (waitingTbody) waitingTbody.addEventListener("click", onTableClick);
+  if (completedTbody) completedTbody.addEventListener("click", onTableClick);
 }
 
 function onTableClick(e) {
@@ -222,14 +238,6 @@ async function handleAction(id, action) {
       break;
     }
 
-    // Local PQI flag (no DB write yet)
-    case "pqi-activate": {
-      pqiMap.set(String(id), true);
-      saveUIState();
-      renderTables(false);
-      return;
-    }
-
     // Timeline view (no DB write)
     case "view-timeline": {
       const p = pickups.find((p) => String(p.id) === String(id));
@@ -239,34 +247,26 @@ async function handleAction(id, action) {
       lines.push(`Ticket ${p.tag_number} – ${p.customer_name}`);
       lines.push("--------------------------------");
 
-      if (p.created_at) {
-        lines.push("Created: " + formatTime(p.created_at));
-      }
-      if (p.activated_at) {
+      if (p.created_at) lines.push("Created: " + formatTime(p.created_at));
+      if (p.activated_at)
         lines.push("Activated (left staged): " + formatTime(p.activated_at));
-      }
-      if (p.keys_with_valet_at && p.keys_holder) {
+      if (p.keys_with_valet_at && p.keys_holder)
         lines.push(
           `Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at)
         );
-      }
-      if (p.keys_at_machine_at) {
+      if (p.keys_at_machine_at)
         lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
-      }
-      if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE") {
+      if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
         lines.push(
           `Wash status (${humanWashStatus(p.wash_status)}): ` +
             formatTime(p.wash_status_at)
         );
-      }
-      if (p.waiting_client_at) {
+      if (p.waiting_client_at)
         lines.push(
           "Waiting/staged for customer: " + formatTime(p.waiting_client_at)
         );
-      }
-      if (p.completed_at) {
+      if (p.completed_at)
         lines.push("Completed: " + formatTime(p.completed_at));
-      }
 
       const totalSeconds = computeSeconds(
         p.created_at,
@@ -300,7 +300,6 @@ async function handleAction(id, action) {
   }
 }
 
-// Set valet fields
 function setValetUpdates(updates, name, now) {
   updates.status = "KEYS_WITH_VALET";
   updates.keys_holder = name;
@@ -376,6 +375,7 @@ function renderTables(isTimerTick) {
   setCount("count-staged", staged.length);
   setCount("count-active", active.length);
   setCount("count-waiting", waiting.length);
+  setCount("count-completed", completed.length);
 
   // Staged
   if (stagedTbody) {
@@ -470,13 +470,15 @@ function renderActiveRow(p, now) {
   const valetLabelTime =
     valetSeconds != null ? formatDuration(valetSeconds) : "–";
 
-  const rowClass = rowClassForSeverity(masterSeverity);
+  // DO NOT tint entire row anymore (only timers show severity)
+  const rowClass = "";
 
   const washLabel = humanWashStatus(p.wash_status);
   const washNeedsClass =
     p.wash_status === "NEEDS_REWASH" ? "wash-needs" : "";
 
-  const hasPQI = pqiMap.get(String(p.id)) === true;
+  const currentWash = p.wash_status || "NONE";
+  const currentValet = p.keys_holder || "";
 
   return `
     <tr class="${rowClass}">
@@ -486,55 +488,55 @@ function renderActiveRow(p, now) {
         <div>
           <span class="status-badge">${statusLabel}</span>
         </div>
-        <div class="wash-buttons" style="margin-top:0.25rem;">
-          <button class="btn small keymachine-only" data-action="keys-machine" data-id="${
-            p.id
-          }">
+        <div class="wash-buttons" style="margin-top:0.15rem;">
+          <button class="btn small keymachine-only ${
+            p.status === "KEYS_IN_MACHINE" ? "btn-selected" : ""
+          }" data-action="keys-machine" data-id="${p.id}">
             Keys in key machine
           </button>
         </div>
-        <div class="wash-buttons" style="margin-top:0.25rem;">
-          <button class="btn small" data-action="car-wash-area" data-id="${
-            p.id
-          }">Car in wash</button>
-          <button class="btn small" data-action="car-red-line" data-id="${
-            p.id
-          }">Car on red line</button>
+        <div class="wash-buttons" style="margin-top:0.15rem;">
+          <button class="btn small ${
+            currentWash === "IN_WASH_AREA" ? "btn-selected" : ""
+          }" data-action="car-wash-area" data-id="${p.id}">Car in wash</button>
+          <button class="btn small ${
+            currentWash === "ON_RED_LINE" ? "btn-selected" : ""
+          }" data-action="car-red-line" data-id="${p.id}">Car on red line</button>
         </div>
-        <div class="wash-buttons" style="margin-top:0.25rem;">
-          <button class="btn small" data-action="wash-rewash" data-id="${
-            p.id
-          }">Re wash</button>
-          <button class="btn small" data-action="wash-needs-rewash" data-id="${
-            p.id
-          }">Needs rewash</button>
-          <button class="btn small" data-action="wash-dusty" data-id="${
-            p.id
-          }">Dusty</button>
+        <div class="wash-buttons" style="margin-top:0.15rem;">
+          <button class="btn small ${
+            currentWash === "REWASH" ? "btn-selected" : ""
+          }" data-action="wash-rewash" data-id="${p.id}">Re wash</button>
+          <button class="btn small ${
+            currentWash === "NEEDS_REWASH" ? "btn-selected" : ""
+          }" data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
+          <button class="btn small ${
+            currentWash === "DUSTY" ? "btn-selected" : ""
+          }" data-action="wash-dusty" data-id="${p.id}">Dusty</button>
         </div>
-        <div class="section-subtitle ${washNeedsClass}" style="margin-top:0.25rem;">
+        <div class="section-subtitle ${washNeedsClass}" style="margin-top:0.15rem;">
           ${washLabel}
         </div>
       </td>
       <td>
         <div class="keys-buttons">
-          <button class="btn small keymachine-only" data-action="with-fernando" data-id="${
-            p.id
-          }">Fernando</button>
-          <button class="btn small keymachine-only" data-action="with-juan" data-id="${
-            p.id
-          }">Juan</button>
-          <button class="btn small keymachine-only" data-action="with-miguel" data-id="${
-            p.id
-          }">Miguel</button>
-          <button class="btn small keymachine-only" data-action="with-maria" data-id="${
-            p.id
-          }">Maria</button>
-          <button class="btn small keymachine-only" data-action="with-helper" data-id="${
-            p.id
-          }">Helper</button>
+          <button class="btn small keymachine-only ${
+            currentValet === "Fernando" ? "btn-selected" : ""
+          }" data-action="with-fernando" data-id="${p.id}">Fernando</button>
+          <button class="btn small keymachine-only ${
+            currentValet === "Juan" ? "btn-selected" : ""
+          }" data-action="with-juan" data-id="${p.id}">Juan</button>
+          <button class="btn small keymachine-only ${
+            currentValet === "Miguel" ? "btn-selected" : ""
+          }" data-action="with-miguel" data-id="${p.id}">Miguel</button>
+          <button class="btn small keymachine-only ${
+            currentValet === "Maria" ? "btn-selected" : ""
+          }" data-action="with-maria" data-id="${p.id}">Maria</button>
+          <button class="btn small keymachine-only ${
+            currentValet === "Helper" ? "btn-selected" : ""
+          }" data-action="with-helper" data-id="${p.id}">Helper</button>
         </div>
-        <div class="section-subtitle" style="margin-top:0.25rem;">${escapeHtml(
+        <div class="section-subtitle" style="margin-top:0.15rem;">${escapeHtml(
           valetLabel
         )}</div>
       </td>
@@ -551,9 +553,9 @@ function renderActiveRow(p, now) {
         </button>
       </td>
       <td>
-        <button class="btn small notes-button" data-action="edit-note" data-id="${
-          p.id
-        }">
+        <button class="btn small notes-button ${
+          p.notes ? "btn-selected" : ""
+        }" data-action="edit-note" data-id="${p.id}">
           ${p.notes ? "Edit" : "Add"}
         </button>
         ${
@@ -570,9 +572,9 @@ function renderActiveRow(p, now) {
           ${masterLabel}
         </span>
         ${
-          hasPQI
-            ? `<span class="pqi-badge">PQI</span>`
-            : `<button class="pqi-toggle" data-action="pqi-activate" data-id="${p.id}">Activate PQI</button>`
+          pqiEnabled
+            ? '<span class="pqi-badge" style="margin-left:0.3rem;">PQI</span>'
+            : ""
         }
       </td>
     </tr>
@@ -591,7 +593,7 @@ function renderWaitingRow(p, now) {
   const masterClass = timerClass(masterSeverity);
   const masterLabel = formatDuration(masterSeconds);
 
-  const rowClass = rowClassForSeverity(masterSeverity);
+  const rowClass = "";
 
   return `
     <tr class="${rowClass}">
@@ -601,9 +603,9 @@ function renderWaitingRow(p, now) {
       <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
       <td><span class="timer ${masterClass}">${masterLabel}</span></td>
       <td>
-        <button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${
-          p.id
-        }">
+        <button class="btn small notes-button ${
+          p.notes ? "btn-selected" : ""
+        } dispatcher-only" data-action="edit-note" data-id="${p.id}">
           ${p.notes ? "Edit" : "Add"}
         </button>
         ${
@@ -716,8 +718,8 @@ function renderMetrics(active, waiting, completed, now) {
     .map(
       (name) => `
     <li>
-      <span>${escapeHtml(name)}</span>
-      <span>${valetCounts[name] || 0} tickets</span>
+      <span class="valet-name">${escapeHtml(name)}</span>
+      <span class="valet-count">${valetCounts[name] || 0} tickets</span>
     </li>`
     )
     .join("");
@@ -786,7 +788,10 @@ function humanWashStatus(wash_status) {
 function computeSeconds(startIso, endIso, now) {
   if (!startIso) return 0;
   const start = new Date(startIso);
-  const end = endIso ? new Date(endIso) : now;
+  let end = endIso ? new Date(endIso) : now;
+
+  // If somehow end < start due to out-of-order timestamps, clamp to now
+  if (end < start) end = now;
   const diffMs = end - start;
   if (Number.isNaN(diffMs) || diffMs < 0) return 0;
   return diffMs / 1000;
@@ -798,22 +803,17 @@ function computeMasterSeconds(p, now) {
   return computeSeconds(startIso, p.completed_at, now);
 }
 
+// Valet time: from keys_with_valet_at until keys_at_machine_at / waiting / completed / now
 function computeValetSeconds(p, now) {
   if (!p.keys_with_valet_at) return null;
   const start = new Date(p.keys_with_valet_at);
-  let end = now;
+  let end =
+    p.keys_at_machine_at ||
+    p.waiting_client_at ||
+    p.completed_at ||
+    now.toISOString();
 
-  if (p.keys_at_machine_at) {
-    end = new Date(p.keys_at_machine_at);
-  } else if (p.waiting_client_at) {
-    end = new Date(p.waiting_client_at);
-  } else if (p.completed_at) {
-    end = new Date(p.completed_at);
-  }
-
-  const diffMs = end - start;
-  if (Number.isNaN(diffMs) || diffMs <= 0) return 0;
-  return diffMs / 1000;
+  return computeSeconds(start.toISOString(), end, now);
 }
 
 function computeSeverity(seconds) {
@@ -835,20 +835,6 @@ function timerClass(severity) {
     case "green":
     default:
       return "timer-green";
-  }
-}
-
-function rowClassForSeverity(severity) {
-  switch (severity) {
-    case "yellow":
-      return "row-yellow";
-    case "orange":
-      return "row-orange";
-    case "red":
-      return "row-red";
-    case "green":
-    default:
-      return "row-green";
   }
 }
 
