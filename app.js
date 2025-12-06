@@ -14,13 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPickups();
   subscribeRealtime();
 
-  // Re-render every minute so the stopwatch column stays fresh
+  // refresh stopwatch every minute
   setInterval(renderTables, 60 * 1000);
 });
 
 function setupForm() {
   const form = document.getElementById("new-pickup-form");
-  if (!form) return; // key machine page has no form
+  if (!form) return;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -28,7 +28,6 @@ function setupForm() {
     const nameInput = document.getElementById("customer-name");
     const tag = tagInput.value.trim();
     const name = nameInput.value.trim();
-
     if (!tag || !name) return;
 
     const { error } = await supabase.from("pickups").insert({
@@ -39,7 +38,7 @@ function setupForm() {
 
     if (error) {
       console.error(error);
-      alert("Error creating pickup. Try again.");
+      alert("Error creating pickup. Check console.");
       return;
     }
 
@@ -55,11 +54,9 @@ function setupTableActions() {
   activeTbody.addEventListener("click", async (e) => {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
-
     const id = btn.getAttribute("data-id");
     const action = btn.getAttribute("data-action");
     if (!id || !action) return;
-
     await handleAction(id, action);
   });
 }
@@ -74,56 +71,46 @@ async function handleAction(id, action) {
       updates.keys_holder = "KEY_MACHINE";
       updates.keys_at_machine_at = now;
       break;
-
     case "wash-today":
       updates.wash_status = "WASHED_TODAY";
       updates.wash_status_at = now;
       break;
-
     case "wash-yesterday":
       updates.wash_status = "WASHED_YESTERDAY";
       updates.wash_status_at = now;
       break;
-
     case "wash-notsure":
       updates.wash_status = "NOT_SURE";
       updates.wash_status_at = now;
       break;
-
     case "with-fernando":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Fernando";
       updates.keys_with_valet_at = now;
       break;
-
     case "with-juan":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Juan";
       updates.keys_with_valet_at = now;
       break;
-
     case "with-miguel":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Miguel";
       updates.keys_with_valet_at = now;
       break;
-
     case "with-maria":
       updates.status = "KEYS_WITH_VALET";
       updates.keys_holder = "Maria";
       updates.keys_with_valet_at = now;
       break;
-
     case "waiting":
       updates.status = "CAR_WAITING_CLIENT";
       updates.waiting_client_at = now;
       break;
-
     case "complete":
       updates.status = "COMPLETE";
       updates.completed_at = now;
       break;
-
     case "edit-note": {
       const current = pickups.find((p) => p.id === id);
       const existing = current?.notes || "";
@@ -133,21 +120,16 @@ async function handleAction(id, action) {
       updates.notes_updated_at = now;
       break;
     }
-
     default:
       return;
   }
 
   if (Object.keys(updates).length === 0) return;
 
-  const { error } = await supabase
-    .from("pickups")
-    .update(updates)
-    .eq("id", id);
-
+  const { error } = await supabase.from("pickups").update(updates).eq("id", id);
   if (error) {
     console.error(error);
-    alert("Error saving update. Try again.");
+    alert("Error saving update. Check console.");
   }
 }
 
@@ -173,7 +155,6 @@ function subscribeRealtime() {
       "postgres_changes",
       { event: "*", schema: "public", table: "pickups" },
       () => {
-        // On any change, reload full list (small volume so it's fine)
         loadPickups();
       }
     )
@@ -183,7 +164,6 @@ function subscribeRealtime() {
 function renderTables() {
   const activeTbody = document.getElementById("active-tbody");
   const completedTbody = document.getElementById("completed-tbody");
-
   if (!activeTbody) return;
 
   const active = pickups.filter((p) => p.status !== "COMPLETE");
@@ -193,7 +173,7 @@ function renderTables() {
     activeTbody.innerHTML =
       '<tr><td colspan="10" class="empty">No active pickups.</td></tr>';
   } else {
-    activeTbody.innerHTML = active.map((p) => renderActiveRow(p)).join("");
+    activeTbody.innerHTML = active.map(renderActiveRow).join("");
   }
 
   if (completedTbody) {
@@ -201,9 +181,7 @@ function renderTables() {
       completedTbody.innerHTML =
         '<tr><td colspan="6" class="empty">No completed pickups yet.</td></tr>';
     } else {
-      completedTbody.innerHTML = completed
-        .map((p) => renderCompletedRow(p))
-        .join("");
+      completedTbody.innerHTML = completed.map(renderCompletedRow).join("");
     }
   }
 }
@@ -216,7 +194,8 @@ function renderActiveRow(p) {
   const washTodayActive = p.wash_status === "WASHED_TODAY";
   const washYesterdayActive = p.wash_status === "WASHED_YESTERDAY";
   const washNotSureActive = p.wash_status === "NOT_SURE";
-  const waitingDisabled = p.status === "CAR_WAITING_CLIENT" || p.status === "COMPLETE";
+  const waitingDisabled =
+    p.status === "CAR_WAITING_CLIENT" || p.status === "COMPLETE";
   const completeDisabled = p.status === "COMPLETE";
 
   return `
@@ -315,7 +294,9 @@ function renderCompletedRow(p) {
     <tr>
       <td>${escapeHtml(p.tag_number)}</td>
       <td>${escapeHtml(p.customer_name)}</td>
-      <td class="time-cell">${typeof totalMinutes === "number" ? totalMinutes + " min" : "-"}</td>
+      <td class="time-cell">${
+        typeof totalMinutes === "number" ? totalMinutes + " min" : "-"
+      }</td>
       <td>${formatTime(p.created_at)}</td>
       <td>${formatTime(p.completed_at)}</td>
       <td>${p.notes ? escapeHtml(p.notes) : ""}</td>
