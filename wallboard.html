@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Valet Ops Live – Wallboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- Our app logic -->
+    <script type="module" src="app.js"></script>
+  </head>
+  <body class="role-wallboard">
+    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
+
+    <div class="app-shell">
+      <header class="app-header">
+        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+        <div class="titles">
+          <div class="brand">Valet Ops Wallboard</div>
+          <div class="subtitle">Read-only view for TV screens</div>
+        </div>
+        <div class="role-pill">Wallboard</div>
+      </header>
+
+      <main class="app-main wallboard-main">
+        <!-- Active -->
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Active Pickups</div>
+              <div class="section-subtitle">
+                Color-coded by time. Oldest first.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="wallboard-table">
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th>Keys with</th>
+                  <th>Valet Time</th>
+                  <th>Master Time</th>
+                </tr>
+              </thead>
+              <tbody id="active-tbody">
+                <tr><td colspan="6" class="empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Waiting -->
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Waiting for Customer</div>
+              <div class="section-subtitle">
+                Cars ready out front.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="wallboard-table">
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Delivered by</th>
+                  <th>Waiting Time</th>
+                </tr>
+              </thead>
+              <tbody id="waiting-tbody">
+                <tr><td colspan="4" class="empty">None currently waiting.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
