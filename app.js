@@ -4,6 +4,7 @@ import { supabase } from "./supabaseClient.js";
 let pickups = [];
 let role = "dispatcher";
 let severityMap = new Map(); // id -> 'green'|'yellow'|'orange'|'red'
+let pqiMap = new Map(); // local PQI activation per ticket (front-end only)
 
 document.addEventListener("DOMContentLoaded", () => {
   if (document.body.classList.contains("role-keymachine")) role = "keymachine";
@@ -13,12 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupForm();
   setupTableActions();
+  setupCompletedToggle();
   loadPickups();
   subscribeRealtime();
 
   // Timers every 15 seconds
   setInterval(() => {
-    renderTables(true); // true = timer-only update (for sounds)
+    renderTables(true); // true = timer-only update (for sounds, row colors)
   }, 15 * 1000);
 });
 
@@ -78,7 +80,7 @@ function setupTableActions() {
 }
 
 function onTableClick(e) {
-  const btn = e.target.closest("button[data-action]");
+  const btn = e.target.closest("[data-action]");
   if (!btn) return;
   const id = btn.getAttribute("data-id");
   const action = btn.getAttribute("data-action");
@@ -93,6 +95,7 @@ async function handleAction(id, action) {
   switch (action) {
     case "activate-from-staged":
       updates.status = "NEW";
+      updates.activated_at = now;
       break;
 
     case "keys-machine":
@@ -101,8 +104,14 @@ async function handleAction(id, action) {
       updates.keys_at_machine_at = now;
       break;
 
-    case "wash-area":
+    // Status/location wash-related
+    case "car-wash-area":
       updates.wash_status = "IN_WASH_AREA";
+      updates.wash_status_at = now;
+      break;
+
+    case "car-red-line":
+      updates.wash_status = "ON_RED_LINE";
       updates.wash_status_at = now;
       break;
 
@@ -111,6 +120,17 @@ async function handleAction(id, action) {
       updates.wash_status_at = now;
       break;
 
+    case "wash-needs-rewash":
+      updates.wash_status = "NEEDS_REWASH";
+      updates.wash_status_at = now;
+      break;
+
+    case "wash-dusty":
+      updates.wash_status = "DUSTY";
+      updates.wash_status_at = now;
+      break;
+
+    // Valets
     case "with-fernando":
       setValetUpdates(updates, "Fernando", now);
       break;
@@ -123,17 +143,23 @@ async function handleAction(id, action) {
     case "with-maria":
       setValetUpdates(updates, "Maria", now);
       break;
+    case "with-helper":
+      setValetUpdates(updates, "Helper", now);
+      break;
 
+    // Stage for customer (waiting)
     case "waiting-customer":
       updates.status = "WAITING_FOR_CUSTOMER";
       updates.waiting_client_at = now;
       break;
 
+    // Customer picked up -> complete
     case "customer-picked-up":
       updates.status = "COMPLETE";
       updates.completed_at = now;
       break;
 
+    // Notes
     case "edit-note": {
       const current = pickups.find((p) => p.id === id);
       const existing = current?.notes || "";
@@ -142,6 +168,13 @@ async function handleAction(id, action) {
       updates.notes = next;
       updates.notes_updated_at = now;
       break;
+    }
+
+    // Local PQI flag (no DB write yet)
+    case "pqi-activate": {
+      pqiMap.set(id, true);
+      renderTables(false);
+      return;
     }
 
     default:
@@ -161,6 +194,19 @@ function setValetUpdates(updates, name, now) {
   updates.status = "KEYS_WITH_VALET";
   updates.keys_holder = name;
   updates.keys_with_valet_at = now;
+}
+
+// --------------- COMPLETED COLLAPSE -----------------
+
+function setupCompletedToggle() {
+  const section = document.getElementById("completed-section");
+  const btn = document.getElementById("toggle-completed");
+  if (!section || !btn) return;
+
+  btn.addEventListener("click", () => {
+    const collapsed = section.classList.toggle("completed-collapsed");
+    btn.textContent = collapsed ? "Show" : "Hide";
+  });
 }
 
 // --------------- DATA + REALTIME -----------------
@@ -211,8 +257,13 @@ function renderTables(isTimerTick) {
     .filter((p) => p.status === "COMPLETE")
     .slice(0, 50);
 
-  // Sort active by created_at oldest first for wallboard clarity
+  // Oldest first for active
   active.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+  // Counts in headers
+  setCount("count-staged", staged.length);
+  setCount("count-active", active.length);
+  setCount("count-waiting", waiting.length);
 
   // Staged
   if (stagedTbody) {
@@ -220,9 +271,7 @@ function renderTables(isTimerTick) {
       stagedTbody.innerHTML =
         '<tr><td colspan="4" class="empty">No staged tickets.</td></tr>';
     } else {
-      stagedTbody.innerHTML = staged
-        .map((p) => renderStagedRow(p, now))
-        .join("");
+      stagedTbody.innerHTML = staged.map((p) => renderStagedRow(p, now)).join("");
     }
   }
 
@@ -230,7 +279,7 @@ function renderTables(isTimerTick) {
   if (activeTbody) {
     if (active.length === 0) {
       activeTbody.innerHTML =
-        '<tr><td colspan="9" class="empty">No active pickups.</td></tr>';
+        '<tr><td colspan="8" class="empty">No active pickups.</td></tr>';
     } else {
       activeTbody.innerHTML = active.map((p) => renderActiveRow(p, now)).join("");
     }
@@ -240,7 +289,7 @@ function renderTables(isTimerTick) {
   if (waitingTbody) {
     if (waiting.length === 0) {
       waitingTbody.innerHTML =
-        '<tr><td colspan="6" class="empty">None currently waiting.</td></tr>';
+        '<tr><td colspan="7" class="empty">None currently waiting.</td></tr>';
     } else {
       waitingTbody.innerHTML = waiting
         .map((p) => renderWaitingRow(p, now))
@@ -271,6 +320,12 @@ function renderTables(isTimerTick) {
   }
 }
 
+function setCount(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = String(value);
+}
+
 function renderStagedRow(p, now) {
   return `
     <tr>
@@ -292,7 +347,7 @@ function renderActiveRow(p, now) {
   const statusLabel = humanStatus(p);
   const valetLabel = p.keys_holder ? `Keys with ${p.keys_holder}` : "—";
 
-  const masterSeconds = computeSeconds(p.created_at, p.completed_at, now);
+  const masterSeconds = computeMasterSeconds(p, now);
   const masterSeverity = computeSeverity(masterSeconds);
   const masterClass = timerClass(masterSeverity);
   const masterLabel = formatDuration(masterSeconds);
@@ -303,34 +358,51 @@ function renderActiveRow(p, now) {
   const valetLabelTime =
     valetSeconds != null ? formatDuration(valetSeconds) : "–";
 
+  const rowClass = rowClassForSeverity(masterSeverity);
+
   const washLabel = humanWashStatus(p.wash_status);
+  const washNeedsClass =
+    p.wash_status === "NEEDS_REWASH" ? "wash-needs" : "";
+
+  const hasPQI = pqiMap.get(String(p.id)) === true;
 
   return `
-    <tr>
+    <tr class="${rowClass}">
       <td>${escapeHtml(p.tag_number)}</td>
       <td>${escapeHtml(p.customer_name)}</td>
       <td>
-        <span class="status-badge">${statusLabel}</span>
-        ${
-          p.status !== "KEYS_IN_MACHINE"
-            ? `<button class="btn small keymachine-only" data-action="keys-machine" data-id="${p.id}">Key in machine</button>`
-            : ""
-        }
-      </td>
-      <td>
-        <div class="wash-buttons">
-          <button class="btn small carwash-only keymachine-only" data-action="wash-area" data-id="${
+        <div>
+          <span class="status-badge">${statusLabel}</span>
+        </div>
+        <div class="wash-buttons" style="margin-top:0.25rem;">
+          <button class="btn small keymachine-only" data-action="keys-machine" data-id="${
             p.id
           }">
-            In wash area
-          </button>
-          <button class="btn small carwash-only keymachine-only" data-action="wash-rewash" data-id="${
-            p.id
-          }">
-            Rewash
+            Keys in key machine
           </button>
         </div>
-        <div class="section-subtitle" style="margin-top:0.2rem;">${washLabel}</div>
+        <div class="wash-buttons" style="margin-top:0.25rem;">
+          <button class="btn small" data-action="car-wash-area" data-id="${
+            p.id
+          }">Car in wash</button>
+          <button class="btn small" data-action="car-red-line" data-id="${
+            p.id
+          }">Car on red line</button>
+        </div>
+        <div class="wash-buttons" style="margin-top:0.25rem;">
+          <button class="btn small" data-action="wash-rewash" data-id="${
+            p.id
+          }">Re wash</button>
+          <button class="btn small" data-action="wash-needs-rewash" data-id="${
+            p.id
+          }">Needs rewash</button>
+          <button class="btn small" data-action="wash-dusty" data-id="${
+            p.id
+          }">Dusty</button>
+        </div>
+        <div class="section-subtitle ${washNeedsClass}" style="margin-top:0.25rem;">
+          ${washLabel}
+        </div>
       </td>
       <td>
         <div class="keys-buttons">
@@ -346,8 +418,11 @@ function renderActiveRow(p, now) {
           <button class="btn small keymachine-only" data-action="with-maria" data-id="${
             p.id
           }">Maria</button>
+          <button class="btn small keymachine-only" data-action="with-helper" data-id="${
+            p.id
+          }">Helper</button>
         </div>
-        <div class="section-subtitle" style="margin-top:0.2rem;">${escapeHtml(
+        <div class="section-subtitle" style="margin-top:0.25rem;">${escapeHtml(
           valetLabel
         )}</div>
       </td>
@@ -360,7 +435,7 @@ function renderActiveRow(p, now) {
         <button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${
           p.id
         }">
-          Move to waiting
+          Move to staged
         </button>
       </td>
       <td>
@@ -369,11 +444,24 @@ function renderActiveRow(p, now) {
         }">
           ${p.notes ? "Edit" : "Add"}
         </button>
+        ${
+          p.notes
+            ? `<div class="notes-preview">${escapeHtml(p.notes).slice(
+                0,
+                40
+              )}${p.notes.length > 40 ? "…" : ""}</div>`
+            : ""
+        }
       </td>
       <td>
         <span class="timer ${masterClass}">
           ${masterLabel}
         </span>
+        ${
+          hasPQI
+            ? `<span class="pqi-badge">PQI</span>`
+            : `<button class="pqi-toggle" data-action="pqi-activate" data-id="${p.id}">Activate PQI</button>`
+        }
       </td>
     </tr>
   `;
@@ -381,23 +469,39 @@ function renderActiveRow(p, now) {
 
 function renderWaitingRow(p, now) {
   const deliveredBy = p.keys_holder || "—";
-  const waitingSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
-  const waitingSeverity = computeSeverity(waitingSeconds);
-  const waitingClass = timerClass(waitingSeverity);
-  const waitingLabel = formatDuration(waitingSeconds);
+  const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
+  const stagedSeverity = computeSeverity(stagedSeconds);
+  const stagedClass = timerClass(stagedSeverity);
+  const stagedLabel = formatDuration(stagedSeconds);
+
+  const masterSeconds = computeMasterSeconds(p, now);
+  const masterSeverity = computeSeverity(masterSeconds);
+  const masterClass = timerClass(masterSeverity);
+  const masterLabel = formatDuration(masterSeconds);
+
+  const rowClass = rowClassForSeverity(masterSeverity);
 
   return `
-    <tr>
+    <tr class="${rowClass}">
       <td>${escapeHtml(p.tag_number)}</td>
       <td>${escapeHtml(p.customer_name)}</td>
       <td>${escapeHtml(deliveredBy)}</td>
-      <td><span class="timer ${waitingClass}">${waitingLabel}</span></td>
+      <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
+      <td><span class="timer ${masterClass}">${masterLabel}</span></td>
       <td>
         <button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${
           p.id
         }">
           ${p.notes ? "Edit" : "Add"}
         </button>
+        ${
+          p.notes
+            ? `<div class="notes-preview">${escapeHtml(p.notes).slice(
+                0,
+                40
+              )}${p.notes.length > 40 ? "…" : ""}</div>`
+            : ""
+        }
       </td>
       <td>
         <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${
@@ -435,9 +539,17 @@ function renderMetrics(active, waiting, completed, now) {
   const avgCycleEl = document.getElementById("metrics-avg-cycle");
   const activeCountEl = document.getElementById("metrics-active-count");
   const waitingCountEl = document.getElementById("metrics-waiting-count");
+  const redlineCountEl = document.getElementById("metrics-redline-count");
   const valetsEl = document.getElementById("metrics-valets");
 
-  if (!completedTodayEl || !avgCycleEl || !activeCountEl || !waitingCountEl || !valetsEl) {
+  if (
+    !completedTodayEl ||
+    !avgCycleEl ||
+    !activeCountEl ||
+    !waitingCountEl ||
+    !redlineCountEl ||
+    !valetsEl
+  ) {
     return;
   }
 
@@ -464,28 +576,34 @@ function renderMetrics(active, waiting, completed, now) {
     avgCycleEl.textContent = formatDuration(avgSec);
   }
 
-  // Valet counts today (keys_holder where status complete or waiting)
+  // Red line count: wash_status ON_RED_LINE
+  const redLineCount = pickups.filter(
+    (p) => p.wash_status === "ON_RED_LINE" && p.status !== "COMPLETE"
+  ).length;
+  redlineCountEl.textContent = String(redLineCount);
+
+  // Valet counts – fixed list plus counts
+  const baseValets = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
   const valetCounts = {};
+  baseValets.forEach((v) => (valetCounts[v] = 0));
+
   pickups.forEach((p) => {
     if (!p.keys_holder) return;
-    const holder = p.keys_holder;
-    valetCounts[holder] = (valetCounts[holder] || 0) + 1;
+    if (valetCounts[p.keys_holder] === undefined) {
+      valetCounts[p.keys_holder] = 0;
+    }
+    valetCounts[p.keys_holder] += 1;
   });
 
-  const names = Object.keys(valetCounts);
-  if (names.length === 0) {
-    valetsEl.innerHTML = "<li>No valet activity yet.</li>";
-  } else {
-    valetsEl.innerHTML = names
-      .map(
-        (name) => `
-      <li>
-        <span>${escapeHtml(name)}</span>
-        <span>${valetCounts[name]} tickets</span>
-      </li>`
-      )
-      .join("");
-  }
+  valetsEl.innerHTML = baseValets
+    .map(
+      (name) => `
+    <li>
+      <span>${escapeHtml(name)}</span>
+      <span>${valetCounts[name] || 0} tickets</span>
+    </li>`
+    )
+    .join("");
 }
 
 // --------------- ALERTS -----------------
@@ -496,7 +614,7 @@ function maybePlayAlerts(active, now) {
   if (role !== "dispatcher" && role !== "wallboard") return;
 
   active.forEach((p) => {
-    const masterSeconds = computeSeconds(p.created_at, p.completed_at, now);
+    const masterSeconds = computeMasterSeconds(p, now);
     const severity = computeSeverity(masterSeconds);
     const prev = severityMap.get(p.id) || "green";
     severityMap.set(p.id, severity);
@@ -518,11 +636,11 @@ function humanStatus(p) {
     case "NEW":
       return "New";
     case "KEYS_IN_MACHINE":
-      return "Keys in Machine";
+      return "Keys in key machine";
     case "KEYS_WITH_VALET":
-      return "Keys with Valet";
+      return "Keys with valet";
     case "WAITING_FOR_CUSTOMER":
-      return "Waiting for Customer";
+      return "Waiting/staged for customer";
     case "COMPLETE":
       return "Complete";
     default:
@@ -533,9 +651,15 @@ function humanStatus(p) {
 function humanWashStatus(wash_status) {
   switch (wash_status) {
     case "IN_WASH_AREA":
-      return "In wash area";
+      return "Car in wash area";
+    case "ON_RED_LINE":
+      return "Car on red line";
     case "REWASH":
-      return "Rewash flagged";
+      return "Re wash";
+    case "NEEDS_REWASH":
+      return "Needs rewash";
+    case "DUSTY":
+      return "Dusty";
     case "NONE":
     default:
       return "Not set";
@@ -549,6 +673,12 @@ function computeSeconds(startIso, endIso, now) {
   const diffMs = end - start;
   if (Number.isNaN(diffMs) || diffMs < 0) return 0;
   return diffMs / 1000;
+}
+
+// Master timer: from activated_at (if present) or created_at
+function computeMasterSeconds(p, now) {
+  const startIso = p.activated_at || p.created_at;
+  return computeSeconds(startIso, p.completed_at, now);
 }
 
 function computeValetSeconds(p, now) {
@@ -588,6 +718,20 @@ function timerClass(severity) {
     case "green":
     default:
       return "timer-green";
+  }
+}
+
+function rowClassForSeverity(severity) {
+  switch (severity) {
+    case "yellow":
+      return "row-yellow";
+    case "orange":
+      return "row-orange";
+    case "red":
+      return "row-red";
+    case "green":
+    default:
+      return "row-green";
   }
 }
 
