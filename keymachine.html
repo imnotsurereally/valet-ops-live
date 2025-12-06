@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Optima Dealer Services – Key Machine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body class="role-keymachine">
+    <div class="app-shell">
+      <header class="app-header">
+        <img src="assets/optima-logo.png" alt="Optima Dealer Services" class="logo" />
+        <div class="titles">
+          <div class="brand">Optima Dealer Services</div>
+          <div class="subtitle">Staff Management &amp; Logistics for Auto Dealerships</div>
+        </div>
+        <div class="role-pill">Key Machine</div>
+      </header>
+
+      <main class="app-main">
+        <!-- Active pickups for Key Machine -->
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Active Pickups</div>
+              <div class="section-subtitle">
+                Key Machine actions only – one-click buttons, no typing.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th class="keymachine-only">Keys in Machine</th>
+                  <th class="keymachine-only">Wash</th>
+                  <th class="keymachine-only">Keys With</th>
+                  <th class="dispatcher-only">Waiting for Client</th>
+                  <th class="dispatcher-only">Complete</th>
+                  <th>Notes</th>
+                  <th>Time (min)</th>
+                </tr>
+              </thead>
+              <tbody id="active-tbody">
+                <tr><td colspan="10" class="empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Completed table hidden for keymachine by CSS (dispatcher-only) -->
+        <section class="section dispatcher-only">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Completed (Last 50)</div>
+              <div class="section-subtitle">Dispatcher view only.</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Total Time (min)</th>
+                  <th>Created</th>
+                  <th>Completed</th>
+                  <th>Last Notes</th>
+                </tr>
+              </thead>
+              <tbody id="completed-tbody">
+                <tr><td colspan="6" class="empty">Hidden for this role.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
