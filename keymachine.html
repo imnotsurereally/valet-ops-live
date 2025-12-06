@@ -29,7 +29,10 @@
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">Active Pickups</div>
+              <div class="section-title">
+                Active Pickups
+                <span class="section-count" id="count-active">0</span>
+              </div>
               <div class="section-subtitle">
                 One-click updates for keys and wash. Timers update live.
               </div>
@@ -42,8 +45,7 @@
                 <tr>
                   <th>Tag #</th>
                   <th>Customer</th>
-                  <th>Status</th>
-                  <th>Wash</th>
+                  <th>Status/Location</th>
                   <th>Keys with</th>
                   <th>Valet Time</th>
                   <th>Notes</th>
@@ -51,7 +53,7 @@
                 </tr>
               </thead>
               <tbody id="active-tbody">
-                <tr><td colspan="8" class="empty">Loading…</td></tr>
+                <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
