@@ -106,10 +106,10 @@ a {
 }
 
 /* Layout grid for dispatcher */
-/* ~86% middle column, skinny sides hugging edges */
+/* Middle ~86%, skinny sides hugging edges */
 .layout-grid {
   display: grid;
-  grid-template-columns: minmax(130px, 7%) minmax(0, 86%) minmax(130px, 7%);
+  grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
   gap: 0.75rem;
   align-items: flex-start;
 }
@@ -186,7 +186,7 @@ a {
   font-size: 0.72rem;
 }
 
-/* When something is selected: stronger + bold */
+/* Selected chips – shared visual language */
 .btn-selected {
   border-color: #3b82f6;
   background: #0b1c3a;
@@ -194,7 +194,7 @@ a {
   font-weight: 600;
 }
 
-/* Remove circles for unselected valet buttons */
+/* Keys (valets): no circles unless selected */
 .keys-buttons .btn {
   border-color: transparent;
   background: transparent;
@@ -207,6 +207,19 @@ a {
   border-radius: 999px;
 }
 
+/* Status/location: no circles unless selected */
+.wash-buttons .btn {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.15rem 0.45rem;
+}
+.wash-buttons .btn:hover {
+  border-color: #4b5563;
+}
+.wash-buttons .btn-selected {
+  border-radius: 999px;
+}
+
 /* Notes button: rectangular, no pill */
 .notes-button {
   border-radius: 4px;
@@ -215,7 +228,7 @@ a {
   background: transparent;
 }
 
-/* New pickup form – 50% height of before */
+/* New pickup form – 50% height of original */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
@@ -271,7 +284,8 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow: auto;
+  overflow-x: hidden;   /* no horizontal scroll */
+  overflow-y: auto;
 }
 
 /* ACTIVE PICKUPS MAIN SHOW – thick, animated border */
@@ -300,6 +314,8 @@ a {
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+  pointer-events: none;    /* IMPORTANT: don’t block clicks */
+  z-index: 0;
 }
 @keyframes borderFlow {
   0% { background-position: 0% 0%; }
@@ -315,6 +331,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
+  table-layout: fixed;      /* force columns to fit */
 }
 
 thead {
@@ -342,13 +359,18 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Make tag & customer bold */
+/* Tag + customer “ticket header” bubbles */
 .cell-tag,
 .cell-customer {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid #3b82f6;
+  background: #020617;
   font-weight: 700;
 }
 
-/* Status badge */
+/* Status badge line text */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -434,7 +456,7 @@ tr:nth-child(even) td {
   50% {
     border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 12px 4px rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 16px 6px rgba(59, 130, 246, 0.95);
   }
   100% {
     border-color: #3b82f6;
