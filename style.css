@@ -105,8 +105,8 @@ a {
   align-items: center;
 }
 
-/* Layout grid for dispatcher */
-/* Middle ~86%, skinny sides hugging edges */
+/* Layout grid */
+/* Middle owns ~86%, skinny sides hug edges */
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
@@ -153,10 +153,10 @@ a {
   min-width: 1.4rem;
   padding: 0.06rem 0.4rem;
   border-radius: 999px;
-  border: 1px solid #3b82f6;
-  background: #020617;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
   font-size: 0.75rem;
-  color: #bfdbfe;
+  color: #dbeafe;
   font-weight: 600;
 }
 
@@ -186,49 +186,7 @@ a {
   font-size: 0.72rem;
 }
 
-/* Selected chips – shared visual language */
-.btn-selected {
-  border-color: #3b82f6;
-  background: #0b1c3a;
-  color: #bfdbfe;
-  font-weight: 600;
-}
-
-/* Keys (valets): no circles unless selected */
-.keys-buttons .btn {
-  border-color: transparent;
-  background: transparent;
-  padding: 0.15rem 0.4rem;
-}
-.keys-buttons .btn:hover {
-  border-color: #4b5563;
-}
-.keys-buttons .btn-selected {
-  border-radius: 999px;
-}
-
-/* Status/location: no circles unless selected */
-.wash-buttons .btn {
-  border-color: transparent;
-  background: transparent;
-  padding: 0.15rem 0.45rem;
-}
-.wash-buttons .btn:hover {
-  border-color: #4b5563;
-}
-.wash-buttons .btn-selected {
-  border-radius: 999px;
-}
-
-/* Notes button: rectangular, no pill */
-.notes-button {
-  border-radius: 4px;
-  border-style: solid;
-  border-color: #4b5563;
-  background: transparent;
-}
-
-/* New pickup form – 50% height of original */
+/* New pickup form – slimmer */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
@@ -279,12 +237,12 @@ a {
   gap: 0.75rem;
 }
 
-/* Tables */
+/* Base table wrapper */
 .table-wrapper {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow-x: hidden;   /* no horizontal scroll */
+  overflow-x: hidden;     /* no horizontal scroll */
   overflow-y: auto;
 }
 
@@ -314,7 +272,7 @@ a {
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  pointer-events: none;    /* IMPORTANT: don’t block clicks */
+  pointer-events: none;   /* IMPORTANT: don't block clicks */
   z-index: 0;
 }
 @keyframes borderFlow {
@@ -327,11 +285,12 @@ a {
   max-height: 280px;
 }
 
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
-  table-layout: fixed;      /* force columns to fit */
+  table-layout: fixed;    /* force columns to fit – overridden for completed */
 }
 
 thead {
@@ -365,12 +324,13 @@ tr:nth-child(even) td {
   display: inline-block;
   padding: 0.12rem 0.4rem;
   border-radius: 999px;
-  border: 1px solid #3b82f6;
-  background: #020617;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
   font-weight: 700;
+  color: #dbeafe;
 }
 
-/* Status badge line text */
+/* Status badge line text (like KEYS WITH VALET) */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -382,12 +342,51 @@ tr:nth-child(even) td {
   color: #d0d0d0;
 }
 
-/* Wash / keys layout */
+/* Status/location & valet chip containers */
 .wash-buttons,
 .keys-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 0.2rem;
+}
+
+/* Keys (valets): default flat, selected pill later */
+.keys-buttons .btn {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.15rem 0.4rem;
+}
+.keys-buttons .btn:hover {
+  border-color: #4b5563;
+}
+
+/* Status/location options: default flat */
+.wash-buttons .btn {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.15rem 0.45rem;
+}
+.wash-buttons .btn:hover {
+  border-color: #4b5563;
+}
+
+/* Notes button: rectangular, no pill */
+.notes-button {
+  border-radius: 4px;
+  border-style: solid;
+  border-color: #4b5563;
+  background: transparent;
+}
+
+/* Shared selected pill – AFTER overrides above so it wins */
+.btn-selected,
+.keys-buttons .btn-selected,
+.wash-buttons .btn-selected {
+  border-radius: 999px;
+  border-color: #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 600;
 }
 
 /* Notes preview – latest note in blue pill */
@@ -397,9 +396,20 @@ tr:nth-child(even) td {
   display: inline-block;
   padding: 0.15rem 0.45rem;
   border-radius: 999px;
-  border: 1px solid #3b82f6;
+  border: 1px solid #60a5fa;
   background: #0b1c3a;
-  color: #bfdbfe;
+  color: #dbeafe;
+}
+
+/* Notes cell layout – keep Add note / timestamp / timer / PQI from overlapping */
+.notes-cell {
+  white-space: normal;
+}
+.notes-cell-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* Older notes – small grey lines */
@@ -409,7 +419,7 @@ tr:nth-child(even) td {
   margin-top: 0.05rem;
 }
 
-/* Timers */
+/* Timers – you liked these, keeping as-is */
 .timer {
   font-family: "Menlo", "Consolas", monospace;
   font-size: 0.75rem;
@@ -418,7 +428,6 @@ tr:nth-child(even) td {
   border: 1px solid transparent;
 }
 
-/* Timer severity colors */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
@@ -443,23 +452,26 @@ tr:nth-child(even) td {
   color: #ff9b9b;
 }
 
-/* Needs rewash – make the blue box REALLY noticeable */
+/* Needs rewash – really obvious flashing blue pill */
 .wash-needs {
+  border-color: #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
   animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
   0% {
-    border-color: #3b82f6;
+    border-color: #60a5fa;
     background: #0b1c3a;
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
   50% {
     border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 16px 6px rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
   }
   100% {
-    border-color: #3b82f6;
+    border-color: #60a5fa;
     background: #0b1c3a;
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
@@ -543,6 +555,34 @@ tr:nth-child(even) td {
 .valet-count {
   font-size: 0.7rem;
   color: #9b9bb5;
+}
+
+/* STAGED (non urgent) – prevent overlap by stacking content vertically */
+.section-staged table td {
+  white-space: normal;
+}
+.section-staged table td span {
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+/* COMPLETED – give it more width & stop overlap */
+.section-completed table {
+  table-layout: auto;   /* let columns size naturally */
+}
+.section-completed td {
+  white-space: nowrap;
+}
+
+/* Notes cell inside completed – let text wrap under Timeline button */
+.section-completed .notes-cell {
+  white-space: normal;
+}
+.section-completed .notes-cell-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
 }
 
 /* Role visibility */
