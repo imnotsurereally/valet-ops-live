@@ -1,4 +1,4 @@
-/* Global resets */
+/* ========== GLOBAL RESET ========== */
 *,
 *::before,
 *::after {
@@ -17,14 +17,14 @@ a {
   text-decoration: none;
 }
 
-/* Shell */
+/* ========== SHELL ========== */
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Header */
+/* ========== HEADER ========== */
 .app-header {
   display: flex;
   align-items: center;
@@ -76,7 +76,7 @@ a {
   color: #ccc;
 }
 
-/* PQI toggle (global) */
+/* PQI toggle in header */
 .pqi-toggle-global {
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
@@ -92,7 +92,7 @@ a {
   color: #9ca3af;
 }
 
-/* Main */
+/* ========== MAIN LAYOUT ========== */
 .app-main {
   padding: 0.75rem 1rem 1.5rem;
   max-width: 1800px;
@@ -105,8 +105,8 @@ a {
   align-items: center;
 }
 
-/* Layout grid */
-/* Middle owns ~86%, skinny sides hug edges */
+/* 3-column layout:
+   left ~7% (staged), center ~86% (main), right ~7% (stats) */
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
@@ -120,7 +120,7 @@ a {
   min-width: 0;
 }
 
-/* Sections */
+/* ========== SECTIONS / TITLES ========== */
 .section {
   margin-bottom: 1rem;
 }
@@ -145,7 +145,7 @@ a {
   color: #a0a0a0;
 }
 
-/* Blue count badge with blue box */
+/* Small blue count pill used in section titles */
 .section-count {
   display: inline-flex;
   align-items: center;
@@ -160,7 +160,7 @@ a {
   font-weight: 600;
 }
 
-/* Buttons */
+/* ========== BUTTONS / CHIPS ========== */
 .btn {
   border-radius: 999px;
   border: 1px solid #f5f5f5;
@@ -171,7 +171,6 @@ a {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-
 .btn:hover {
   background: #f5f5f5;
   color: #050608;
@@ -186,7 +185,56 @@ a {
   font-size: 0.72rem;
 }
 
-/* New pickup form – slimmer */
+/* Generic blue selected pill – used for tag, customer, selected status, selected valet, notes preview */
+.pill-blue,
+.btn-selected {
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 600;
+}
+
+/* Keys (valet names) – default flat, selected uses .btn-selected */
+.keys-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+.keys-buttons .btn {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.15rem 0.4rem;
+}
+.keys-buttons .btn:hover {
+  border-color: #4b5563;
+}
+
+/* Status/location options – default flat, selected uses .btn-selected */
+.wash-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+.wash-buttons .btn {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.15rem 0.45rem;
+}
+.wash-buttons .btn:hover {
+  border-color: #4b5563;
+}
+
+/* Notes "Add note" button – small rectangle */
+.notes-button {
+  border-radius: 4px;
+  border-style: solid;
+  border-color: #4b5563;
+  background: transparent;
+}
+
+/* ========== NEW PICKUP FORM (DISPATCH) ========== */
+/* Slimmer so it doesn’t dominate top of screen */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
@@ -230,23 +278,23 @@ a {
   color: #b0b0b0;
 }
 
-/* Screen links */
+/* Screen links row */
 .screen-links {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
 
-/* Base table wrapper */
+/* ========== TABLE WRAPPERS ========== */
 .table-wrapper {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow-x: hidden;     /* no horizontal scroll */
+  overflow-x: hidden;   /* no horizontal scroll */
   overflow-y: auto;
 }
 
-/* ACTIVE PICKUPS MAIN SHOW – thick, animated border */
+/* ACTIVE PICKUPS main highlight – animated border */
 .section-active .table-wrapper {
   position: relative;
   border-width: 4px;
@@ -261,9 +309,9 @@ a {
   background:
     conic-gradient(
       from 0deg,
-      rgba(255,255,255,0.95),
-      rgba(148,163,184,0.2),
-      rgba(255,255,255,0.95)
+      rgba(255,255,255,0.9),
+      rgba(148,163,184,0.25),
+      rgba(255,255,255,0.9)
     );
   background-size: 200% 200%;
   animation: borderFlow 4s linear infinite;
@@ -272,7 +320,7 @@ a {
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  pointer-events: none;   /* IMPORTANT: don't block clicks */
+  pointer-events: none; /* do NOT block clicks */
   z-index: 0;
 }
 @keyframes borderFlow {
@@ -285,12 +333,12 @@ a {
   max-height: 280px;
 }
 
-/* Tables */
+/* ========== TABLE BASE STYLES ========== */
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
-  table-layout: fixed;    /* force columns to fit – overridden for completed */
+  table-layout: fixed;   /* force columns to respect width */
 }
 
 thead {
@@ -302,23 +350,28 @@ td {
   padding: 0.3rem 0.45rem;
   border-bottom: 1px solid #17171f;
   text-align: left;
-  white-space: nowrap;
 }
 
+/* Keep headers on one line */
 th {
+  white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
+/* Allow cell content to wrap instead of overlapping */
 td {
+  white-space: normal;
   color: #f5f5f5;
+  vertical-align: top;
 }
 
 tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Tag + customer “ticket header” bubbles */
+/* ========== PILL STYLING ========== */
+/* Tag + Customer pills */
 .cell-tag,
 .cell-customer {
   display: inline-block;
@@ -330,7 +383,7 @@ tr:nth-child(even) td {
   color: #dbeafe;
 }
 
-/* Status badge line text (like KEYS WITH VALET) */
+/* Status badge (e.g., KEYS WITH VALET) */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -342,56 +395,9 @@ tr:nth-child(even) td {
   color: #d0d0d0;
 }
 
-/* Status/location & valet chip containers */
-.wash-buttons,
-.keys-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem;
-}
-
-/* Keys (valets): default flat, selected pill later */
-.keys-buttons .btn {
-  border-color: transparent;
-  background: transparent;
-  padding: 0.15rem 0.4rem;
-}
-.keys-buttons .btn:hover {
-  border-color: #4b5563;
-}
-
-/* Status/location options: default flat */
-.wash-buttons .btn {
-  border-color: transparent;
-  background: transparent;
-  padding: 0.15rem 0.45rem;
-}
-.wash-buttons .btn:hover {
-  border-color: #4b5563;
-}
-
-/* Notes button: rectangular, no pill */
-.notes-button {
-  border-radius: 4px;
-  border-style: solid;
-  border-color: #4b5563;
-  background: transparent;
-}
-
-/* Shared selected pill – AFTER overrides above so it wins */
-.btn-selected,
-.keys-buttons .btn-selected,
-.wash-buttons .btn-selected {
-  border-radius: 999px;
-  border-color: #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 600;
-}
-
-/* Notes preview – latest note in blue pill */
+/* ========== NOTES AREA ========== */
+/* Latest note as blue pill */
 .notes-preview {
-  margin-top: 0.15rem;
   font-size: 0.7rem;
   display: inline-block;
   padding: 0.15rem 0.45rem;
@@ -401,7 +407,7 @@ tr:nth-child(even) td {
   color: #dbeafe;
 }
 
-/* Notes cell layout – keep Add note / timestamp / timer / PQI from overlapping */
+/* Notes cell layout – keep Add note / time / timer / PQI in a neat row */
 .notes-cell {
   white-space: normal;
 }
@@ -412,22 +418,24 @@ tr:nth-child(even) td {
   gap: 0.25rem;
 }
 
-/* Older notes – small grey lines */
+/* Older notes history lines */
 .notes-history-line {
   font-size: 0.68rem;
   color: #9ca3af;
   margin-top: 0.05rem;
 }
 
-/* Timers – you liked these, keeping as-is */
+/* ========== TIMERS ========== */
 .timer {
   font-family: "Menlo", "Consolas", monospace;
   font-size: 0.75rem;
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
   border: 1px solid transparent;
+  display: inline-block;
 }
 
+/* Time buckets – you liked these before */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
@@ -452,9 +460,10 @@ tr:nth-child(even) td {
   color: #ff9b9b;
 }
 
-/* Needs rewash – really obvious flashing blue pill */
+/* Needs rewash – very visible flashing blue pill */
 .wash-needs {
-  border-color: #60a5fa;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
   animation: washBlink 0.7s infinite;
@@ -477,30 +486,133 @@ tr:nth-child(even) td {
   }
 }
 
-/* Empty state */
-.empty {
-  padding: 0.75rem 1rem;
-  font-size: 0.8rem;
-  color: #888;
+/* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
+/* Make content stack vertically so it never overlaps in the skinny column */
+.section-staged table td {
+  white-space: normal;
+}
+.section-staged table td span {
+  display: block;
+  margin-bottom: 0.08rem;
 }
 
-/* Completed gap + check icon */
-.section-completed {
-  margin-top: 2.5rem;
+/* ========== ACTIVE PICKUPS – HEADER RELABEL TO MATCH REAL COLUMNS ========== */
+/* If your HTML header order doesn't match the data, we rewrite the text here
+   so what you SEE matches where the content actually lives. */
+
+.section-active thead th {
+  position: relative;
 }
 
+/* 1st: Tag # stays Tag # */
+
+/* 2nd header visually becomes "Status/location" */
+.section-active thead th:nth-child(2) {
+  color: transparent;
+}
+.section-active thead th:nth-child(2)::after {
+  content: "Status/location";
+  color: #ccc;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* 3rd header visually becomes "Keys with" */
+.section-active thead th:nth-child(3) {
+  color: transparent;
+}
+.section-active thead th:nth-child(3)::after {
+  content: "Keys with";
+  color: #ccc;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* 4th header visually becomes "Valet Time" */
+.section-active thead th:nth-child(4) {
+  color: transparent;
+}
+.section-active thead th:nth-child(4)::after {
+  content: "Valet Time";
+  color: #ccc;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* 5th header visually becomes "Staged" */
+.section-active thead th:nth-child(5) {
+  color: transparent;
+}
+.section-active thead th:nth-child(5)::after {
+  content: "Staged";
+  color: #ccc;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* 6th header visually becomes "Notes" */
+.section-active thead th:nth-child(6) {
+  color: transparent;
+}
+.section-active thead th:nth-child(6)::after {
+  content: "Notes";
+  color: #ccc;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* 7th header visually becomes "Master Time" */
+.section-active thead th:nth-child(7) {
+  color: transparent;
+}
+.section-active thead th:nth-child(7)::after {
+  content: "Master Time";
+  color: #ccc;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Hide any 8th header if present */
+.section-active thead th:nth-child(8) {
+  display: none;
+}
+
+/* ========== COMPLETED TABLE ========== */
+/* Let columns size naturally in completed so tag + customer + notes breathe */
+.section-completed table {
+  table-layout: auto;
+}
+
+/* Notes cell in completed – keep Timeline and text clean */
+.section-completed .notes-cell {
+  white-space: normal;
+}
+.section-completed .notes-cell-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+/* Checkmark icon next to Completed title */
 .check-icon {
   display: inline-block;
   color: #4ade80;
   margin-right: 0.25rem;
 }
 
-/* Completed collapse */
+/* Optional collapse for completed section */
 .completed-collapsed .section-completed-table {
   display: none;
 }
 
-/* Metrics sidebar */
+/* ========== METRICS SIDEBAR (TODAY'S STATS) ========== */
 .section-metrics {
   background: #070711;
   border-radius: 10px;
@@ -532,7 +644,7 @@ tr:nth-child(even) td {
   margin-top: 0.05rem;
 }
 
-/* Valet list */
+/* Valet activity list */
 .valet-list {
   list-style: none;
   margin: 0.35rem 0 0;
@@ -540,52 +652,28 @@ tr:nth-child(even) td {
   font-size: 0.75rem;
   color: #c5c5dd;
 }
-
 .valet-list li {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   padding: 0.12rem 0;
 }
-
 .valet-name {
   font-weight: 500;
 }
-
 .valet-count {
   font-size: 0.7rem;
   color: #9b9bb5;
 }
 
-/* STAGED (non urgent) – prevent overlap by stacking content vertically */
-.section-staged table td {
-  white-space: normal;
-}
-.section-staged table td span {
-  display: block;
-  margin-bottom: 0.1rem;
+/* ========== EMPTY STATE ========== */
+.empty {
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #888;
 }
 
-/* COMPLETED – give it more width & stop overlap */
-.section-completed table {
-  table-layout: auto;   /* let columns size naturally */
-}
-.section-completed td {
-  white-space: nowrap;
-}
-
-/* Notes cell inside completed – let text wrap under Timeline button */
-.section-completed .notes-cell {
-  white-space: normal;
-}
-.section-completed .notes-cell-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-}
-
-/* Role visibility */
+/* ========== ROLE VISIBILITY ========== */
 body.role-dispatcher .dispatcher-only {
   display: block;
 }
@@ -614,20 +702,19 @@ body.role-carwash .carwash-only {
 .wallboard-main {
   max-width: 1600px;
 }
-
 .wallboard-table th,
 .wallboard-table td {
   font-size: 1rem;
   padding: 0.6rem 0.7rem;
 }
 
-/* Wallboard: hide all buttons */
+/* Wallboard: make everything read-only visually */
 body.role-wallboard button {
   pointer-events: none;
   opacity: 0.7;
 }
 
-/* Responsive */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
   .layout-grid {
     display: block;
