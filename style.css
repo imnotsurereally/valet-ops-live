@@ -106,8 +106,7 @@ a {
   align-items: center;
 }
 
-/* 3-column layout:
-   left ~7% (staged), center ~86% (main), right ~7% (stats) */
+/* 3-column layout: left ~7%, center ~86%, right ~7% */
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
@@ -146,7 +145,7 @@ a {
   color: #a0a0a0;
 }
 
-/* Small blue count pill used in section titles */
+/* Small blue count pill */
 .section-count {
   display: inline-flex;
   align-items: center;
@@ -186,8 +185,13 @@ a {
   font-size: 0.72rem;
 }
 
-/* BLUE PILL STYLE – APPLIES TO SELECTED BUTTONS */
-.btn.selected {
+/* Shared blue pill style for any "selected" button */
+.btn.selected,
+.btn.active,
+.btn.is-active,
+.btn.is-selected,
+.keys-buttons .btn.selected,
+.wash-buttons .btn.selected {
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
@@ -195,7 +199,7 @@ a {
   font-weight: 600;
 }
 
-/* Tag + customer pills share same visual language */
+/* Tag + customer pills */
 .pill-blue {
   display: inline-block;
   padding: 0.12rem 0.4rem;
@@ -213,12 +217,14 @@ a {
   gap: 0.2rem;
 }
 .keys-buttons .btn {
-  border-color: transparent;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
   background: transparent;
-  padding: 0.15rem 0.4rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.74rem;
 }
 .keys-buttons .btn:hover {
-  border-color: #4b5563;
+  border-color: #9ca3af;
 }
 
 /* Status/location options group */
@@ -228,21 +234,17 @@ a {
   gap: 0.2rem;
 }
 .wash-buttons .btn {
-  border-color: transparent;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
   background: transparent;
-  padding: 0.15rem 0.45rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.74rem;
 }
 .wash-buttons .btn:hover {
-  border-color: #4b5563;
+  border-color: #9ca3af;
 }
 
-/* When a status or valet is selected, old white circles on others disappear */
-.keys-buttons .btn:not(.selected),
-.wash-buttons .btn:not(.selected) {
-  box-shadow: none;
-}
-
-/* Notes "Add note" button – keep rectangular, not pill */
+/* Notes "Add note" button – keep rectangular */
 .notes-button {
   border-radius: 4px;
   border-style: solid;
@@ -251,7 +253,6 @@ a {
 }
 
 /* ========== NEW PICKUP FORM (DISPATCH) ========== */
-/* Slimmer so it doesn’t dominate top of screen */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
@@ -295,7 +296,7 @@ a {
   color: #b0b0b0;
 }
 
-/* Screen links row */
+/* ========== SCREEN LINKS ========== */
 .screen-links {
   display: flex;
   flex-wrap: wrap;
@@ -307,11 +308,10 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow-x: hidden; /* no horizontal scroll inside */
   overflow-y: auto;
 }
 
-/* ACTIVE PICKUPS main highlight – animated border */
+/* ACTIVE PICKUPS highlight – animated border */
 .section-active .table-wrapper {
   position: relative;
   border-width: 4px;
@@ -352,6 +352,13 @@ a {
 
 .table-wrapper.small {
   max-height: 280px;
+}
+
+/* Staged column wrapper needs its own scroll & width behaviour */
+.section-staged .table-wrapper {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: auto; /* allow horizontal scroll instead of overlapping */
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -416,7 +423,6 @@ tr:nth-child(even) td {
 }
 
 /* ========== NOTES AREA ========== */
-/* Latest note as blue pill */
 .notes-preview {
   font-size: 0.7rem;
   display: inline-block;
@@ -427,7 +433,7 @@ tr:nth-child(even) td {
   color: #dbeafe;
 }
 
-/* Notes cell layout – keep Add note / time / timer / PQI in a neat row */
+/* Notes cell layout – keep Add note / time / timer / PQI tidy */
 .notes-cell {
   white-space: normal;
 }
@@ -443,6 +449,11 @@ tr:nth-child(even) td {
   font-size: 0.68rem;
   color: #9ca3af;
   margin-top: 0.05rem;
+}
+
+/* Timeline button row for completed section */
+.timeline-button-row {
+  margin-top: 0.15rem;
 }
 
 /* ========== TIMERS ========== */
@@ -507,7 +518,6 @@ tr:nth-child(even) td {
 }
 
 /* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
-/* Make content stack vertically so it never overlaps in the skinny column */
 .section-staged table {
   table-layout: auto;
 }
@@ -519,15 +529,13 @@ tr:nth-child(even) td {
   line-height: 1.2;
 }
 
-/* If tag/customer/time are wrapped in spans, stack them */
+/* Stack tag / customer / created time vertically */
 .section-staged table td span {
   display: block;
   margin-bottom: 0.08rem;
 }
 
-/* ========== ACTIVE PICKUPS – HEADER RELABEL TO MATCH REAL COLUMNS ========== */
-/* Applies to any screen using .section-active (dispatcher, key machine, car wash, wallboard) */
-
+/* ========== ACTIVE PICKUPS – HEADER LABELS ========== */
 .section-active thead th {
   position: relative;
 }
@@ -611,8 +619,24 @@ tr:nth-child(even) td {
   display: none;
 }
 
+/* ========== WAITING/STAGED FOR CUSTOMER ========== */
+.section-waiting table {
+  table-layout: fixed;
+}
+
+.section-waiting th,
+.section-waiting td {
+  white-space: normal;
+  font-size: 0.78rem;
+}
+
+.section-waiting .notes-cell-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
 /* ========== COMPLETED TABLE ========== */
-/* Let columns size naturally in completed so tag + customer + notes breathe */
 .section-completed table {
   table-layout: auto;
 }
@@ -736,7 +760,7 @@ body.role-carwash .carwash-only {
   padding: 0.6rem 0.7rem;
 }
 
-/* Wallboard: make everything read-only visually */
+/* Wallboard read-only */
 body.role-wallboard button {
   pointer-events: none;
   opacity: 0.7;
