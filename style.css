@@ -7,7 +7,8 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
   background: #050608;
   color: #f5f5f5;
 }
@@ -17,7 +18,7 @@ a {
   text-decoration: none;
 }
 
-/* ========== SHELL ========== */
+/* ========== APP SHELL ========== */
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -185,9 +186,8 @@ a {
   font-size: 0.72rem;
 }
 
-/* Generic blue selected pill – used for tag, customer, selected status, selected valet, notes preview */
-.pill-blue,
-.btn-selected {
+/* BLUE PILL STYLE – APPLIES TO SELECTED BUTTONS */
+.btn.selected {
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
@@ -195,7 +195,18 @@ a {
   font-weight: 600;
 }
 
-/* Keys (valet names) – default flat, selected uses .btn-selected */
+/* Tag + customer pills share same visual language */
+.pill-blue {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 700;
+}
+
+/* Keys (valet names) group */
 .keys-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -210,7 +221,7 @@ a {
   border-color: #4b5563;
 }
 
-/* Status/location options – default flat, selected uses .btn-selected */
+/* Status/location options group */
 .wash-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -225,7 +236,13 @@ a {
   border-color: #4b5563;
 }
 
-/* Notes "Add note" button – small rectangle */
+/* When a status or valet is selected, old white circles on others disappear */
+.keys-buttons .btn:not(.selected),
+.wash-buttons .btn:not(.selected) {
+  box-shadow: none;
+}
+
+/* Notes "Add note" button – keep rectangular, not pill */
 .notes-button {
   border-radius: 4px;
   border-style: solid;
@@ -290,7 +307,7 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow-x: hidden;   /* no horizontal scroll */
+  overflow-x: hidden; /* no horizontal scroll inside */
   overflow-y: auto;
 }
 
@@ -306,27 +323,31 @@ a {
   inset: -3px;
   border-radius: inherit;
   border: 3px solid transparent;
-  background:
-    conic-gradient(
-      from 0deg,
-      rgba(255,255,255,0.9),
-      rgba(148,163,184,0.25),
-      rgba(255,255,255,0.9)
-    );
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(148, 163, 184, 0.25),
+    rgba(255, 255, 255, 0.9)
+  );
   background-size: 200% 200%;
   animation: borderFlow 4s linear infinite;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
+  -webkit-mask: linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  pointer-events: none; /* do NOT block clicks */
+  pointer-events: none;
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 .table-wrapper.small {
@@ -338,7 +359,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
-  table-layout: fixed;   /* force columns to respect width */
+  table-layout: fixed;
 }
 
 thead {
@@ -359,7 +380,7 @@ th {
   color: #ccc;
 }
 
-/* Allow cell content to wrap instead of overlapping */
+/* Allow data cells to wrap instead of overlapping */
 td {
   white-space: normal;
   color: #f5f5f5;
@@ -370,8 +391,7 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* ========== PILL STYLING ========== */
-/* Tag + Customer pills */
+/* ========== TAG / CUSTOMER PILL STYLING ========== */
 .cell-tag,
 .cell-customer {
   display: inline-block;
@@ -435,7 +455,7 @@ tr:nth-child(even) td {
   display: inline-block;
 }
 
-/* Time buckets – you liked these before */
+/* Time buckets */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
@@ -488,17 +508,25 @@ tr:nth-child(even) td {
 
 /* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
 /* Make content stack vertically so it never overlaps in the skinny column */
-.section-staged table td {
-  white-space: normal;
+.section-staged table {
+  table-layout: auto;
 }
+
+.section-staged th,
+.section-staged td {
+  white-space: normal;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* If tag/customer/time are wrapped in spans, stack them */
 .section-staged table td span {
   display: block;
   margin-bottom: 0.08rem;
 }
 
 /* ========== ACTIVE PICKUPS – HEADER RELABEL TO MATCH REAL COLUMNS ========== */
-/* If your HTML header order doesn't match the data, we rewrite the text here
-   so what you SEE matches where the content actually lives. */
+/* Applies to any screen using .section-active (dispatcher, key machine, car wash, wallboard) */
 
 .section-active thead th {
   position: relative;
