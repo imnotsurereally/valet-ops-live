@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Valet Ops Live – History</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+
+    <style>
+      /* History-only layout tweaks (safe: does NOT affect other pages) */
+      .history-wrap {
+        max-width: 1800px;
+        margin: 0 auto;
+      }
+      .history-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: flex-end;
+        background: #0a0b10;
+        border-radius: 10px;
+        border: 1px solid #191b22;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.8rem;
+      }
+      .history-controls .input-text {
+        min-width: 220px;
+      }
+      .history-controls .btn {
+        white-space: nowrap;
+      }
+
+      .history-results .table-wrapper {
+        overflow-x: auto;
+      }
+
+      .details-cell {
+        min-width: 420px;
+      }
+      .timeline {
+        margin-top: 0.35rem;
+        padding-top: 0.35rem;
+        border-top: 1px solid #17171f;
+        display: grid;
+        gap: 0.25rem;
+      }
+      .timeline-item {
+        font-size: 0.76rem;
+        color: #e5e7eb;
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+      }
+      .timeline-time {
+        font-family: "Menlo","Consolas",monospace;
+        font-size: 0.72rem;
+        color: #9ca3af;
+        min-width: 110px;
+      }
+      .timeline-text {
+        color: #e5e7eb;
+      }
+      .muted {
+        color: #9ca3af;
+      }
+
+      /* Make “open row” cleaner */
+      .row-open {
+        outline: 2px solid rgba(96,165,250,0.35);
+        outline-offset: -2px;
+      }
+
+      /* Tighten pills in history */
+      .pill-blue {
+        margin-right: 0.25rem;
+      }
+      .notes-preview {
+        margin-top: 0.2rem;
+      }
+
+      @media (max-width: 900px) {
+        .details-cell { min-width: 320px; }
+      }
+    </style>
+  </head>
+
+  <body class="role-dispatcher">
+    <div class="app-shell">
+      <header class="app-header">
+        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+        <div class="titles">
+          <div class="brand">Optima Dealer Services</div>
+          <div class="subtitle">History / Audit – Search any ticket timeline</div>
+        </div>
+        <div class="header-right">
+          <a class="btn small" href="dispatcher.html">Back to Dispatcher</a>
+          <div class="role-pill">History</div>
+        </div>
+      </header>
+
+      <main class="app-main history-wrap">
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">
+                Ticket History
+                <span class="section-count" id="count-results">0</span>
+              </div>
+              <div class="section-subtitle">
+                Read-only. Search by Tag # or Customer Name. Expand a row to view the full timeline + notes history.
+              </div>
+            </div>
+          </div>
+
+          <div class="history-controls">
+            <div class="input-group">
+              <label for="q">Search (Tag # or Name)</label>
+              <input id="q" class="input-text" placeholder="e.g. 1432 or Maria" />
+            </div>
+
+            <div class="input-group">
+              <label for="quick">Quick Range</label>
+              <select id="quick" class="input-text">
+                <option value="today" selected>Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="all">All time</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="from">From</label>
+              <input id="from" type="date" class="input-text" />
+            </div>
+
+            <div class="input-group">
+              <label for="to">To</label>
+              <input id="to" type="date" class="input-text" />
+            </div>
+
+            <button class="btn btn-primary" id="btn-refresh">Refresh</button>
+            <button class="btn" id="btn-clear">Clear</button>
+          </div>
+
+          <div class="history-results">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Tag #</th>
+                    <th style="width:220px;">Customer</th>
+                    <th style="width:160px;">Created</th>
+                    <th style="width:160px;">Active Started</th>
+                    <th style="width:150px;">Moved to Waiting</th>
+                    <th style="width:140px;">Completed</th>
+                    <th style="width:160px;">Cycle (Active)</th>
+                    <th class="details-cell">Details</th>
+                  </tr>
+                </thead>
+                <tbody id="results-tbody">
+                  <tr><td colspan="8" class="empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- History page script (self-contained, does NOT touch app.js) -->
+    <script type="module">
+      // ---------- Supabase client (same as supabaseClient.js, but inline so you only paste one file) ----------
+      const SUPABASE_URL = "https://azsjlplgxhohpzuobxrj.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6c2pscGxneGhvaHB6dW9ieHJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5NzU5NDAsImV4cCI6MjA4MDU1MTk0MH0._WudnsgmWGMmoUV8C6PA_qbg5_3tWNCe8wD-6GJ-Cy8";
+
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // ---------- State ----------
+      let allPickups = [];
+      const openRows = new Set(); // ids expanded
+
+      // ---------- DOM ----------
+      const $q = document.getElementById("q");
+      const $quick = document.getElementById("quick");
+      const $from = document.getElementById("from");
+      const $to = document.getElementById("to");
+      const $btnRefresh = document.getElementById("btn-refresh");
+      const $btnClear = document.getElementById("btn-clear");
+      const $tbody = document.getElementById("results-tbody");
+      const $count = document.getElementById("count-results");
+
+      // ---------- Init ----------
+      document.addEventListener("DOMContentLoaded", () => {
+        applyQuickRange("today");
+        loadAll().then(() => render());
+
+        $btnRefresh.addEventListener("click", () => {
+          loadAll().then(() => render());
+        });
+
+        $btnClear.addEventListener("click", () => {
+          $q.value = "";
+          $quick.value = "today";
+          applyQuickRange("today");
+          openRows.clear();
+          render();
+        });
+
+        $quick.addEventListener("change", () => {
+          applyQuickRange($quick.value);
+          openRows.clear();
+          render();
+        });
+
+        [$q, $from, $to].forEach((el) => {
+          el.addEventListener("input", () => {
+            // don’t reload DB; just filter client-side
+            render();
+          });
+        });
+
+        $tbody.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-toggle]");
+          if (!btn) return;
+          const id = btn.getAttribute("data-id");
+          if (!id) return;
+          if (openRows.has(id)) openRows.delete(id);
+          else openRows.add(id);
+          render();
+        });
+      });
+
+      // ---------- Load ----------
+      async function loadAll() {
+        $tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+
+        // Pull a reasonable window; filters are client-side.
+        // If you later want truly huge history, we’ll paginate in V2.
+        const { data, error } = await supabase
+          .from("pickups")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(500);
+
+        if (error) {
+          console.error(error);
+          $tbody.innerHTML =
+            '<tr><td colspan="8" class="empty">Error loading. Check console.</td></tr>';
+          return;
+        }
+
+        allPickups = data || [];
+      }
+
+      // ---------- Render ----------
+      function render() {
+        const filtered = filterPickups(allPickups);
+        $count.textContent = String(filtered.length);
+
+        if (!filtered.length) {
+          $tbody.innerHTML =
+            '<tr><td colspan="8" class="empty">No results for that search / date range.</td></tr>';
+          return;
+        }
+
+        $tbody.innerHTML = filtered.map((p) => renderRow(p)).join("");
+      }
+
+      function renderRow(p) {
+        const id = String(p.id);
+        const isOpen = openRows.has(id);
+
+        const cycleSeconds = computeSeconds(p.active_started_at || p.created_at, p.waiting_client_at, new Date());
+        const cycleLabel = formatDuration(cycleSeconds);
+        const cycleSeverity = computeSeverity(cycleSeconds);
+        const cycleClass = timerClass(cycleSeverity);
+
+        const lastNote = lastNoteFromNotes(p.notes);
+
+        return `
+          <tr class="${isOpen ? "row-open" : ""}">
+            <td><span class="pill-blue">${escapeHtml(p.tag_number || "")}</span></td>
+            <td><span class="pill-blue">${escapeHtml(p.customer_name || "")}</span></td>
+            <td>${formatTime(p.created_at)}</td>
+            <td>${formatTime(p.active_started_at)}</td>
+            <td>${formatTime(p.waiting_client_at)}</td>
+            <td>${formatTime(p.completed_at)}</td>
+            <td><span class="timer ${cycleClass}">${cycleLabel}</span></td>
+            <td class="details-cell">
+              <button class="btn small" data-toggle="1" data-id="${id}">
+                ${isOpen ? "Hide" : "Show"} timeline
+              </button>
+
+              ${
+                lastNote
+                  ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>`
+                  : `<div class="muted" style="margin-top:0.25rem;font-size:0.78rem;">No notes.</div>`
+              }
+
+              ${isOpen ? renderTimeline(p) : ""}
+            </td>
+          </tr>
+        `;
+      }
+
+      function renderTimeline(p) {
+        const items = buildTimelineItems(p);
+
+        const notes = (p.notes || "").split("\n").filter(Boolean);
+        const notesBlock = notes.length
+          ? `
+            <div class="timeline-item" style="margin-top:0.25rem;">
+              <div class="timeline-time">Notes</div>
+              <div class="timeline-text muted">${escapeHtml(notes[notes.length - 1])}</div>
+            </div>
+            ${
+              notes.length > 1
+                ? notes
+                    .slice(0, -1)
+                    .reverse()
+                    .map(
+                      (n) => `
+                        <div class="timeline-item">
+                          <div class="timeline-time"></div>
+                          <div class="timeline-text muted">${escapeHtml(n)}</div>
+                        </div>
+                      `
+                    )
+                    .join("")
+                : ""
+            }
+          `
+          : "";
+
+        return `
+          <div class="timeline">
+            ${items
+              .map(
+                (it) => `
+                <div class="timeline-item">
+                  <div class="timeline-time">${escapeHtml(it.time)}</div>
+                  <div class="timeline-text">${escapeHtml(it.text)}</div>
+                </div>
+              `
+              )
+              .join("")}
+            ${notesBlock}
+          </div>
+        `;
+      }
+
+      // ---------- Filters ----------
+      function filterPickups(list) {
+        const q = ($q.value || "").trim().toLowerCase();
+
+        // Date range (created_at based)
+        const range = getDateRange();
+        const start = range?.start ? new Date(range.start) : null;
+        const end = range?.end ? new Date(range.end) : null;
+
+        return list.filter((p) => {
+          // Search
+          if (q) {
+            const tag = String(p.tag_number || "").toLowerCase();
+            const name = String(p.customer_name || "").toLowerCase();
+            if (!tag.includes(q) && !name.includes(q)) return false;
+          }
+
+          // Date range
+          if (start || end) {
+            const created = p.created_at ? new Date(p.created_at) : null;
+            if (!created) return false;
+
+            if (start && created < start) return false;
+            if (end && created > end) return false;
+          }
+
+          return true;
+        });
+      }
+
+      function applyQuickRange(mode) {
+        const today = new Date();
+        const yyyyMmDd = (d) => {
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const dd = String(d.getDate()).padStart(2, "0");
+          return `${yyyy}-${mm}-${dd}`;
+        };
+
+        const startOfDay = (d) => {
+          const x = new Date(d);
+          x.setHours(0, 0, 0, 0);
+          return x;
+        };
+        const endOfDay = (d) => {
+          const x = new Date(d);
+          x.setHours(23, 59, 59, 999);
+          return x;
+        };
+
+        let start = null;
+        let end = null;
+
+        if (mode === "today") {
+          start = startOfDay(today);
+          end = endOfDay(today);
+        } else if (mode === "yesterday") {
+          const y = new Date(today);
+          y.setDate(y.getDate() - 1);
+          start = startOfDay(y);
+          end = endOfDay(y);
+        } else if (mode === "7d") {
+          const s = startOfDay(today);
+          s.setDate(s.getDate() - 6);
+          start = s;
+          end = endOfDay(today);
+        } else if (mode === "30d") {
+          const s = startOfDay(today);
+          s.setDate(s.getDate() - 29);
+          start = s;
+          end = endOfDay(today);
+        } else if (mode === "all") {
+          start = null;
+          end = null;
+        } else if (mode === "custom") {
+          // keep user inputs
+          return;
+        }
+
+        if (start && end) {
+          $from.value = yyyyMmDd(start);
+          $to.value = yyyyMmDd(end);
+        } else {
+          $from.value = "";
+          $to.value = "";
+        }
+      }
+
+      function getDateRange() {
+        if ($quick.value === "all") return null;
+
+        const fromVal = $from.value ? new Date($from.value + "T00:00:00") : null;
+        const toVal = $to.value ? new Date($to.value + "T23:59:59.999") : null;
+
+        // If user selects "custom", these are required-ish, but we’ll be forgiving.
+        if (!fromVal && !toVal) return null;
+
+        return { start: fromVal ? fromVal.toISOString() : null, end: toVal ? toVal.toISOString() : null };
+      }
+
+      // ---------- Timeline builder ----------
+      function buildTimelineItems(p) {
+        const items = [];
+        const push = (iso, text) => {
+          if (!iso) return;
+          items.push({ iso, time: formatTimeShort(iso), text });
+        };
+
+        push(p.created_at, "Ticket created");
+        push(p.active_started_at, "Entered Active Pickups");
+
+        if (p.keys_with_valet_at && p.keys_holder) {
+          push(p.keys_with_valet_at, `Keys with ${p.keys_holder}`);
+        }
+        if (p.keys_at_machine_at) {
+          push(p.keys_at_machine_at, "Keys in key machine");
+        }
+
+        if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE") {
+          push(p.wash_status_at, `Status/location: ${humanWashStatus(p.wash_status)}`);
+        }
+
+        push(p.waiting_client_at, "Moved to Waiting/Staged for customer");
+        push(p.completed_at, "Completed");
+
+        // Sort by ISO time ascending
+        items.sort((a, b) => new Date(a.iso) - new Date(b.iso));
+        return items;
+      }
+
+      function lastNoteFromNotes(notes) {
+        const lines = (notes || "").split("\n").filter(Boolean);
+        return lines.length ? lines[lines.length - 1] : "";
+      }
+
+      // ---------- Helpers ----------
+      function humanWashStatus(wash_status) {
+        switch (wash_status) {
+          case "IN_WASH_AREA": return "Car in wash";
+          case "ON_RED_LINE": return "Car on red line";
+          case "REWASH": return "Re wash";
+          case "NEEDS_REWASH": return "Needs rewash";
+          case "DUSTY": return "Dusty";
+          default: return "Not set";
+        }
+      }
+
+      function computeSeconds(startIso, endIso, now) {
+        if (!startIso) return 0;
+        const start = new Date(startIso);
+        let end = endIso ? new Date(endIso) : now;
+        if (end < start) end = now;
+        const diffMs = end - start;
+        if (Number.isNaN(diffMs) || diffMs < 0) return 0;
+        return diffMs / 1000;
+      }
+
+      function computeSeverity(seconds) {
+        const minutes = seconds / 60;
+        if (minutes >= 25) return "red";
+        if (minutes >= 20) return "orange";
+        if (minutes >= 10) return "yellow";
+        return "green";
+      }
+
+      function timerClass(sev) {
+        switch (sev) {
+          case "yellow": return "timer-yellow";
+          case "orange": return "timer-orange";
+          case "red": return "timer-red";
+          default: return "timer-green";
+        }
+      }
+
+      function formatDuration(seconds) {
+        if (!seconds || seconds < 0) seconds = 0;
+        const snapped = Math.round(seconds / 15) * 15; // 15s steps
+        const mins = Math.floor(snapped / 60);
+        const secs = snapped % 60;
+        return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+      }
+
+      function formatTime(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return (
+          d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
+          " " +
+          d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+        );
+      }
+
+      function formatTimeShort(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+      }
+
+      function escapeHtml(str) {
+        if (str == null) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    </script>
+  </body>
+</html>
