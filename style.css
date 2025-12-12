@@ -185,16 +185,20 @@ a {
   font-size: 0.72rem;
 }
 
-/* Shared blue pill style for any "selected" button */
+/* ✅ FIX: Shared blue pill style for any "selected" button */
+/* app.js uses "btn-selected" — previously this CSS did not. */
 .btn.selected,
 .btn.active,
 .btn.is-active,
-.btn.is-selected {
+.btn.is-selected,
+.btn-selected,
+.keys-buttons .btn-selected,
+.wash-buttons .btn-selected {
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Tag + customer pills */
@@ -224,16 +228,6 @@ a {
 .keys-buttons .btn:hover {
   border-color: #9ca3af;
 }
-/* IMPORTANT: selected must win inside groups (this is what brought pills back) */
-.keys-buttons .btn.selected,
-.keys-buttons .btn.active,
-.keys-buttons .btn.is-active,
-.keys-buttons .btn.is-selected {
-  border-color: #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 700;
-}
 
 /* Status/location options group */
 .wash-buttons {
@@ -250,15 +244,6 @@ a {
 }
 .wash-buttons .btn:hover {
   border-color: #9ca3af;
-}
-.wash-buttons .btn.selected,
-.wash-buttons .btn.active,
-.wash-buttons .btn.is-active,
-.wash-buttons .btn.is-selected {
-  border-color: #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 700;
 }
 
 /* Notes "Add note" button – keep rectangular */
@@ -325,7 +310,7 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow: auto; /* allows both x/y scroll when needed */
+  overflow-y: auto;
 }
 
 /* ACTIVE PICKUPS highlight – animated border */
@@ -356,15 +341,9 @@ a {
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
-  }
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .table-wrapper.small {
@@ -374,6 +353,8 @@ a {
 /* Staged column wrapper needs its own scroll & width behaviour */
 .section-staged .table-wrapper {
   max-height: 260px;
+  overflow-y: auto;
+  overflow-x: auto;
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -395,14 +376,12 @@ td {
   text-align: left;
 }
 
-/* Keep headers on one line */
 th {
   white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
-/* Allow data cells to wrap instead of overlapping */
 td {
   white-space: normal;
   color: #f5f5f5;
@@ -425,7 +404,7 @@ tr:nth-child(even) td {
   color: #dbeafe;
 }
 
-/* Status badge (e.g., KEYS WITH VALET) */
+/* Status badge */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -448,11 +427,24 @@ tr:nth-child(even) td {
   color: #dbeafe;
 }
 
-/* Older notes history lines */
+.notes-cell {
+  white-space: normal;
+}
+.notes-cell-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .notes-history-line {
   font-size: 0.68rem;
   color: #9ca3af;
   margin-top: 0.05rem;
+}
+
+.timeline-button-row {
+  margin-top: 0.15rem;
 }
 
 /* ========== TIMERS ========== */
@@ -465,7 +457,6 @@ tr:nth-child(even) td {
   display: inline-block;
 }
 
-/* Time buckets */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
@@ -490,29 +481,29 @@ tr:nth-child(even) td {
   color: #ff9b9b;
 }
 
-/* Needs rewash – very visible flashing blue pill */
+/* ✅ Needs rewash – very visible flashing blue pill */
 .wash-needs {
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-  animation: washBlink 0.7s infinite;
+  animation: washBlink 0.55s infinite;
 }
 @keyframes washBlink {
   0% {
     border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
   }
   50% {
     border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 22px 10px rgba(59, 130, 246, 0.98);
   }
   100% {
     border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
   }
 }
 
@@ -528,7 +519,6 @@ tr:nth-child(even) td {
   line-height: 1.2;
 }
 
-/* Stack tag / customer / created time vertically */
 .section-staged table td span {
   display: block;
   margin-bottom: 0.08rem;
@@ -545,9 +535,25 @@ tr:nth-child(even) td {
   font-size: 0.78rem;
 }
 
+.section-waiting .notes-cell-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
 /* ========== COMPLETED TABLE ========== */
 .section-completed table {
   table-layout: auto;
+}
+
+.section-completed .notes-cell {
+  white-space: normal;
+}
+.section-completed .notes-cell-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
 }
 
 /* Checkmark icon next to Completed title */
@@ -594,7 +600,6 @@ tr:nth-child(even) td {
   margin-top: 0.05rem;
 }
 
-/* Valet activity list */
 .valet-list {
   list-style: none;
   margin: 0.35rem 0 0;
@@ -630,7 +635,9 @@ body.role-dispatcher .dispatcher-only {
 
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
-body.role-wallboard .dispatcher-only {
+body.role-wallboard .dispatcher-only,
+body.role-serviceadvisor .dispatcher-only,
+body.role-loancar .dispatcher-only {
   display: none !important;
 }
 
