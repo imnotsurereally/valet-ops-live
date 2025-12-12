@@ -185,28 +185,16 @@ a {
   font-size: 0.72rem;
 }
 
-/* Shared blue pill style for any "selected" button */
+/* ✅ Blue pill style for any "selected" button (supports your JS class btn-selected) */
+.btn-selected,
 .btn.selected,
 .btn.active,
 .btn.is-active,
-.btn.is-selected,
-.keys-buttons .btn.selected,
-.wash-buttons .btn.selected {
+.btn.is-selected {
   border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 600;
-}
-
-/* Tag + customer pills */
-.pill-blue {
-  display: inline-block;
-  padding: 0.12rem 0.4rem;
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
+  border: 1px solid #60a5fa !important;
+  background: #0b1c3a !important;
+  color: #dbeafe !important;
   font-weight: 700;
 }
 
@@ -339,15 +327,9 @@ a {
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
-  }
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .table-wrapper.small {
@@ -358,7 +340,7 @@ a {
 .section-staged .table-wrapper {
   max-height: 260px;
   overflow-y: auto;
-  overflow-x: auto; /* allow horizontal scroll instead of overlapping */
+  overflow-x: auto;
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -380,14 +362,12 @@ td {
   text-align: left;
 }
 
-/* Keep headers on one line */
 th {
   white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
-/* Allow data cells to wrap instead of overlapping */
 td {
   white-space: normal;
   color: #f5f5f5;
@@ -410,7 +390,7 @@ tr:nth-child(even) td {
   color: #dbeafe;
 }
 
-/* Status badge (e.g., KEYS WITH VALET) */
+/* Status badge */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -431,29 +411,19 @@ tr:nth-child(even) td {
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
+  font-weight: 700;
 }
 
-/* Notes cell layout – keep Add note / time / timer / PQI tidy */
-.notes-cell {
-  white-space: normal;
-}
-.notes-cell-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-/* Older notes history lines */
 .notes-history-line {
   font-size: 0.68rem;
   color: #9ca3af;
   margin-top: 0.05rem;
 }
 
-/* Timeline button row for completed section */
-.timeline-button-row {
-  margin-top: 0.15rem;
+.pqi-badge {
+  margin-left: 0.3rem;
+  font-size: 0.7rem;
+  color: #9ca3af;
 }
 
 /* ========== TIMERS ========== */
@@ -466,52 +436,41 @@ tr:nth-child(even) td {
   display: inline-block;
 }
 
-/* Time buckets */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
   color: #a9ffb7;
 }
-
 .timer-yellow {
   border-color: #5c5213;
   background: #1b1808;
   color: #ffe28a;
 }
-
 .timer-orange {
   border-color: #7a4418;
   background: #221109;
   color: #ffb47a;
 }
-
 .timer-red {
   border-color: #7a1c1c;
   background: #220a0a;
   color: #ff9b9b;
 }
 
-/* Needs rewash – very visible flashing blue pill */
+/* ✅ Needs rewash – VERY visible flashing blue pill */
 .wash-needs {
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  animation: washBlink 0.7s infinite;
+  animation: washBlink 0.45s infinite;
 }
 @keyframes washBlink {
   0% {
-    border-color: #60a5fa;
     background: #0b1c3a;
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
   50% {
-    border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 22px 9px rgba(59, 130, 246, 0.98);
   }
   100% {
-    border-color: #60a5fa;
     background: #0b1c3a;
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
@@ -529,137 +488,7 @@ tr:nth-child(even) td {
   line-height: 1.2;
 }
 
-/* Stack tag / customer / created time vertically */
-.section-staged table td span {
-  display: block;
-  margin-bottom: 0.08rem;
-}
-
-/* ========== ACTIVE PICKUPS – HEADER LABELS ========== */
-.section-active thead th {
-  position: relative;
-}
-
-/* 1st: Tag # stays Tag # */
-
-/* 2nd header visually becomes "Status/location" */
-.section-active thead th:nth-child(2) {
-  color: transparent;
-}
-.section-active thead th:nth-child(2)::after {
-  content: "Status/location";
-  color: #ccc;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* 3rd header visually becomes "Keys with" */
-.section-active thead th:nth-child(3) {
-  color: transparent;
-}
-.section-active thead th:nth-child(3)::after {
-  content: "Keys with";
-  color: #ccc;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* 4th header visually becomes "Valet Time" */
-.section-active thead th:nth-child(4) {
-  color: transparent;
-}
-.section-active thead th:nth-child(4)::after {
-  content: "Valet Time";
-  color: #ccc;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* 5th header visually becomes "Staged" */
-.section-active thead th:nth-child(5) {
-  color: transparent;
-}
-.section-active thead th:nth-child(5)::after {
-  content: "Staged";
-  color: #ccc;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* 6th header visually becomes "Notes" */
-.section-active thead th:nth-child(6) {
-  color: transparent;
-}
-.section-active thead th:nth-child(6)::after {
-  content: "Notes";
-  color: #ccc;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* 7th header visually becomes "Master Time" */
-.section-active thead th:nth-child(7) {
-  color: transparent;
-}
-.section-active thead th:nth-child(7)::after {
-  content: "Master Time";
-  color: #ccc;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* Hide any 8th header if present */
-.section-active thead th:nth-child(8) {
-  display: none;
-}
-
-/* ========== WAITING/STAGED FOR CUSTOMER ========== */
-.section-waiting table {
-  table-layout: fixed;
-}
-
-.section-waiting th,
-.section-waiting td {
-  white-space: normal;
-  font-size: 0.78rem;
-}
-
-.section-waiting .notes-cell-inner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-/* ========== COMPLETED TABLE ========== */
-.section-completed table {
-  table-layout: auto;
-}
-
-/* Notes cell in completed – keep Timeline and text clean */
-.section-completed .notes-cell {
-  white-space: normal;
-}
-.section-completed .notes-cell-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-}
-
-/* Checkmark icon next to Completed title */
-.check-icon {
-  display: inline-block;
-  color: #4ade80;
-  margin-right: 0.25rem;
-}
-
-/* Optional collapse for completed section */
+/* ========== COMPLETED COLLAPSE ========== */
 .completed-collapsed .section-completed-table {
   display: none;
 }
@@ -726,9 +555,7 @@ tr:nth-child(even) td {
 }
 
 /* ========== ROLE VISIBILITY ========== */
-body.role-dispatcher .dispatcher-only {
-  display: block;
-}
+body.role-dispatcher .dispatcher-only { display: block; }
 
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
@@ -751,9 +578,7 @@ body.role-carwash .carwash-only {
 }
 
 /* Wallboard styling */
-.wallboard-main {
-  max-width: 1600px;
-}
+.wallboard-main { max-width: 1600px; }
 .wallboard-table th,
 .wallboard-table td {
   font-size: 1rem;
@@ -768,28 +593,12 @@ body.role-wallboard button {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
-  .layout-grid {
-    display: block;
-  }
-
-  .layout-left,
-  .layout-center,
-  .layout-right {
-    margin-bottom: 1rem;
-  }
+  .layout-grid { display: block; }
+  .layout-left, .layout-center, .layout-right { margin-bottom: 1rem; }
 }
 
 @media (max-width: 900px) {
-  .app-main {
-    padding: 0.75rem 0.75rem 1.5rem;
-  }
-
-  .new-pickup-form {
-    flex-direction: column;
-  }
-
-  th,
-  td {
-    padding: 0.4rem 0.45rem;
-  }
+  .app-main { padding: 0.75rem 0.75rem 1.5rem; }
+  .new-pickup-form { flex-direction: column; }
+  th, td { padding: 0.4rem 0.45rem; }
 }
