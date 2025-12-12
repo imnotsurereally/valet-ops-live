@@ -185,31 +185,27 @@ a {
   font-size: 0.72rem;
 }
 
-/* Selected pill style */
-.btn.selected {
+/* Shared blue pill style for any "selected" button */
+.btn.selected,
+.btn.active,
+.btn.is-active,
+.btn.is-selected {
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 600;
+}
+
+/* Tag + customer pills */
+.pill-blue {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
   font-weight: 700;
-}
-
-/* When a selection exists, hide unselected options to keep UI clean */
-.keys-buttons.has-selection .btn:not(.selected),
-.wash-buttons.has-selection .btn:not(.selected) {
-  display: none;
-}
-
-/* Universal blue pill (Tag, Customer, selected info) */
-.pill-blue {
-  display: inline-block;
-  padding: 0.12rem 0.45rem;
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 800;
-  line-height: 1.1;
 }
 
 /* Keys (valet names) group */
@@ -228,6 +224,16 @@ a {
 .keys-buttons .btn:hover {
   border-color: #9ca3af;
 }
+/* IMPORTANT: selected must win inside groups (this is what brought pills back) */
+.keys-buttons .btn.selected,
+.keys-buttons .btn.active,
+.keys-buttons .btn.is-active,
+.keys-buttons .btn.is-selected {
+  border-color: #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 700;
+}
 
 /* Status/location options group */
 .wash-buttons {
@@ -245,10 +251,19 @@ a {
 .wash-buttons .btn:hover {
   border-color: #9ca3af;
 }
+.wash-buttons .btn.selected,
+.wash-buttons .btn.active,
+.wash-buttons .btn.is-active,
+.wash-buttons .btn.is-selected {
+  border-color: #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 700;
+}
 
 /* Notes "Add note" button – keep rectangular */
 .notes-button {
-  border-radius: 6px;
+  border-radius: 4px;
   border-style: solid;
   border-color: #4b5563;
   background: transparent;
@@ -310,7 +325,7 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow: auto;
+  overflow: auto; /* allows both x/y scroll when needed */
 }
 
 /* ACTIVE PICKUPS highlight – animated border */
@@ -356,10 +371,9 @@ a {
   max-height: 280px;
 }
 
-/* Staged needs clean scroll behavior */
+/* Staged column wrapper needs its own scroll & width behaviour */
 .section-staged .table-wrapper {
   max-height: 260px;
-  overflow: auto;
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -381,12 +395,14 @@ td {
   text-align: left;
 }
 
+/* Keep headers on one line */
 th {
   white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
+/* Allow data cells to wrap instead of overlapping */
 td {
   white-space: normal;
   color: #f5f5f5;
@@ -397,7 +413,19 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Status badge */
+/* ========== TAG / CUSTOMER PILL STYLING ========== */
+.cell-tag,
+.cell-customer {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  font-weight: 700;
+  color: #dbeafe;
+}
+
+/* Status badge (e.g., KEYS WITH VALET) */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -418,13 +446,13 @@ tr:nth-child(even) td {
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-  margin-top: 0.25rem;
 }
 
+/* Older notes history lines */
 .notes-history-line {
   font-size: 0.68rem;
   color: #9ca3af;
-  margin-top: 0.08rem;
+  margin-top: 0.05rem;
 }
 
 /* ========== TIMERS ========== */
@@ -437,51 +465,89 @@ tr:nth-child(even) td {
   display: inline-block;
 }
 
+/* Time buckets */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
   color: #a9ffb7;
 }
+
 .timer-yellow {
   border-color: #5c5213;
   background: #1b1808;
   color: #ffe28a;
 }
+
 .timer-orange {
   border-color: #7a4418;
   background: #221109;
   color: #ffb47a;
 }
+
 .timer-red {
   border-color: #7a1c1c;
   background: #220a0a;
   color: #ff9b9b;
 }
 
-/* Needs rewash – flashing BLUE BOX (very noticeable) */
+/* Needs rewash – very visible flashing blue pill */
 .wash-needs {
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-  animation: washBlink 0.65s infinite;
+  animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
   0% {
     border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
   50% {
     border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 22px 10px rgba(59, 130, 246, 0.98);
+    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
   }
   100% {
     border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
+}
+
+/* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
+.section-staged table {
+  table-layout: auto;
+}
+
+.section-staged th,
+.section-staged td {
+  white-space: normal;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* Stack tag / customer / created time vertically */
+.section-staged table td span {
+  display: block;
+  margin-bottom: 0.08rem;
+}
+
+/* ========== WAITING/STAGED FOR CUSTOMER ========== */
+.section-waiting table {
+  table-layout: fixed;
+}
+
+.section-waiting th,
+.section-waiting td {
+  white-space: normal;
+  font-size: 0.78rem;
+}
+
+/* ========== COMPLETED TABLE ========== */
+.section-completed table {
+  table-layout: auto;
 }
 
 /* Checkmark icon next to Completed title */
