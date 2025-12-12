@@ -185,17 +185,31 @@ a {
   font-size: 0.72rem;
 }
 
-/* ✅ Blue pill style for any "selected" button (supports your JS class btn-selected) */
-.btn-selected,
-.btn.selected,
-.btn.active,
-.btn.is-active,
-.btn.is-selected {
+/* Selected pill style */
+.btn.selected {
   border-radius: 999px;
-  border: 1px solid #60a5fa !important;
-  background: #0b1c3a !important;
-  color: #dbeafe !important;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
   font-weight: 700;
+}
+
+/* When a selection exists, hide unselected options to keep UI clean */
+.keys-buttons.has-selection .btn:not(.selected),
+.wash-buttons.has-selection .btn:not(.selected) {
+  display: none;
+}
+
+/* Universal blue pill (Tag, Customer, selected info) */
+.pill-blue {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
 /* Keys (valet names) group */
@@ -234,7 +248,7 @@ a {
 
 /* Notes "Add note" button – keep rectangular */
 .notes-button {
-  border-radius: 4px;
+  border-radius: 6px;
   border-style: solid;
   border-color: #4b5563;
   background: transparent;
@@ -296,7 +310,7 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 /* ACTIVE PICKUPS highlight – animated border */
@@ -327,20 +341,25 @@ a {
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 .table-wrapper.small {
   max-height: 280px;
 }
 
-/* Staged column wrapper needs its own scroll & width behaviour */
+/* Staged needs clean scroll behavior */
 .section-staged .table-wrapper {
   max-height: 260px;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow: auto;
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -378,18 +397,6 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* ========== TAG / CUSTOMER PILL STYLING ========== */
-.cell-tag,
-.cell-customer {
-  display: inline-block;
-  padding: 0.12rem 0.4rem;
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  font-weight: 700;
-  color: #dbeafe;
-}
-
 /* Status badge */
 .status-badge {
   display: inline-block;
@@ -411,19 +418,13 @@ tr:nth-child(even) td {
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-  font-weight: 700;
+  margin-top: 0.25rem;
 }
 
 .notes-history-line {
   font-size: 0.68rem;
   color: #9ca3af;
-  margin-top: 0.05rem;
-}
-
-.pqi-badge {
-  margin-left: 0.3rem;
-  font-size: 0.7rem;
-  color: #9ca3af;
+  margin-top: 0.08rem;
 }
 
 /* ========== TIMERS ========== */
@@ -457,38 +458,40 @@ tr:nth-child(even) td {
   color: #ff9b9b;
 }
 
-/* ✅ Needs rewash – VERY visible flashing blue pill */
+/* Needs rewash – flashing BLUE BOX (very noticeable) */
 .wash-needs {
-  animation: washBlink 0.45s infinite;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  animation: washBlink 0.65s infinite;
 }
 @keyframes washBlink {
   0% {
+    border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
   }
   50% {
+    border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 22px 9px rgba(59, 130, 246, 0.98);
+    box-shadow: 0 0 22px 10px rgba(59, 130, 246, 0.98);
   }
   100% {
+    border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
   }
 }
 
-/* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
-.section-staged table {
-  table-layout: auto;
+/* Checkmark icon next to Completed title */
+.check-icon {
+  display: inline-block;
+  color: #4ade80;
+  margin-right: 0.25rem;
 }
 
-.section-staged th,
-.section-staged td {
-  white-space: normal;
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
-/* ========== COMPLETED COLLAPSE ========== */
+/* Optional collapse for completed section */
 .completed-collapsed .section-completed-table {
   display: none;
 }
@@ -555,7 +558,9 @@ tr:nth-child(even) td {
 }
 
 /* ========== ROLE VISIBILITY ========== */
-body.role-dispatcher .dispatcher-only { display: block; }
+body.role-dispatcher .dispatcher-only {
+  display: block;
+}
 
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
@@ -578,7 +583,9 @@ body.role-carwash .carwash-only {
 }
 
 /* Wallboard styling */
-.wallboard-main { max-width: 1600px; }
+.wallboard-main {
+  max-width: 1600px;
+}
 .wallboard-table th,
 .wallboard-table td {
   font-size: 1rem;
@@ -593,12 +600,28 @@ body.role-wallboard button {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
-  .layout-grid { display: block; }
-  .layout-left, .layout-center, .layout-right { margin-bottom: 1rem; }
+  .layout-grid {
+    display: block;
+  }
+
+  .layout-left,
+  .layout-center,
+  .layout-right {
+    margin-bottom: 1rem;
+  }
 }
 
 @media (max-width: 900px) {
-  .app-main { padding: 0.75rem 0.75rem 1.5rem; }
-  .new-pickup-form { flex-direction: column; }
-  th, td { padding: 0.4rem 0.45rem; }
+  .app-main {
+    padding: 0.75rem 0.75rem 1.5rem;
+  }
+
+  .new-pickup-form {
+    flex-direction: column;
+  }
+
+  th,
+  td {
+    padding: 0.4rem 0.45rem;
+  }
 }
