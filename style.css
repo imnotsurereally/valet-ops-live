@@ -185,30 +185,13 @@ a {
   font-size: 0.72rem;
 }
 
-/* ✅ FIX: Shared blue pill style for any "selected" button */
-/* app.js uses "btn-selected" — previously this CSS did not. */
+/* Shared blue pill style for any "selected" button */
 .btn.selected,
-.btn.active,
-.btn.is-active,
-.btn.is-selected,
-.btn-selected,
-.keys-buttons .btn-selected,
-.wash-buttons .btn-selected {
+.btn.btn-selected {
   border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 700;
-}
-
-/* Tag + customer pills */
-.pill-blue {
-  display: inline-block;
-  padding: 0.12rem 0.4rem;
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
+  border: 1px solid #60a5fa !important;
+  background: #0b1c3a !important;
+  color: #dbeafe !important;
   font-weight: 700;
 }
 
@@ -248,7 +231,7 @@ a {
 
 /* Notes "Add note" button – keep rectangular */
 .notes-button {
-  border-radius: 4px;
+  border-radius: 6px;
   border-style: solid;
   border-color: #4b5563;
   background: transparent;
@@ -313,44 +296,16 @@ a {
   overflow-y: auto;
 }
 
-/* ACTIVE PICKUPS highlight – animated border */
 .section-active .table-wrapper {
   position: relative;
   border-width: 4px;
   border-color: #e5e7eb;
-}
-.section-active .table-wrapper::before {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: inherit;
-  border: 3px solid transparent;
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 255, 255, 0.9),
-    rgba(148, 163, 184, 0.25),
-    rgba(255, 255, 255, 0.9)
-  );
-  background-size: 200% 200%;
-  animation: borderFlow 4s linear infinite;
-  -webkit-mask: linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: 0;
-}
-@keyframes borderFlow {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
 }
 
 .table-wrapper.small {
   max-height: 280px;
 }
 
-/* Staged column wrapper needs its own scroll & width behaviour */
 .section-staged .table-wrapper {
   max-height: 260px;
   overflow-y: auto;
@@ -396,11 +351,11 @@ tr:nth-child(even) td {
 .cell-tag,
 .cell-customer {
   display: inline-block;
-  padding: 0.12rem 0.4rem;
+  padding: 0.12rem 0.45rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
-  font-weight: 700;
+  font-weight: 800;
   color: #dbeafe;
 }
 
@@ -425,26 +380,13 @@ tr:nth-child(even) td {
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-}
-
-.notes-cell {
-  white-space: normal;
-}
-.notes-cell-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
+  font-weight: 700;
 }
 
 .notes-history-line {
   font-size: 0.68rem;
   color: #9ca3af;
   margin-top: 0.05rem;
-}
-
-.timeline-button-row {
-  margin-top: 0.15rem;
 }
 
 /* ========== TIMERS ========== */
@@ -462,110 +404,46 @@ tr:nth-child(even) td {
   background: #0b1b10;
   color: #a9ffb7;
 }
-
 .timer-yellow {
   border-color: #5c5213;
   background: #1b1808;
   color: #ffe28a;
 }
-
 .timer-orange {
   border-color: #7a4418;
   background: #221109;
   color: #ffb47a;
 }
-
 .timer-red {
   border-color: #7a1c1c;
   background: #220a0a;
   color: #ff9b9b;
 }
 
-/* ✅ Needs rewash – very visible flashing blue pill */
+/* Needs rewash – very visible flashing blue pill */
 .wash-needs {
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-  animation: washBlink 0.55s infinite;
+  animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
   0% {
     border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
   50% {
     border-color: #bfdbfe;
     background: #1d4ed8;
-    box-shadow: 0 0 22px 10px rgba(59, 130, 246, 0.98);
+    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
   }
   100% {
     border-color: #60a5fa;
     background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.95);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
   }
-}
-
-/* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
-.section-staged table {
-  table-layout: auto;
-}
-
-.section-staged th,
-.section-staged td {
-  white-space: normal;
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
-.section-staged table td span {
-  display: block;
-  margin-bottom: 0.08rem;
-}
-
-/* ========== WAITING/STAGED FOR CUSTOMER ========== */
-.section-waiting table {
-  table-layout: fixed;
-}
-
-.section-waiting th,
-.section-waiting td {
-  white-space: normal;
-  font-size: 0.78rem;
-}
-
-.section-waiting .notes-cell-inner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-/* ========== COMPLETED TABLE ========== */
-.section-completed table {
-  table-layout: auto;
-}
-
-.section-completed .notes-cell {
-  white-space: normal;
-}
-.section-completed .notes-cell-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-}
-
-/* Checkmark icon next to Completed title */
-.check-icon {
-  display: inline-block;
-  color: #4ade80;
-  margin-right: 0.25rem;
-}
-
-/* Optional collapse for completed section */
-.completed-collapsed .section-completed-table {
-  display: none;
 }
 
 /* ========== METRICS SIDEBAR (TODAY'S STATS) ========== */
@@ -630,29 +508,17 @@ tr:nth-child(even) td {
 
 /* ========== ROLE VISIBILITY ========== */
 body.role-dispatcher .dispatcher-only {
-  display: block;
+  display: table-cell;
 }
-
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
-body.role-wallboard .dispatcher-only,
-body.role-serviceadvisor .dispatcher-only,
-body.role-loancar .dispatcher-only {
+body.role-wallboard .dispatcher-only {
   display: none !important;
 }
 
-body.role-keymachine .keymachine-only,
-body.role-dispatcher .keymachine-only,
-body.role-carwash .keymachine-only {
-  display: block;
-}
-
-body.role-wallboard .keymachine-only {
-  display: none !important;
-}
-
-body.role-carwash .carwash-only {
-  display: block;
+body.role-wallboard button {
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 /* Wallboard styling */
@@ -665,18 +531,11 @@ body.role-carwash .carwash-only {
   padding: 0.6rem 0.7rem;
 }
 
-/* Wallboard read-only */
-body.role-wallboard button {
-  pointer-events: none;
-  opacity: 0.7;
-}
-
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
   .layout-grid {
     display: block;
   }
-
   .layout-left,
   .layout-center,
   .layout-right {
@@ -688,11 +547,9 @@ body.role-wallboard button {
   .app-main {
     padding: 0.75rem 0.75rem 1.5rem;
   }
-
   .new-pickup-form {
     flex-direction: column;
   }
-
   th,
   td {
     padding: 0.4rem 0.45rem;
