@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Valet Ops Live – Service Advisor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- Our app logic -->
+    <script type="module" src="app.js"></script>
+
+    <style>
+      /* Keep it dead simple: force stage-only and hide checkbox UI */
+      .stage-only-wrap {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body class="role-dispatcher">
+    <div class="app-shell">
+      <header class="app-header">
+        <img
+          src="assets/optima-logo.jpg"
+          alt="Optima Dealer Services"
+          class="logo"
+        />
+        <div class="titles">
+          <div class="brand">Optima Dealer Services</div>
+          <div class="subtitle">Service Advisor – Request Staging</div>
+        </div>
+        <div class="header-right">
+          <div class="role-pill">Service Advisor</div>
+        </div>
+      </header>
+
+      <main class="app-main layout-grid">
+        <!-- Left: staged list -->
+        <div class="layout-left">
+          <section class="section section-staged">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Staged (non urgent)
+                  <span class="section-count" id="count-staged">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Service Advisor requests go here. Dispatcher activates later.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper small">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Staged At</th>
+                    <th>Activate</th>
+                  </tr>
+                </thead>
+                <tbody id="staged-tbody">
+                  <tr><td colspan="4" class="empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Center: create request -->
+        <div class="layout-center">
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Request Car to be Staged</div>
+                <div class="section-subtitle">
+                  Enter Tag # and Customer Name. It will go into “Staged (non urgent)”.
+                </div>
+              </div>
+            </div>
+
+            <!-- IMPORTANT: IDs match app.js so setupForm() works -->
+            <form id="new-pickup-form" class="new-pickup-form">
+              <div class="input-group">
+                <label for="tag-number">Tag #</label>
+                <input
+                  id="tag-number"
+                  name="tag-number"
+                  class="input-text"
+                  placeholder="e.g. 1432"
+                  required
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="customer-name">Customer name</label>
+                <input
+                  id="customer-name"
+                  name="customer-name"
+                  class="input-text"
+                  placeholder="e.g. Maria Lopez"
+                  required
+                />
+              </div>
+
+              <!-- Force staged -->
+              <div class="input-group checkbox-group stage-only-wrap">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="stage-only" checked />
+                  Stage only
+                </label>
+              </div>
+
+              <div class="input-group" style="align-self: flex-end">
+                <button type="submit" class="btn btn-primary">
+                  Create Request
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Optional: show active/waiting read-only so they see the “flow” -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Active Pickups
+                  <span class="section-count" id="count-active">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Read-only awareness. Dispatcher/Key Machine handle updates.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Status/Location</th>
+                    <th>Keys with</th>
+                    <th>Valet Time</th>
+                    <th>Notes</th>
+                    <th>Master Time</th>
+                  </tr>
+                </thead>
+                <tbody id="active-tbody">
+                  <tr><td colspan="7" class="empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Waiting/staged for customer
+                  <span class="section-count" id="count-waiting">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Read-only view: cars ready, waiting on customer pickup.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Delivered by</th>
+                    <th>Staged Time</th>
+                    <th>Master Time</th>
+                    <th>Notes</th>
+                    <th>Customer Picked Up</th>
+                  </tr>
+                </thead>
+                <tbody id="waiting-tbody">
+                  <tr><td colspan="7" class="empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right: nothing for now -->
+        <aside class="layout-right">
+          <section class="section section-metrics">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Quick Notes</div>
+              </div>
+            </div>
+            <div class="section-subtitle">
+              V1: Advisors only request staging. No edits to active tickets.
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      // Ensure Stage-only is always true (even if the hidden checkbox fails)
+      document.addEventListener("DOMContentLoaded", () => {
+        const stageOnly = document.getElementById("stage-only");
+        if (stageOnly) stageOnly.checked = true;
+      });
+    </script>
+  </body>
+</html>
