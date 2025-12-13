@@ -199,7 +199,7 @@ a {
   font-weight: 600;
 }
 
-/* Tag + customer pills */
+/* Tag + customer pills (useful for spans if you ever wrap text) */
 .pill-blue {
   display: inline-block;
   padding: 0.12rem 0.4rem;
@@ -308,7 +308,7 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow-y: auto;
+  overflow: auto; /* important: allow both x/y when needed */
 }
 
 /* ACTIVE PICKUPS highlight – animated border */
@@ -358,7 +358,7 @@ a {
 .section-staged .table-wrapper {
   max-height: 260px;
   overflow-y: auto;
-  overflow-x: auto; /* allow horizontal scroll instead of overlapping */
+  overflow-x: auto;
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -366,7 +366,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
-  table-layout: fixed;
+  table-layout: fixed; /* stable columns */
 }
 
 thead {
@@ -378,6 +378,7 @@ td {
   padding: 0.3rem 0.45rem;
   border-bottom: 1px solid #17171f;
   text-align: left;
+  vertical-align: top;
 }
 
 /* Keep headers on one line */
@@ -391,23 +392,74 @@ th {
 td {
   white-space: normal;
   color: #f5f5f5;
-  vertical-align: top;
 }
 
 tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* ========== TAG / CUSTOMER PILL STYLING ========== */
-.cell-tag,
-.cell-customer {
-  display: inline-block;
-  padding: 0.12rem 0.4rem;
+/* ========== TAG / CUSTOMER PILL STYLING (FIXED) ========== */
+/*
+  CRITICAL FIX:
+  These classes are on <td>. They MUST remain table-cells.
+  Do NOT use display:inline-block here or columns break.
+*/
+td.cell-tag,
+td.cell-customer {
+  white-space: nowrap;
+}
+
+/* pill look without breaking the table */
+td.cell-tag,
+td.cell-customer {
+  position: relative;
+}
+
+td.cell-tag::before,
+td.cell-customer::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem 0.25rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
+  pointer-events: none;
+  z-index: 0;
+}
+
+td.cell-tag,
+td.cell-customer {
+  padding: 0.35rem 0.55rem;
+}
+
+td.cell-tag,
+td.cell-customer {
   font-weight: 700;
   color: #dbeafe;
+}
+
+td.cell-tag,
+td.cell-customer {
+  z-index: 1;
+}
+
+td.cell-tag,
+td.cell-customer {
+  /* keep text above the pill background */
+}
+td.cell-tag > *,
+td.cell-customer > * {
+  position: relative;
+  z-index: 1;
+}
+td.cell-tag,
+td.cell-customer {
+  /* plain text also needs to sit above the pill */
+}
+td.cell-tag,
+td.cell-customer {
+  /* create stacking context */
+  isolation: isolate;
 }
 
 /* Status badge (e.g., KEYS WITH VALET) */
@@ -529,12 +581,6 @@ tr:nth-child(even) td {
   line-height: 1.2;
 }
 
-/* Stack tag / customer / created time vertically */
-.section-staged table td span {
-  display: block;
-  margin-bottom: 0.08rem;
-}
-
 /* ========== WAITING/STAGED FOR CUSTOMER ========== */
 .section-waiting table {
   table-layout: fixed;
@@ -641,31 +687,21 @@ tr:nth-child(even) td {
   color: #888;
 }
 
-/* ========== ROLE VISIBILITY (FIXED) ========== */
-/*
-  IMPORTANT:
-  .dispatcher-only is used on both:
-   - table headers/cells (th/td)
-   - normal layout elements (div/section/buttons)
-  If we set display: table-cell globally, it breaks the layout and causes
-  sections to split side-by-side. So we scope table-cell to th/td only.
-*/
-
-/* Dispatcher: show dispatcher-only normally */
+/* ========== ROLE VISIBILITY ========== */
 body.role-dispatcher .dispatcher-only {
   display: initial;
 }
 
-/* Dispatcher: but table cells must be table-cell */
 body.role-dispatcher th.dispatcher-only,
 body.role-dispatcher td.dispatcher-only {
   display: table-cell;
 }
 
-/* Non-dispatcher roles: hide dispatcher-only everywhere */
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
-body.role-wallboard .dispatcher-only {
+body.role-wallboard .dispatcher-only,
+body.role-serviceadvisor .dispatcher-only,
+body.role-loancar .dispatcher-only {
   display: none !important;
 }
 
