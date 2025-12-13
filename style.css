@@ -106,7 +106,7 @@ a {
   align-items: center;
 }
 
-/* 3-column layout: left ~7%, center ~86%, right ~7% */
+/* 3-column layout */
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
@@ -185,7 +185,7 @@ a {
   font-size: 0.72rem;
 }
 
-/* Shared blue pill style for any "selected" button */
+/* Shared blue pill style for selected buttons */
 .btn.selected,
 .btn.active,
 .btn.is-active,
@@ -199,16 +199,15 @@ a {
   font-weight: 600;
 }
 
-/* Tag + customer pills (USED ON <span>, NOT <td>) */
+/* Tag + customer pills */
 .pill-blue {
   display: inline-block;
-  padding: 0.12rem 0.5rem;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
   font-weight: 700;
-  line-height: 1.05;
 }
 
 /* Keys (valet names) group */
@@ -245,7 +244,7 @@ a {
   border-color: #9ca3af;
 }
 
-/* Notes "Add note" button – keep rectangular */
+/* Notes button */
 .notes-button {
   border-radius: 4px;
   border-style: solid;
@@ -253,7 +252,7 @@ a {
   background: transparent;
 }
 
-/* ========== NEW PICKUP FORM (DISPATCH) ========== */
+/* ========== NEW PICKUP FORM ========== */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
@@ -312,7 +311,7 @@ a {
   overflow-y: auto;
 }
 
-/* ACTIVE PICKUPS highlight – animated border */
+/* ACTIVE PICKUPS highlight */
 .section-active .table-wrapper {
   position: relative;
   border-width: 4px;
@@ -340,22 +339,16 @@ a {
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
-  }
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .table-wrapper.small {
   max-height: 280px;
 }
 
-/* Staged column wrapper needs its own scroll & width behaviour */
+/* Staged column wrapper */
 .section-staged .table-wrapper {
   max-height: 260px;
   overflow-y: auto;
@@ -381,12 +374,14 @@ td {
   text-align: left;
 }
 
+/* headers 1 line */
 th {
   white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
+/* cells wrap */
 td {
   white-space: normal;
   color: #f5f5f5;
@@ -397,7 +392,32 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* Status badge (e.g., KEYS WITH VALET) */
+/* ========== TAG / CUSTOMER PILL STYLING (FIX) ========== */
+/*
+  Critical fix for "giant circles":
+  - previous code applied pill styles directly to <td class="cell-tag">,
+    which turns the entire cell into a big rounded blob.
+  - We force table cells to behave like table-cells,
+    and apply the pill look to an inner <span>.
+*/
+td.cell-tag,
+td.cell-customer {
+  display: table-cell;
+  padding: 0.3rem 0.45rem;
+}
+
+.cell-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  font-weight: 700;
+  color: #dbeafe;
+}
+
+/* Status badge */
 .status-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -409,7 +429,7 @@ tr:nth-child(even) td {
   color: #d0d0d0;
 }
 
-/* ========== NOTES AREA ========== */
+/* ========== NOTES ========== */
 .notes-preview {
   font-size: 0.7rem;
   display: inline-block;
@@ -418,6 +438,12 @@ tr:nth-child(even) td {
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
+}
+
+.notes-history-line {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  margin-top: 0.05rem;
 }
 
 /* ========== TIMERS ========== */
@@ -429,32 +455,12 @@ tr:nth-child(even) td {
   border: 1px solid transparent;
   display: inline-block;
 }
+.timer-green { border-color: #204d2a; background: #0b1b10; color: #a9ffb7; }
+.timer-yellow { border-color: #5c5213; background: #1b1808; color: #ffe28a; }
+.timer-orange { border-color: #7a4418; background: #221109; color: #ffb47a; }
+.timer-red { border-color: #7a1c1c; background: #220a0a; color: #ff9b9b; }
 
-.timer-green {
-  border-color: #204d2a;
-  background: #0b1b10;
-  color: #a9ffb7;
-}
-
-.timer-yellow {
-  border-color: #5c5213;
-  background: #1b1808;
-  color: #ffe28a;
-}
-
-.timer-orange {
-  border-color: #7a4418;
-  background: #221109;
-  color: #ffb47a;
-}
-
-.timer-red {
-  border-color: #7a1c1c;
-  background: #220a0a;
-  color: #ff9b9b;
-}
-
-/* Needs rewash – very visible flashing blue pill */
+/* Needs rewash flashing */
 .wash-needs {
   border-radius: 999px;
   border: 1px solid #60a5fa;
@@ -463,51 +469,17 @@ tr:nth-child(even) td {
   animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
-  0% {
-    border-color: #60a5fa;
-    background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
-  }
-  50% {
-    border-color: #bfdbfe;
-    background: #1d4ed8;
-    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
-  }
-  100% {
-    border-color: #60a5fa;
-    background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
-  }
+  0% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,.9); }
+  50% { border-color: #bfdbfe; background: #1d4ed8; box-shadow: 0 0 18px 7px rgba(59,130,246,.95); }
+  100% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,.9); }
 }
 
-/* ========== LEFT COLUMN: STAGED (NON URGENT) ========== */
-.section-staged table {
-  table-layout: auto;
-}
-
-.section-staged th,
-.section-staged td {
-  white-space: normal;
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
-/* ========== COMPLETED TABLE ========== */
-.section-completed table {
-  table-layout: auto;
-}
-
-.check-icon {
-  display: inline-block;
-  color: #4ade80;
-  margin-right: 0.25rem;
-}
-
+/* ========== COMPLETED COLLAPSE ========== */
 .completed-collapsed .section-completed-table {
   display: none;
 }
 
-/* ========== METRICS SIDEBAR (TODAY'S STATS) ========== */
+/* ========== METRICS ========== */
 .section-metrics {
   background: #070711;
   border-radius: 10px;
@@ -552,13 +524,8 @@ tr:nth-child(even) td {
   justify-content: space-between;
   padding: 0.12rem 0;
 }
-.valet-name {
-  font-weight: 500;
-}
-.valet-count {
-  font-size: 0.7rem;
-  color: #9b9bb5;
-}
+.valet-name { font-weight: 500; }
+.valet-count { font-size: 0.7rem; color: #9b9bb5; }
 
 /* ========== EMPTY STATE ========== */
 .empty {
@@ -568,13 +535,10 @@ tr:nth-child(even) td {
 }
 
 /* ========== ROLE VISIBILITY (SAFE) ========== */
-body.role-dispatcher .dispatcher-only {
-  display: initial;
-}
+/* dispatcher-only */
+body.role-dispatcher .dispatcher-only { display: initial; }
 body.role-dispatcher th.dispatcher-only,
-body.role-dispatcher td.dispatcher-only {
-  display: table-cell;
-}
+body.role-dispatcher td.dispatcher-only { display: table-cell; }
 
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
@@ -584,53 +548,56 @@ body.role-loancar .dispatcher-only {
   display: none !important;
 }
 
+/* keymachine-only */
 body.role-keymachine .keymachine-only,
 body.role-dispatcher .keymachine-only,
 body.role-carwash .keymachine-only {
   display: initial;
 }
-body.role-wallboard .keymachine-only {
+body.role-wallboard .keymachine-only,
+body.role-serviceadvisor .keymachine-only,
+body.role-loancar .keymachine-only {
   display: none !important;
 }
 
-body.role-carwash .carwash-only {
-  display: initial;
-}
-
-.wallboard-main {
-  max-width: 1600px;
-}
-.wallboard-table th,
-.wallboard-table td {
-  font-size: 1rem;
-  padding: 0.6rem 0.7rem;
-}
+/* Wallboard read-only */
 body.role-wallboard button {
   pointer-events: none;
   opacity: 0.7;
 }
 
+/* ========== VISUAL PERMISSION LOCK (SERVICE ADVISOR + LOAN CAR) ========== */
+/*
+  They can:
+   - Create tickets (form)
+   - Add notes
+  They cannot:
+   - click wash/location/valet/key machine/move-to-staged/customer-picked-up/timeline
+*/
+body.role-serviceadvisor [data-action]:not([data-action="edit-note"]),
+body.role-loancar [data-action]:not([data-action="edit-note"]) {
+  pointer-events: none !important;
+  opacity: 0.35 !important;
+  filter: grayscale(1);
+}
+
+/* Also visually tone down entire action clusters */
+body.role-serviceadvisor .wash-buttons,
+body.role-serviceadvisor .keys-buttons,
+body.role-loancar .wash-buttons,
+body.role-loancar .keys-buttons {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
-  .layout-grid {
-    display: block;
-  }
-  .layout-left,
-  .layout-center,
-  .layout-right {
-    margin-bottom: 1rem;
-  }
+  .layout-grid { display: block; }
+  .layout-left, .layout-center, .layout-right { margin-bottom: 1rem; }
 }
 
 @media (max-width: 900px) {
-  .app-main {
-    padding: 0.75rem 0.75rem 1.5rem;
-  }
-  .new-pickup-form {
-    flex-direction: column;
-  }
-  th,
-  td {
-    padding: 0.4rem 0.45rem;
-  }
+  .app-main { padding: 0.75rem 0.75rem 1.5rem; }
+  .new-pickup-form { flex-direction: column; }
+  th, td { padding: 0.4rem 0.45rem; }
 }
