@@ -199,15 +199,16 @@ a {
   font-weight: 600;
 }
 
-/* Tag + customer pills (useful for spans if you ever wrap text) */
+/* Tag + customer pills (USED ON <span>, NOT <td>) */
 .pill-blue {
   display: inline-block;
-  padding: 0.12rem 0.4rem;
+  padding: 0.12rem 0.5rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
   font-weight: 700;
+  line-height: 1.05;
 }
 
 /* Keys (valet names) group */
@@ -308,7 +309,7 @@ a {
   background: #06060c;
   border-radius: 10px;
   border: 1px solid #181820;
-  overflow: auto; /* important: allow both x/y when needed */
+  overflow-y: auto;
 }
 
 /* ACTIVE PICKUPS highlight – animated border */
@@ -366,7 +367,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
-  table-layout: fixed; /* stable columns */
+  table-layout: fixed;
 }
 
 thead {
@@ -378,88 +379,22 @@ td {
   padding: 0.3rem 0.45rem;
   border-bottom: 1px solid #17171f;
   text-align: left;
-  vertical-align: top;
 }
 
-/* Keep headers on one line */
 th {
   white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
-/* Allow data cells to wrap instead of overlapping */
 td {
   white-space: normal;
   color: #f5f5f5;
+  vertical-align: top;
 }
 
 tr:nth-child(even) td {
   background: #05050b;
-}
-
-/* ========== TAG / CUSTOMER PILL STYLING (FIXED) ========== */
-/*
-  CRITICAL FIX:
-  These classes are on <td>. They MUST remain table-cells.
-  Do NOT use display:inline-block here or columns break.
-*/
-td.cell-tag,
-td.cell-customer {
-  white-space: nowrap;
-}
-
-/* pill look without breaking the table */
-td.cell-tag,
-td.cell-customer {
-  position: relative;
-}
-
-td.cell-tag::before,
-td.cell-customer::before {
-  content: "";
-  position: absolute;
-  inset: 0.2rem 0.25rem;
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  pointer-events: none;
-  z-index: 0;
-}
-
-td.cell-tag,
-td.cell-customer {
-  padding: 0.35rem 0.55rem;
-}
-
-td.cell-tag,
-td.cell-customer {
-  font-weight: 700;
-  color: #dbeafe;
-}
-
-td.cell-tag,
-td.cell-customer {
-  z-index: 1;
-}
-
-td.cell-tag,
-td.cell-customer {
-  /* keep text above the pill background */
-}
-td.cell-tag > *,
-td.cell-customer > * {
-  position: relative;
-  z-index: 1;
-}
-td.cell-tag,
-td.cell-customer {
-  /* plain text also needs to sit above the pill */
-}
-td.cell-tag,
-td.cell-customer {
-  /* create stacking context */
-  isolation: isolate;
 }
 
 /* Status badge (e.g., KEYS WITH VALET) */
@@ -485,29 +420,6 @@ td.cell-customer {
   color: #dbeafe;
 }
 
-/* Notes cell layout – keep Add note / time / timer / PQI tidy */
-.notes-cell {
-  white-space: normal;
-}
-.notes-cell-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-/* Older notes history lines */
-.notes-history-line {
-  font-size: 0.68rem;
-  color: #9ca3af;
-  margin-top: 0.05rem;
-}
-
-/* Timeline button row for completed section */
-.timeline-button-row {
-  margin-top: 0.15rem;
-}
-
 /* ========== TIMERS ========== */
 .timer {
   font-family: "Menlo", "Consolas", monospace;
@@ -518,7 +430,6 @@ td.cell-customer {
   display: inline-block;
 }
 
-/* Time buckets */
 .timer-green {
   border-color: #204d2a;
   background: #0b1b10;
@@ -581,47 +492,17 @@ td.cell-customer {
   line-height: 1.2;
 }
 
-/* ========== WAITING/STAGED FOR CUSTOMER ========== */
-.section-waiting table {
-  table-layout: fixed;
-}
-
-.section-waiting th,
-.section-waiting td {
-  white-space: normal;
-  font-size: 0.78rem;
-}
-
-.section-waiting .notes-cell-inner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
 /* ========== COMPLETED TABLE ========== */
 .section-completed table {
   table-layout: auto;
 }
 
-/* Notes cell in completed – keep Timeline and text clean */
-.section-completed .notes-cell {
-  white-space: normal;
-}
-.section-completed .notes-cell-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-}
-
-/* Checkmark icon next to Completed title */
 .check-icon {
   display: inline-block;
   color: #4ade80;
   margin-right: 0.25rem;
 }
 
-/* Optional collapse for completed section */
 .completed-collapsed .section-completed-table {
   display: none;
 }
@@ -658,7 +539,6 @@ td.cell-customer {
   margin-top: 0.05rem;
 }
 
-/* Valet activity list */
 .valet-list {
   list-style: none;
   margin: 0.35rem 0 0;
@@ -687,11 +567,10 @@ td.cell-customer {
   color: #888;
 }
 
-/* ========== ROLE VISIBILITY ========== */
+/* ========== ROLE VISIBILITY (SAFE) ========== */
 body.role-dispatcher .dispatcher-only {
   display: initial;
 }
-
 body.role-dispatcher th.dispatcher-only,
 body.role-dispatcher td.dispatcher-only {
   display: table-cell;
@@ -705,13 +584,11 @@ body.role-loancar .dispatcher-only {
   display: none !important;
 }
 
-/* Keymachine-only visibility */
 body.role-keymachine .keymachine-only,
 body.role-dispatcher .keymachine-only,
 body.role-carwash .keymachine-only {
   display: initial;
 }
-
 body.role-wallboard .keymachine-only {
   display: none !important;
 }
@@ -720,7 +597,6 @@ body.role-carwash .carwash-only {
   display: initial;
 }
 
-/* Wallboard styling */
 .wallboard-main {
   max-width: 1600px;
 }
@@ -729,8 +605,6 @@ body.role-carwash .carwash-only {
   font-size: 1rem;
   padding: 0.6rem 0.7rem;
 }
-
-/* Wallboard read-only */
 body.role-wallboard button {
   pointer-events: none;
   opacity: 0.7;
@@ -741,7 +615,6 @@ body.role-wallboard button {
   .layout-grid {
     display: block;
   }
-
   .layout-left,
   .layout-center,
   .layout-right {
@@ -753,11 +626,9 @@ body.role-wallboard button {
   .app-main {
     padding: 0.75rem 0.75rem 1.5rem;
   }
-
   .new-pickup-form {
     flex-direction: column;
   }
-
   th,
   td {
     padding: 0.4rem 0.45rem;
