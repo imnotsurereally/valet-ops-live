@@ -12,7 +12,6 @@ let uiStateLoaded = false;
 const expandState = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // role from body class
   if (document.body.classList.contains("role-keymachine")) role = "keymachine";
   else if (document.body.classList.contains("role-carwash")) role = "carwash";
   else if (document.body.classList.contains("role-wallboard")) role = "wallboard";
@@ -29,9 +28,26 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPickups();
   subscribeRealtime();
 
-  // Timers tick in 15s intervals
   setInterval(() => renderTables(true), 15 * 1000);
 });
+
+/* ---------- PERMISSIONS ---------- */
+
+function canEditOps() {
+  // “Ops controls” = wash + valet + move stages + completion, etc.
+  // Only Dispatcher / KeyMachine / CarWash can touch ops.
+  return role === "dispatcher" || role === "keymachine" || role === "carwash";
+}
+
+function canAddNotes() {
+  // Everyone except wallboard can add notes (wallboard is read-only).
+  return role !== "wallboard";
+}
+
+function isReadOnlyRole() {
+  // serviceadvisor + loancar are read-only except notes
+  return role === "serviceadvisor" || role === "loancar";
+}
 
 /* ---------- UI STATE (completed collapse + PQI) ---------- */
 
@@ -171,15 +187,22 @@ function onTableClick(e) {
   const id = btn.getAttribute("data-id");
   if (!id || !action) return;
 
-  // Permission gate: service advisor + loan car can only add notes.
-  if (role === "serviceadvisor" || role === "loancar") {
-    if (action !== "edit-note") return;
+  // Hard UI toggles only allowed if ops-edit is allowed
+  if (action === "toggle-wash" || action === "toggle-valet" || action === "toggle-waiting-valet") {
+    if (!canEditOps()) return;
+    if (action === "toggle-wash") return toggleExpand(id, "wash");
+    if (action === "toggle-valet") return toggleExpand(id, "valet");
+    if (action === "toggle-waiting-valet") return toggleExpand(id, "waitingValet");
   }
 
-  // UI-only expand/collapse actions
-  if (action === "toggle-wash") return toggleExpand(id, "wash");
-  if (action === "toggle-valet") return toggleExpand(id, "valet");
-  if (action === "toggle-waiting-valet") return toggleExpand(id, "waitingValet");
+  // Notes allowed (except wallboard)
+  if (action === "edit-note") {
+    if (!canAddNotes()) return;
+    return handleAction(id, action);
+  }
+
+  // Everything else = ops controls. Hard block if not allowed.
+  if (!canEditOps()) return;
 
   handleAction(id, action);
 }
@@ -300,6 +323,7 @@ async function handleAction(id, action) {
     }
 
     case "view-timeline": {
+      // Keep timeline view for dispatcher (ops users). Others can't click it due to click gate.
       const p = pickups.find((pk) => String(pk.id) === String(id));
       if (!p) return;
       const lines = [];
@@ -493,15 +517,17 @@ function renderStagedRow(p) {
       <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
       <td>${formatTime(p.created_at)}</td>
       <td>
-        <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
-          Activate
-        </button>
+        ${
+          canEditOps()
+            ? `<button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">Activate</button>`
+            : `<span class="status-badge">Locked</span>`
+        }
       </td>
     </tr>
   `;
 }
 
-/* ---------- ACTIVE ROW ---------- */
+/* ---------- ACTIVE ROW (role-aware UI) ---------- */
 
 function renderActiveRow(p, now) {
   if (role === "wallboard") return renderActiveRowWallboard(p, now);
@@ -525,6 +551,10 @@ function renderActiveRow(p, now) {
   const washSelectedLabel =
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
   const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
+
+  // Read-only role: show compact badges only, no buttons at all.
+  const readonlyWash = `<span class="status-badge">${escapeHtml(washSelectedLabel)}</span>`;
+  const readonlyValet = `<span class="status-badge">${escapeHtml(valetSelectedLabel)}</span>`;
 
   const expanded = expandState.get(String(p.id)) || { wash: false, valet: false, waitingValet: false };
 
@@ -581,11 +611,20 @@ function renderActiveRow(p, now) {
     </div>
   `;
 
-  const washCell = currentWash === "NONE" || expanded.wash ? washChooser : washCollapsed;
-  const valetCell = !currentValet || expanded.valet ? valetChooser : valetCollapsed;
+  const washCell = !canEditOps()
+    ? readonlyWash
+    : (currentWash === "NONE" || expanded.wash ? washChooser : washCollapsed);
+
+  const valetCell = !canEditOps()
+    ? readonlyValet
+    : (!currentValet || expanded.valet ? valetChooser : valetCollapsed);
 
   const notesHtml = `
-    <button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>
+    ${
+      canAddNotes()
+        ? `<button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>`
+        : ""
+    }
     ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
   `;
 
@@ -598,9 +637,11 @@ function renderActiveRow(p, now) {
         <td>${valetCell}</td>
         <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
         <td class="dispatcher-only">
-          <button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">
-            Move to staged
-          </button>
+          ${
+            canEditOps()
+              ? `<button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">Move to staged</button>`
+              : `<span class="status-badge">Locked</span>`
+          }
         </td>
         <td>${notesHtml}</td>
         <td>
@@ -661,7 +702,7 @@ function renderActiveRowWallboard(p, now) {
   `;
 }
 
-/* ---------- WAITING ROW (NEW: Delivered-by pill + Change) ---------- */
+/* ---------- WAITING ROW (role-aware delivered-by UI) ---------- */
 
 function renderWaitingRow(p, now) {
   if (role === "wallboard") {
@@ -685,6 +726,8 @@ function renderWaitingRow(p, now) {
 
   const expanded = expandState.get(String(p.id)) || { wash: false, valet: false, waitingValet: false };
 
+  const readonlyDelivered = `<span class="status-badge">${escapeHtml(deliveredLabel)}</span>`;
+
   const valetChooser = `
     <div class="keys-buttons">
       <button class="btn small ${deliveredBy === "Fernando" ? "selected" : ""}" data-action="with-fernando" data-id="${p.id}">Fernando</button>
@@ -706,7 +749,9 @@ function renderWaitingRow(p, now) {
     </div>
   `;
 
-  const deliveredCell = !deliveredBy || expanded.waitingValet ? valetChooser : valetCollapsed;
+  const deliveredCell = !canEditOps()
+    ? readonlyDelivered
+    : (!deliveredBy || expanded.waitingValet ? valetChooser : valetCollapsed);
 
   const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
   const stagedClass = timerClass(computeSeverity(stagedSeconds));
@@ -727,15 +772,19 @@ function renderWaitingRow(p, now) {
       <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
       <td><span class="timer ${masterClass}">${masterLabel}</span></td>
       <td>
-        <button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${p.id}">
-          Add note
-        </button>
+        ${
+          canAddNotes()
+            ? `<button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${p.id}">Add note</button>`
+            : ""
+        }
         ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
       </td>
       <td>
-        <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">
-          Customer picked up
-        </button>
+        ${
+          canEditOps()
+            ? `<button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">Customer picked up</button>`
+            : `<span class="status-badge">Locked</span>`
+        }
       </td>
     </tr>
   `;
@@ -769,9 +818,11 @@ function renderCompletedRow(p, now) {
         }
       </td>
       <td>
-        <button class="btn small" data-action="view-timeline" data-id="${p.id}">
-          Timeline
-        </button>
+        ${
+          canEditOps()
+            ? `<button class="btn small" data-action="view-timeline" data-id="${p.id}">Timeline</button>`
+            : `<span class="status-badge">—</span>`
+        }
       </td>
     </tr>
   `;
