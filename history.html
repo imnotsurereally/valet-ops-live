@@ -9,81 +9,133 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- Our app logic (shared renderer + data) -->
+    <script type="module" src="app.js"></script>
 
     <style>
-      /* History-only layout tweaks (safe: does NOT affect other pages) */
+      /* History-only: keep it readable and aligned without affecting other pages */
       .history-wrap {
+        padding: 0.75rem 1rem 1.5rem;
         max-width: 1800px;
         margin: 0 auto;
       }
       .history-controls {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.6rem;
-        align-items: flex-end;
-        background: #0a0b10;
-        border-radius: 10px;
-        border: 1px solid #191b22;
-        padding: 0.6rem 0.7rem;
-        margin-bottom: 0.8rem;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0.75rem 0;
       }
       .history-controls .input-text {
         min-width: 220px;
       }
-      .history-controls .btn {
-        white-space: nowrap;
+      .history-hint {
+        font-size: 0.8rem;
+        color: #a0a0a0;
+        margin-top: 0.25rem;
       }
-
-      .history-results .table-wrapper {
-        overflow-x: auto;
-      }
-
-      .details-cell {
-        min-width: 420px;
-      }
-      .timeline {
-        margin-top: 0.35rem;
-        padding-top: 0.35rem;
-        border-top: 1px solid #17171f;
+      .history-grid {
         display: grid;
-        gap: 0.25rem;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
       }
-      .timeline-item {
-        font-size: 0.76rem;
-        color: #e5e7eb;
+      .history-card {
+        border: 1px solid #181820;
+        border-radius: 10px;
+        background: #06060c;
+        overflow: hidden;
+      }
+      .history-card-head {
         display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
         align-items: baseline;
+        justify-content: space-between;
+        padding: 0.65rem 0.8rem;
+        border-bottom: 1px solid #17171f;
+        background: #101018;
       }
-      .timeline-time {
-        font-family: "Menlo","Consolas",monospace;
-        font-size: 0.72rem;
-        color: #9ca3af;
-        min-width: 110px;
+      .history-card-title {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
       }
-      .timeline-text {
-        color: #e5e7eb;
+      .history-card-meta {
+        font-size: 0.78rem;
+        color: #a0a0a0;
       }
-      .muted {
-        color: #9ca3af;
+      .history-card-body {
+        padding: 0.75rem 0.8rem 0.9rem;
+        display: grid;
+        grid-template-columns: minmax(260px, 1.1fr) minmax(260px, 0.9fr);
+        gap: 0.75rem;
+        align-items: start;
       }
-
-      /* Make “open row” cleaner */
-      .row-open {
-        outline: 2px solid rgba(96,165,250,0.35);
-        outline-offset: -2px;
-      }
-
-      /* Tighten pills in history */
-      .pill-blue {
-        margin-right: 0.25rem;
-      }
-      .notes-preview {
-        margin-top: 0.2rem;
-      }
-
       @media (max-width: 900px) {
-        .details-cell { min-width: 320px; }
+        .history-card-body {
+          grid-template-columns: 1fr;
+        }
+      }
+      .history-block {
+        border: 1px solid #17171f;
+        background: #05050b;
+        border-radius: 10px;
+        padding: 0.6rem 0.7rem;
+      }
+      .history-block-title {
+        font-size: 0.75rem;
+        color: #a0a0a0;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.35rem;
+      }
+      .history-line {
+        font-size: 0.82rem;
+        margin: 0.18rem 0;
+        color: #f5f5f5;
+      }
+      .history-line.dim {
+        color: #9ca3af;
+      }
+      .history-notes {
+        white-space: pre-wrap;
+        font-size: 0.82rem;
+        color: #e5e7eb;
+        line-height: 1.35;
+      }
+      .history-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.55rem;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.12rem 0.45rem;
+        border-radius: 999px;
+        border: 1px solid #3a3a3a;
+        background: #05050b;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #d0d0d0;
+      }
+      .pill.ok {
+        border-color: #204d2a;
+        background: #0b1b10;
+        color: #a9ffb7;
+      }
+      .pill.warn {
+        border-color: #7a4418;
+        background: #221109;
+        color: #ffb47a;
+      }
+      .pill.bad {
+        border-color: #7a1c1c;
+        background: #220a0a;
+        color: #ff9b9b;
       }
     </style>
   </head>
@@ -94,451 +146,67 @@
         <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">History / Audit – Search any ticket timeline</div>
+          <div class="subtitle">History – Completed & Full Timeline</div>
         </div>
+
         <div class="header-right">
-          <a class="btn small" href="dispatcher.html">Back to Dispatcher</a>
+          <a class="btn small" href="dispatcher.html">Back</a>
           <div class="role-pill">History</div>
         </div>
       </header>
 
-      <main class="app-main history-wrap">
+      <main class="history-wrap">
         <section class="section">
           <div class="section-header">
             <div>
               <div class="section-title">
-                Ticket History
-                <span class="section-count" id="count-results">0</span>
+                Completed Tickets
+                <span class="section-count" id="history-count">0</span>
               </div>
               <div class="section-subtitle">
-                Read-only. Search by Tag # or Customer Name. Expand a row to view the full timeline + notes history.
+                Schema-locked view. This page uses the same underlying data as dispatcher.
               </div>
             </div>
           </div>
 
           <div class="history-controls">
-            <div class="input-group">
-              <label for="q">Search (Tag # or Name)</label>
-              <input id="q" class="input-text" placeholder="e.g. 1432 or Maria" />
+            <input id="history-search" class="input-text" placeholder="Search tag or customer…" />
+            <select id="history-range" class="input-text" style="min-width: 180px;">
+              <option value="today">Today</option>
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="all">All time</option>
+            </select>
+            <button id="history-refresh" class="btn btn-primary">Refresh</button>
+            <div class="history-hint">
+              Tip: Use the “Timeline” button to view the full audit trail pop-up.
             </div>
-
-            <div class="input-group">
-              <label for="quick">Quick Range</label>
-              <select id="quick" class="input-text">
-                <option value="today" selected>Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="all">All time</option>
-                <option value="custom">Custom range</option>
-              </select>
-            </div>
-
-            <div class="input-group">
-              <label for="from">From</label>
-              <input id="from" type="date" class="input-text" />
-            </div>
-
-            <div class="input-group">
-              <label for="to">To</label>
-              <input id="to" type="date" class="input-text" />
-            </div>
-
-            <button class="btn btn-primary" id="btn-refresh">Refresh</button>
-            <button class="btn" id="btn-clear">Clear</button>
           </div>
 
-          <div class="history-results">
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width:120px;">Tag #</th>
-                    <th style="width:220px;">Customer</th>
-                    <th style="width:160px;">Created</th>
-                    <th style="width:160px;">Active Started</th>
-                    <th style="width:150px;">Moved to Waiting</th>
-                    <th style="width:140px;">Completed</th>
-                    <th style="width:160px;">Cycle (Active)</th>
-                    <th class="details-cell">Details</th>
-                  </tr>
-                </thead>
-                <tbody id="results-tbody">
-                  <tr><td colspan="8" class="empty">Loading…</td></tr>
-                </tbody>
-              </table>
-            </div>
+          <div id="history-grid" class="history-grid">
+            <!-- Filled by JS -->
           </div>
         </section>
       </main>
     </div>
 
-    <!-- History page script (self-contained, does NOT touch app.js) -->
     <script type="module">
-      // ---------- Supabase client (same as supabaseClient.js, but inline so you only paste one file) ----------
-      const SUPABASE_URL = "https://azsjlplgxhohpzuobxrj.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6c2pscGxneGhvaHB6dW9ieHJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5NzU5NDAsImV4cCI6MjA4MDU1MTk0MH0._WudnsgmWGMmoUV8C6PA_qbg5_3tWNCe8wD-6GJ-Cy8";
+      import { supabase } from "./supabaseClient.js";
 
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // IMPORTANT:
+      // - We keep schema locked by rendering fixed "cards" (not tables)
+      // - We do NOT alter any data model or behavior.
+      // - Timeline uses the same popup logic style as app.js.
 
-      // ---------- State ----------
-      let allPickups = [];
-      const openRows = new Set(); // ids expanded
+      const grid = document.getElementById("history-grid");
+      const countEl = document.getElementById("history-count");
+      const searchEl = document.getElementById("history-search");
+      const rangeEl = document.getElementById("history-range");
+      const refreshBtn = document.getElementById("history-refresh");
 
-      // ---------- DOM ----------
-      const $q = document.getElementById("q");
-      const $quick = document.getElementById("quick");
-      const $from = document.getElementById("from");
-      const $to = document.getElementById("to");
-      const $btnRefresh = document.getElementById("btn-refresh");
-      const $btnClear = document.getElementById("btn-clear");
-      const $tbody = document.getElementById("results-tbody");
-      const $count = document.getElementById("count-results");
+      let rows = [];
 
-      // ---------- Init ----------
-      document.addEventListener("DOMContentLoaded", () => {
-        applyQuickRange("today");
-        loadAll().then(() => render());
-
-        $btnRefresh.addEventListener("click", () => {
-          loadAll().then(() => render());
-        });
-
-        $btnClear.addEventListener("click", () => {
-          $q.value = "";
-          $quick.value = "today";
-          applyQuickRange("today");
-          openRows.clear();
-          render();
-        });
-
-        $quick.addEventListener("change", () => {
-          applyQuickRange($quick.value);
-          openRows.clear();
-          render();
-        });
-
-        [$q, $from, $to].forEach((el) => {
-          el.addEventListener("input", () => {
-            // don’t reload DB; just filter client-side
-            render();
-          });
-        });
-
-        $tbody.addEventListener("click", (e) => {
-          const btn = e.target.closest("[data-toggle]");
-          if (!btn) return;
-          const id = btn.getAttribute("data-id");
-          if (!id) return;
-          if (openRows.has(id)) openRows.delete(id);
-          else openRows.add(id);
-          render();
-        });
-      });
-
-      // ---------- Load ----------
-      async function loadAll() {
-        $tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
-
-        // Pull a reasonable window; filters are client-side.
-        // If you later want truly huge history, we’ll paginate in V2.
-        const { data, error } = await supabase
-          .from("pickups")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(500);
-
-        if (error) {
-          console.error(error);
-          $tbody.innerHTML =
-            '<tr><td colspan="8" class="empty">Error loading. Check console.</td></tr>';
-          return;
-        }
-
-        allPickups = data || [];
-      }
-
-      // ---------- Render ----------
-      function render() {
-        const filtered = filterPickups(allPickups);
-        $count.textContent = String(filtered.length);
-
-        if (!filtered.length) {
-          $tbody.innerHTML =
-            '<tr><td colspan="8" class="empty">No results for that search / date range.</td></tr>';
-          return;
-        }
-
-        $tbody.innerHTML = filtered.map((p) => renderRow(p)).join("");
-      }
-
-      function renderRow(p) {
-        const id = String(p.id);
-        const isOpen = openRows.has(id);
-
-        const cycleSeconds = computeSeconds(p.active_started_at || p.created_at, p.waiting_client_at, new Date());
-        const cycleLabel = formatDuration(cycleSeconds);
-        const cycleSeverity = computeSeverity(cycleSeconds);
-        const cycleClass = timerClass(cycleSeverity);
-
-        const lastNote = lastNoteFromNotes(p.notes);
-
-        return `
-          <tr class="${isOpen ? "row-open" : ""}">
-            <td><span class="pill-blue">${escapeHtml(p.tag_number || "")}</span></td>
-            <td><span class="pill-blue">${escapeHtml(p.customer_name || "")}</span></td>
-            <td>${formatTime(p.created_at)}</td>
-            <td>${formatTime(p.active_started_at)}</td>
-            <td>${formatTime(p.waiting_client_at)}</td>
-            <td>${formatTime(p.completed_at)}</td>
-            <td><span class="timer ${cycleClass}">${cycleLabel}</span></td>
-            <td class="details-cell">
-              <button class="btn small" data-toggle="1" data-id="${id}">
-                ${isOpen ? "Hide" : "Show"} timeline
-              </button>
-
-              ${
-                lastNote
-                  ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>`
-                  : `<div class="muted" style="margin-top:0.25rem;font-size:0.78rem;">No notes.</div>`
-              }
-
-              ${isOpen ? renderTimeline(p) : ""}
-            </td>
-          </tr>
-        `;
-      }
-
-      function renderTimeline(p) {
-        const items = buildTimelineItems(p);
-
-        const notes = (p.notes || "").split("\n").filter(Boolean);
-        const notesBlock = notes.length
-          ? `
-            <div class="timeline-item" style="margin-top:0.25rem;">
-              <div class="timeline-time">Notes</div>
-              <div class="timeline-text muted">${escapeHtml(notes[notes.length - 1])}</div>
-            </div>
-            ${
-              notes.length > 1
-                ? notes
-                    .slice(0, -1)
-                    .reverse()
-                    .map(
-                      (n) => `
-                        <div class="timeline-item">
-                          <div class="timeline-time"></div>
-                          <div class="timeline-text muted">${escapeHtml(n)}</div>
-                        </div>
-                      `
-                    )
-                    .join("")
-                : ""
-            }
-          `
-          : "";
-
-        return `
-          <div class="timeline">
-            ${items
-              .map(
-                (it) => `
-                <div class="timeline-item">
-                  <div class="timeline-time">${escapeHtml(it.time)}</div>
-                  <div class="timeline-text">${escapeHtml(it.text)}</div>
-                </div>
-              `
-              )
-              .join("")}
-            ${notesBlock}
-          </div>
-        `;
-      }
-
-      // ---------- Filters ----------
-      function filterPickups(list) {
-        const q = ($q.value || "").trim().toLowerCase();
-
-        // Date range (created_at based)
-        const range = getDateRange();
-        const start = range?.start ? new Date(range.start) : null;
-        const end = range?.end ? new Date(range.end) : null;
-
-        return list.filter((p) => {
-          // Search
-          if (q) {
-            const tag = String(p.tag_number || "").toLowerCase();
-            const name = String(p.customer_name || "").toLowerCase();
-            if (!tag.includes(q) && !name.includes(q)) return false;
-          }
-
-          // Date range
-          if (start || end) {
-            const created = p.created_at ? new Date(p.created_at) : null;
-            if (!created) return false;
-
-            if (start && created < start) return false;
-            if (end && created > end) return false;
-          }
-
-          return true;
-        });
-      }
-
-      function applyQuickRange(mode) {
-        const today = new Date();
-        const yyyyMmDd = (d) => {
-          const yyyy = d.getFullYear();
-          const mm = String(d.getMonth() + 1).padStart(2, "0");
-          const dd = String(d.getDate()).padStart(2, "0");
-          return `${yyyy}-${mm}-${dd}`;
-        };
-
-        const startOfDay = (d) => {
-          const x = new Date(d);
-          x.setHours(0, 0, 0, 0);
-          return x;
-        };
-        const endOfDay = (d) => {
-          const x = new Date(d);
-          x.setHours(23, 59, 59, 999);
-          return x;
-        };
-
-        let start = null;
-        let end = null;
-
-        if (mode === "today") {
-          start = startOfDay(today);
-          end = endOfDay(today);
-        } else if (mode === "yesterday") {
-          const y = new Date(today);
-          y.setDate(y.getDate() - 1);
-          start = startOfDay(y);
-          end = endOfDay(y);
-        } else if (mode === "7d") {
-          const s = startOfDay(today);
-          s.setDate(s.getDate() - 6);
-          start = s;
-          end = endOfDay(today);
-        } else if (mode === "30d") {
-          const s = startOfDay(today);
-          s.setDate(s.getDate() - 29);
-          start = s;
-          end = endOfDay(today);
-        } else if (mode === "all") {
-          start = null;
-          end = null;
-        } else if (mode === "custom") {
-          // keep user inputs
-          return;
-        }
-
-        if (start && end) {
-          $from.value = yyyyMmDd(start);
-          $to.value = yyyyMmDd(end);
-        } else {
-          $from.value = "";
-          $to.value = "";
-        }
-      }
-
-      function getDateRange() {
-        if ($quick.value === "all") return null;
-
-        const fromVal = $from.value ? new Date($from.value + "T00:00:00") : null;
-        const toVal = $to.value ? new Date($to.value + "T23:59:59.999") : null;
-
-        // If user selects "custom", these are required-ish, but we’ll be forgiving.
-        if (!fromVal && !toVal) return null;
-
-        return { start: fromVal ? fromVal.toISOString() : null, end: toVal ? toVal.toISOString() : null };
-      }
-
-      // ---------- Timeline builder ----------
-      function buildTimelineItems(p) {
-        const items = [];
-        const push = (iso, text) => {
-          if (!iso) return;
-          items.push({ iso, time: formatTimeShort(iso), text });
-        };
-
-        push(p.created_at, "Ticket created");
-        push(p.active_started_at, "Entered Active Pickups");
-
-        if (p.keys_with_valet_at && p.keys_holder) {
-          push(p.keys_with_valet_at, `Keys with ${p.keys_holder}`);
-        }
-        if (p.keys_at_machine_at) {
-          push(p.keys_at_machine_at, "Keys in key machine");
-        }
-
-        if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE") {
-          push(p.wash_status_at, `Status/location: ${humanWashStatus(p.wash_status)}`);
-        }
-
-        push(p.waiting_client_at, "Moved to Waiting/Staged for customer");
-        push(p.completed_at, "Completed");
-
-        // Sort by ISO time ascending
-        items.sort((a, b) => new Date(a.iso) - new Date(b.iso));
-        return items;
-      }
-
-      function lastNoteFromNotes(notes) {
-        const lines = (notes || "").split("\n").filter(Boolean);
-        return lines.length ? lines[lines.length - 1] : "";
-      }
-
-      // ---------- Helpers ----------
-      function humanWashStatus(wash_status) {
-        switch (wash_status) {
-          case "IN_WASH_AREA": return "Car in wash";
-          case "ON_RED_LINE": return "Car on red line";
-          case "REWASH": return "Re wash";
-          case "NEEDS_REWASH": return "Needs rewash";
-          case "DUSTY": return "Dusty";
-          default: return "Not set";
-        }
-      }
-
-      function computeSeconds(startIso, endIso, now) {
-        if (!startIso) return 0;
-        const start = new Date(startIso);
-        let end = endIso ? new Date(endIso) : now;
-        if (end < start) end = now;
-        const diffMs = end - start;
-        if (Number.isNaN(diffMs) || diffMs < 0) return 0;
-        return diffMs / 1000;
-      }
-
-      function computeSeverity(seconds) {
-        const minutes = seconds / 60;
-        if (minutes >= 25) return "red";
-        if (minutes >= 20) return "orange";
-        if (minutes >= 10) return "yellow";
-        return "green";
-      }
-
-      function timerClass(sev) {
-        switch (sev) {
-          case "yellow": return "timer-yellow";
-          case "orange": return "timer-orange";
-          case "red": return "timer-red";
-          default: return "timer-green";
-        }
-      }
-
-      function formatDuration(seconds) {
-        if (!seconds || seconds < 0) seconds = 0;
-        const snapped = Math.round(seconds / 15) * 15; // 15s steps
-        const mins = Math.floor(snapped / 60);
-        const secs = snapped % 60;
-        return `${mins}m ${secs.toString().padStart(2, "0")}s`;
-      }
-
-      function formatTime(iso) {
+      const fmtTime = (iso) => {
         if (!iso) return "";
         const d = new Date(iso);
         return (
@@ -546,22 +214,189 @@
           " " +
           d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
         );
-      }
+      };
 
-      function formatTimeShort(iso) {
-        if (!iso) return "";
-        const d = new Date(iso);
-        return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-      }
-
-      function escapeHtml(str) {
-        if (str == null) return "";
-        return String(str)
+      const esc = (str) =>
+        String(str ?? "")
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
+
+      const formatDuration = (seconds) => {
+        if (!seconds || seconds < 0) seconds = 0;
+        const snapped = Math.round(seconds / 15) * 15;
+        const mins = Math.floor(snapped / 60);
+        const secs = snapped % 60;
+        return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+      };
+
+      const computeSeconds = (startIso, endIso, now) => {
+        if (!startIso) return 0;
+        const start = new Date(startIso);
+        let end = endIso ? new Date(endIso) : now;
+        if (end < start) end = now;
+        const diffMs = end - start;
+        if (Number.isNaN(diffMs) || diffMs < 0) return 0;
+        return diffMs / 1000;
+      };
+
+      const computeMasterSeconds = (p, now) => {
+        const startIso = p.active_started_at || p.created_at;
+        if (!startIso) return 0;
+        const endIso = p.waiting_client_at || null;
+        return computeSeconds(startIso, endIso, now);
+      };
+
+      const severityPill = (seconds) => {
+        const mins = seconds / 60;
+        if (mins >= 25) return `<span class="pill bad">SLOW</span>`;
+        if (mins >= 20) return `<span class="pill warn">WATCH</span>`;
+        return `<span class="pill ok">OK</span>`;
+      };
+
+      const latestNote = (p) => {
+        const notes = (p.notes || "").split("\n").filter(Boolean);
+        return notes.length ? notes[notes.length - 1] : "";
+      };
+
+      function buildTimelineText(p) {
+        const lines = [];
+        lines.push(`Ticket ${p.tag_number} – ${p.customer_name}`);
+        lines.push("--------------------------------");
+        if (p.created_at) lines.push("Created: " + fmtTime(p.created_at));
+        if (p.active_started_at) lines.push("Entered Active Pickups: " + fmtTime(p.active_started_at));
+        if (p.keys_with_valet_at && p.keys_holder) lines.push(`Keys with ${p.keys_holder}: ` + fmtTime(p.keys_with_valet_at));
+        if (p.keys_at_machine_at) lines.push("Keys in key machine: " + fmtTime(p.keys_at_machine_at));
+        if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE") lines.push(`Wash status: ` + fmtTime(p.wash_status_at));
+        if (p.waiting_client_at) lines.push("Waiting/staged for customer: " + fmtTime(p.waiting_client_at));
+        if (p.completed_at) lines.push("Completed: " + fmtTime(p.completed_at));
+
+        const masterSeconds = computeMasterSeconds(p, new Date());
+        lines.push("Master cycle (Active box in/out): " + formatDuration(masterSeconds));
+
+        if (p.notes) {
+          lines.push("");
+          lines.push("Notes history:");
+          p.notes.split("\n").forEach((n) => lines.push("• " + n));
+        }
+        return lines.join("\n");
       }
+
+      function render() {
+        const q = (searchEl.value || "").trim().toLowerCase();
+        const now = new Date();
+
+        let filtered = rows.slice();
+
+        // Range filter
+        const range = rangeEl.value;
+        if (range !== "all") {
+          let since = new Date();
+          if (range === "today") {
+            since.setHours(0, 0, 0, 0);
+          } else {
+            since = new Date(now.getTime() - Number(range) * 24 * 60 * 60 * 1000);
+          }
+          filtered = filtered.filter((p) => p.completed_at && new Date(p.completed_at) >= since);
+        }
+
+        // Search filter
+        if (q) {
+          filtered = filtered.filter((p) => {
+            const tag = String(p.tag_number || "").toLowerCase();
+            const name = String(p.customer_name || "").toLowerCase();
+            return tag.includes(q) || name.includes(q);
+          });
+        }
+
+        if (countEl) countEl.textContent = String(filtered.length);
+
+        if (!filtered.length) {
+          grid.innerHTML = `<div class="empty">No matching tickets.</div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered
+          .map((p) => {
+            const masterSeconds = computeMasterSeconds(p, now);
+            const note = latestNote(p);
+            const deliveredBy = p.keys_holder || "—";
+
+            return `
+              <div class="history-card">
+                <div class="history-card-head">
+                  <div class="history-card-title">
+                    <span class="cell-tag">${esc(p.tag_number)}</span>
+                    <span class="cell-customer">${esc(p.customer_name)}</span>
+                    ${severityPill(masterSeconds)}
+                  </div>
+                  <div class="history-card-meta">
+                    Completed: ${esc(fmtTime(p.completed_at))}
+                  </div>
+                </div>
+
+                <div class="history-card-body">
+                  <div class="history-block">
+                    <div class="history-block-title">Timeline Summary</div>
+                    <div class="history-line">Created: <span class="dim">${esc(fmtTime(p.created_at))}</span></div>
+                    <div class="history-line">Delivered by: <span class="dim">${esc(deliveredBy)}</span></div>
+                    <div class="history-line">Master time: <span class="dim">${esc(formatDuration(masterSeconds))}</span></div>
+                    <div class="history-row-actions">
+                      <button class="btn small" data-action="timeline" data-id="${p.id}">Timeline</button>
+                    </div>
+                  </div>
+
+                  <div class="history-block">
+                    <div class="history-block-title">Latest Note</div>
+                    <div class="history-notes">${esc(note || "—")}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      async function load() {
+        grid.innerHTML = `<div class="empty">Loading…</div>`;
+
+        const { data, error } = await supabase
+          .from("pickups")
+          .select("*")
+          .eq("status", "COMPLETE")
+          .order("completed_at", { ascending: false })
+          .limit(200);
+
+        if (error) {
+          console.error(error);
+          grid.innerHTML = `<div class="empty">Error loading history. Check console.</div>`;
+          return;
+        }
+
+        rows = data || [];
+        render();
+      }
+
+      // Events
+      refreshBtn.addEventListener("click", () => load());
+      searchEl.addEventListener("input", () => render());
+      rangeEl.addEventListener("change", () => render());
+
+      // Timeline click (delegated)
+      grid.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-action]");
+        if (!btn) return;
+        const action = btn.getAttribute("data-action");
+        if (action !== "timeline") return;
+
+        const id = btn.getAttribute("data-id");
+        const p = rows.find((x) => String(x.id) === String(id));
+        if (!p) return;
+        alert(buildTimelineText(p));
+      });
+
+      load();
     </script>
   </body>
 </html>
