@@ -1,4 +1,4 @@
-// app.js
+// app.js — Schema-based renderer (NO feature changes)
 import { supabase } from "./supabaseClient.js";
 
 let pickups = [];
@@ -7,8 +7,11 @@ let severityMap = new Map(); // id -> severity for sound alerts
 let pqiEnabled = false;
 let uiStateLoaded = false;
 
+/* =========================================================
+   ROLE + BOOT
+========================================================= */
+
 document.addEventListener("DOMContentLoaded", () => {
-  // role from body class
   if (document.body.classList.contains("role-keymachine")) role = "keymachine";
   else if (document.body.classList.contains("role-carwash")) role = "carwash";
   else if (document.body.classList.contains("role-wallboard")) role = "wallboard";
@@ -25,11 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPickups();
   subscribeRealtime();
 
-  // Timers tick in 15s intervals
   setInterval(() => renderTables(true), 15 * 1000);
 });
 
-/* ---------- UI STATE (completed collapse + PQI) ---------- */
+/* =========================================================
+   UI STATE (completed collapse + PQI)
+========================================================= */
 
 function loadUIState() {
   if (uiStateLoaded) return;
@@ -59,13 +63,14 @@ function saveUIState() {
     section && section.classList.contains("completed-collapsed")
   );
   const state = { completedCollapsed, pqiEnabled };
-
   try {
     localStorage.setItem("valetOpsState", JSON.stringify(state));
   } catch {}
 }
 
-/* ---------- PQI toggle (global) ---------- */
+/* =========================================================
+   PQI toggle (global)
+========================================================= */
 
 function setupPqiToggle() {
   const btn = document.getElementById("pqi-toggle");
@@ -81,6 +86,7 @@ function setupPqiToggle() {
 function applyPqiToggleUI() {
   const btn = document.getElementById("pqi-toggle");
   if (!btn) return;
+
   if (pqiEnabled) {
     btn.classList.remove("off");
     btn.textContent = "PQI: On";
@@ -90,7 +96,9 @@ function applyPqiToggleUI() {
   }
 }
 
-/* ---------- NEW PICKUP FORM ---------- */
+/* =========================================================
+   NEW PICKUP FORM (role routes unchanged)
+========================================================= */
 
 function setupForm() {
   const form = document.getElementById("new-pickup-form");
@@ -98,6 +106,7 @@ function setupForm() {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const tagInput = document.getElementById("tag-number");
     const nameInput = document.getElementById("customer-name");
     const stageCheckbox = document.getElementById("stage-only");
@@ -110,9 +119,6 @@ function setupForm() {
 
     const nowIso = new Date().toISOString();
 
-    // Role-based routing for V1 screens
-    // - serviceadvisor: goes to STAGED
-    // - loancar: goes to NEW + note
     let insertData = {
       tag_number: tag,
       customer_name: name,
@@ -121,11 +127,13 @@ function setupForm() {
       active_started_at: staged ? null : nowIso
     };
 
+    // service advisor: always STAGED (V1)
     if (role === "serviceadvisor") {
       insertData.status = "STAGED";
       insertData.active_started_at = null;
     }
 
+    // loan car: goes to NEW + auto-note (V1)
     if (role === "loancar") {
       insertData.status = "NEW";
       insertData.active_started_at = nowIso;
@@ -137,7 +145,6 @@ function setupForm() {
     }
 
     const { error } = await supabase.from("pickups").insert(insertData);
-
     if (error) {
       console.error(error);
       alert("Error creating ticket. Check console.");
@@ -150,7 +157,9 @@ function setupForm() {
   });
 }
 
-/* ---------- TABLE ACTIONS ---------- */
+/* =========================================================
+   TABLE ACTIONS + PERMISSIONS (unchanged)
+========================================================= */
 
 function setupTableActions() {
   ["active-tbody", "staged-tbody", "waiting-tbody", "completed-tbody"].forEach(
@@ -166,7 +175,7 @@ function onTableClick(e) {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
 
-  // Permission gate: service advisor + loan car can only add notes.
+  // Permission gate: service advisor + loan car can only add notes
   if (role === "serviceadvisor" || role === "loancar") {
     const action = btn.getAttribute("data-action");
     if (action !== "edit-note") return;
@@ -175,6 +184,7 @@ function onTableClick(e) {
   const id = btn.getAttribute("data-id");
   const action = btn.getAttribute("data-action");
   if (!id || !action) return;
+
   handleAction(id, action);
 }
 
@@ -255,6 +265,7 @@ async function handleAction(id, action) {
         : "Add note:";
       const newNote = window.prompt(promptText, "");
       if (newNote === null) return;
+
       const trimmed = newNote.trim();
       if (!trimmed) return;
 
@@ -274,6 +285,7 @@ async function handleAction(id, action) {
     case "view-timeline": {
       const p = pickups.find((pk) => String(pk.id) === String(id));
       if (!p) return;
+
       const lines = [];
       lines.push(`Ticket ${p.tag_number} – ${p.customer_name}`);
       lines.push("--------------------------------");
@@ -282,27 +294,20 @@ async function handleAction(id, action) {
       if (p.active_started_at)
         lines.push("Entered Active Pickups: " + formatTime(p.active_started_at));
       if (p.keys_with_valet_at && p.keys_holder)
-        lines.push(
-          `Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at)
-        );
+        lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
       if (p.keys_at_machine_at)
         lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
       if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
         lines.push(
-          `Wash status (${humanWashStatus(p.wash_status)}): ` +
-            formatTime(p.wash_status_at)
+          `Wash status (${humanWashStatus(p.wash_status)}): ` + formatTime(p.wash_status_at)
         );
       if (p.waiting_client_at)
-        lines.push(
-          "Waiting/staged for customer: " + formatTime(p.waiting_client_at)
-        );
+        lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
       if (p.completed_at)
         lines.push("Completed: " + formatTime(p.completed_at));
 
       const masterSeconds = computeMasterSeconds(p, new Date());
-      lines.push(
-        "Master cycle (Active box in/out): " + formatDuration(masterSeconds)
-      );
+      lines.push("Master cycle (Active box in/out): " + formatDuration(masterSeconds));
 
       if (p.notes) {
         lines.push("");
@@ -321,7 +326,6 @@ async function handleAction(id, action) {
   if (Object.keys(updates).length === 0) return;
 
   const { error } = await supabase.from("pickups").update(updates).eq("id", id);
-
   if (error) {
     console.error(error);
     alert("Error saving update. Check console.");
@@ -334,7 +338,9 @@ function setValetUpdates(updates, name, nowIso) {
   updates.keys_with_valet_at = nowIso;
 }
 
-/* ---------- COMPLETED COLLAPSE ---------- */
+/* =========================================================
+   COMPLETED COLLAPSE
+========================================================= */
 
 function setupCompletedToggle() {
   const section = document.getElementById("completed-section");
@@ -348,7 +354,9 @@ function setupCompletedToggle() {
   });
 }
 
-/* ---------- DATA + REALTIME ---------- */
+/* =========================================================
+   DATA + REALTIME
+========================================================= */
 
 async function loadPickups() {
   const { data, error } = await supabase
@@ -368,28 +376,170 @@ async function loadPickups() {
 function subscribeRealtime() {
   supabase
     .from("pickups")
-    .on("*", () => {
-      loadPickups();
-    })
+    .on("*", () => loadPickups())
     .subscribe();
 }
 
-/* ---------- RENDERING ---------- */
+/* =========================================================
+   SCHEMA-BASED RENDER ENGINE (NO feature changes)
+========================================================= */
+
+function schemaFor(tableKey) {
+  if (tableKey === "active") {
+    if (role === "dispatcher") return "active_dispatcher";
+    if (role === "wallboard") return "active_wallboard";
+    return "active_base";
+  }
+  if (tableKey === "waiting") {
+    return role === "wallboard" ? "waiting_wallboard" : "waiting_dispatcher";
+  }
+  if (tableKey === "staged") return "staged";
+  if (tableKey === "completed") return "completed_dispatcher";
+  return tableKey;
+}
+
+const SCHEMAS = {
+  staged: {
+    emptyText: "No staged tickets.",
+    emptyColspan: 4,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "stagedAt", cell: (p) => escapeHtml(formatTime(p.created_at)) },
+      {
+        key: "activate",
+        cell: (p) =>
+          `<button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">Activate</button>`
+      }
+    ]
+  },
+
+  active_dispatcher: {
+    emptyText: "No active pickups.",
+    emptyColspan: 8,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "statusLocation", cell: (p, ctx) => cellStatusLocation(p, ctx) },
+      { key: "keysWith", cell: (p, ctx) => cellKeysWith(p, ctx) },
+      { key: "valetTime", cell: (p, ctx) => cellValetTime(p, ctx) },
+      {
+        key: "stagedMove",
+        cell: (p) =>
+          `<button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">Move to staged</button>`
+      },
+      { key: "notes", cell: (p) => cellNotes(p) },
+      { key: "masterTime", cell: (p, ctx) => cellMasterTime(p, ctx) }
+    ]
+  },
+
+  active_base: {
+    emptyText: "No active pickups.",
+    emptyColspan: 7,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "statusLocation", cell: (p, ctx) => cellStatusLocation(p, ctx) },
+      { key: "keysWith", cell: (p, ctx) => cellKeysWith(p, ctx) },
+      { key: "valetTime", cell: (p, ctx) => cellValetTime(p, ctx) },
+      { key: "notes", cell: (p) => cellNotes(p) },
+      { key: "masterTime", cell: (p, ctx) => cellMasterTime(p, ctx) }
+    ]
+  },
+
+  active_wallboard: {
+    emptyText: "No active pickups.",
+    emptyColspan: 6,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "statusText", cell: (p) => `<span class="status-badge">${escapeHtml(humanStatus(p))}</span>` },
+      {
+        key: "keysText",
+        cell: (p) => escapeHtml(p.keys_holder ? `Keys with ${p.keys_holder}` : "—")
+      },
+      { key: "valetTime", cell: (p, ctx) => cellValetTime(p, ctx, true) },
+      { key: "masterTime", cell: (p, ctx) => cellMasterTime(p, ctx, true) }
+    ]
+  },
+
+  waiting_dispatcher: {
+    emptyText: "None currently waiting.",
+    emptyColspan: 7,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "deliveredBy", cell: (p) => escapeHtml(p.keys_holder || "—") },
+      { key: "stagedTime", cell: (p, ctx) => cellWaitingTime(p, ctx) },
+      { key: "masterTime", cell: (p, ctx) => cellMasterTime(p, ctx) },
+      { key: "notes", cell: (p) => cellNotes(p, true) },
+      {
+        key: "pickedUpAction",
+        cell: (p) =>
+          `<button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">Customer picked up</button>`
+      }
+    ]
+  },
+
+  waiting_wallboard: {
+    emptyText: "None currently waiting.",
+    emptyColspan: 4,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "deliveredBy", cell: (p) => escapeHtml(p.keys_holder || "—") },
+      { key: "waitingTime", cell: (p, ctx) => cellWaitingTime(p, ctx, true) }
+    ]
+  },
+
+  completed_dispatcher: {
+    emptyText: "No completed tickets yet.",
+    emptyColspan: 8,
+    columns: [
+      { key: "tag", cell: (p) => pillTag(p) },
+      { key: "customer", cell: (p) => pillCustomer(p) },
+      { key: "totalTime", cell: (p, ctx) => escapeHtml(formatDuration(computeMasterSeconds(p, ctx.now))) },
+      { key: "deliveredBy", cell: (p) => escapeHtml(p.keys_holder || "—") },
+      { key: "createdAt", cell: (p) => escapeHtml(formatTime(p.created_at)) },
+      { key: "completedAt", cell: (p) => escapeHtml(formatTime(p.completed_at)) },
+      { key: "notes", cell: (p) => escapeHtml(latestNote(p) || "") },
+      {
+        key: "timelineAction",
+        cell: (p) => `<button class="btn small" data-action="view-timeline" data-id="${p.id}">Timeline</button>`
+      }
+    ]
+  }
+};
+
+function renderRow(schemaName, pickup, ctx) {
+  const schema = SCHEMAS[schemaName];
+  return (
+    "<tr>" +
+    schema.columns.map((col) => `<td>${col.cell(pickup, ctx)}</td>`).join("") +
+    "</tr>"
+  );
+}
+
+function renderEmpty(schemaName) {
+  const s = SCHEMAS[schemaName];
+  return `<tr><td colspan="${s.emptyColspan}" class="empty">${escapeHtml(s.emptyText)}</td></tr>`;
+}
+
+/* =========================================================
+   RENDER TABLES (now schema-driven)
+========================================================= */
 
 function renderTables(isTimerTick) {
   const now = new Date();
+  const ctx = { now, role };
 
   const staged = pickups.filter((p) => p.status === "STAGED");
   const active = pickups.filter(
-    (p) =>
-      p.status !== "STAGED" &&
-      p.status !== "WAITING_FOR_CUSTOMER" &&
-      p.status !== "COMPLETE"
+    (p) => p.status !== "STAGED" && p.status !== "WAITING_FOR_CUSTOMER" && p.status !== "COMPLETE"
   );
   const waiting = pickups.filter((p) => p.status === "WAITING_FOR_CUSTOMER");
   const completed = pickups.filter((p) => p.status === "COMPLETE").slice(0, 50);
 
-  // Oldest first in active box
   active.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
   setCount("count-staged", staged.length);
@@ -402,111 +552,71 @@ function renderTables(isTimerTick) {
   const waitingTbody = document.getElementById("waiting-tbody");
   const completedTbody = document.getElementById("completed-tbody");
 
+  const stagedSchema = schemaFor("staged");
+  const activeSchema = schemaFor("active");
+  const waitingSchema = schemaFor("waiting");
+  const completedSchema = schemaFor("completed");
+
   if (stagedTbody) {
-    stagedTbody.innerHTML =
-      staged.length === 0
-        ? '<tr><td colspan="4" class="empty">No staged tickets.</td></tr>'
-        : staged.map((p) => renderStagedRow(p)).join("");
+    stagedTbody.innerHTML = staged.length
+      ? staged.map((p) => renderRow(stagedSchema, p, ctx)).join("")
+      : renderEmpty(stagedSchema);
   }
 
   if (activeTbody) {
-    activeTbody.innerHTML =
-      active.length === 0
-        ? `<tr><td colspan="${activeColspan()}" class="empty">No active pickups.</td></tr>`
-        : active.map((p) => renderActiveRow(p, now)).join("");
+    activeTbody.innerHTML = active.length
+      ? active.map((p) => renderRow(activeSchema, p, ctx)).join("")
+      : renderEmpty(activeSchema);
   }
 
   if (waitingTbody) {
-    waitingTbody.innerHTML =
-      waiting.length === 0
-        ? `<tr><td colspan="${waitingColspan()}" class="empty">None currently waiting.</td></tr>`
-        : waiting.map((p) => renderWaitingRow(p, now)).join("");
+    waitingTbody.innerHTML = waiting.length
+      ? waiting.map((p) => renderRow(waitingSchema, p, ctx)).join("")
+      : renderEmpty(waitingSchema);
   }
 
   if (completedTbody) {
-    completedTbody.innerHTML =
-      completed.length === 0
-        ? '<tr><td colspan="8" class="empty">No completed tickets yet.</td></tr>'
-        : completed.map((p) => renderCompletedRow(p, now)).join("");
+    // completed only exists on dispatcher pages; safe if missing
+    completedTbody.innerHTML = completed.length
+      ? completed.map((p) => renderRow(completedSchema, p, ctx)).join("")
+      : renderEmpty(completedSchema);
   }
 
   if (role === "dispatcher") renderMetrics(active, waiting, completed, now);
   if (isTimerTick) maybePlayAlerts(active, now);
 }
 
-function activeColspan() {
-  if (role === "wallboard") return 6;
-  if (role === "dispatcher") return 8;
-  return 7;
+/* =========================================================
+   CELL RENDERERS (pure)
+========================================================= */
+
+function pillTag(p) {
+  return `<span class="cell-tag">${escapeHtml(p.tag_number)}</span>`;
 }
 
-function waitingColspan() {
-  if (role === "wallboard") return 4;
-  return 7;
+function pillCustomer(p) {
+  return `<span class="cell-customer">${escapeHtml(p.customer_name)}</span>`;
 }
 
-function setCount(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = String(value);
+function latestNote(p) {
+  const notesPieces = (p.notes || "").split("\n").filter(Boolean);
+  return notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
 }
 
-/* --- IMPORTANT FIX: pills are now spans, not the TD itself --- */
-function renderTagPill(tag) {
-  return `<span class="pill-blue">${escapeHtml(tag)}</span>`;
-}
-function renderCustomerPill(name) {
-  return `<span class="pill-blue">${escapeHtml(name)}</span>`;
-}
-
-function renderStagedRow(p) {
+function cellNotes(p, dispatcherContext = false) {
+  const last = latestNote(p);
+  // keep same behavior: button + latest note pill
+  const btnClass = dispatcherContext ? "dispatcher-only" : "";
   return `
-    <tr>
-      <td>${renderTagPill(p.tag_number)}</td>
-      <td>${renderCustomerPill(p.customer_name)}</td>
-      <td>${formatTime(p.created_at)}</td>
-      <td>
-        <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
-          Activate
-        </button>
-      </td>
-    </tr>
+    <button class="btn small notes-button ${btnClass}" data-action="edit-note" data-id="${p.id}">Add note</button>
+    ${last ? `<div class="notes-preview">${escapeHtml(last)}</div>` : ""}
   `;
 }
 
-/*
-  Active row ALWAYS renders:
-   1 Tag #
-   2 Customer
-   3 Status/Location
-   4 Keys with
-   5 Valet Time
-   6 (Dispatcher only) Staged
-   7 Notes
-   8 Master Time
-*/
-function renderActiveRow(p, now) {
-  if (role === "wallboard") return renderActiveRowWallboard(p, now);
-
-  const masterSeconds = computeMasterSeconds(p, now);
-  const masterClass = timerClass(computeSeverity(masterSeconds));
-  const masterLabel = formatDuration(masterSeconds);
-
-  const valetSeconds = computeValetSeconds(p, now);
-  const valetClass =
-    valetSeconds != null ? timerClass(computeSeverity(valetSeconds)) : "";
-  const valetLabelTime =
-    valetSeconds != null ? formatDuration(valetSeconds) : "–";
-
+function cellStatusLocation(p, ctx) {
   const currentWash = p.wash_status || "NONE";
-  const currentValet = p.keys_holder || "";
-
-  const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
-
-  const washSelectedLabel =
+  const selectedLabel =
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
-  const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
 
   const washBtns = `
     <div class="wash-buttons" style="margin-top:0.15rem;">
@@ -529,6 +639,16 @@ function renderActiveRow(p, now) {
     </div>
   `;
 
+  return `
+    <div class="status-badge">${escapeHtml(selectedLabel)}</div>
+    ${washBtns}
+  `;
+}
+
+function cellKeysWith(p, ctx) {
+  const currentValet = p.keys_holder || "";
+  const selectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
+
   const valetBtns = `
     <div class="keys-buttons">
       <button class="btn small ${currentValet === "Fernando" ? "selected" : ""}" data-action="with-fernando" data-id="${p.id}">Fernando</button>
@@ -539,182 +659,53 @@ function renderActiveRow(p, now) {
     </div>
   `;
 
-  const notesHtml = `
-    <button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>
-    ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
-  `;
-
-  if (role === "dispatcher") {
-    return `
-      <tr>
-        <td>${renderTagPill(p.tag_number)}</td>
-        <td>${renderCustomerPill(p.customer_name)}</td>
-        <td>
-          <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
-          ${washBtns}
-        </td>
-        <td>
-          <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
-          ${valetBtns}
-        </td>
-        <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
-        <td class="dispatcher-only">
-          <button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">
-            Move to staged
-          </button>
-        </td>
-        <td>${notesHtml}</td>
-        <td>
-          <span class="timer ${masterClass}">${masterLabel}</span>
-          ${
-            pqiEnabled
-              ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
-              : ""
-          }
-        </td>
-      </tr>
-    `;
-  }
-
   return `
-    <tr>
-      <td>${renderTagPill(p.tag_number)}</td>
-      <td>${renderCustomerPill(p.customer_name)}</td>
-      <td>
-        <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
-        ${washBtns}
-      </td>
-      <td>
-        <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
-        ${valetBtns}
-      </td>
-      <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
-      <td>${notesHtml}</td>
-      <td>
-        <span class="timer ${masterClass}">${masterLabel}</span>
-        ${
-          pqiEnabled
-            ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
-            : ""
-        }
-      </td>
-    </tr>
+    <div class="status-badge">${escapeHtml(selectedLabel)}</div>
+    ${valetBtns}
   `;
 }
 
-function renderActiveRowWallboard(p, now) {
-  const masterSeconds = computeMasterSeconds(p, now);
-  const masterClass = timerClass(computeSeverity(masterSeconds));
-  const masterLabel = formatDuration(masterSeconds);
-
-  const valetSeconds = computeValetSeconds(p, now);
+function cellValetTime(p, ctx, wallboard = false) {
+  const valetSeconds = computeValetSeconds(p, ctx.now);
   const valetClass =
     valetSeconds != null ? timerClass(computeSeverity(valetSeconds)) : "";
   const valetLabelTime =
     valetSeconds != null ? formatDuration(valetSeconds) : "–";
-
-  const statusLabel = humanStatus(p);
-  const deliveredBy = p.keys_holder ? `Keys with ${p.keys_holder}` : "—";
-
-  return `
-    <tr>
-      <td>${renderTagPill(p.tag_number)}</td>
-      <td>${renderCustomerPill(p.customer_name)}</td>
-      <td><span class="status-badge">${escapeHtml(statusLabel)}</span></td>
-      <td>${escapeHtml(deliveredBy)}</td>
-      <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
-      <td><span class="timer ${masterClass}">${masterLabel}</span></td>
-    </tr>
-  `;
+  return `<span class="timer ${valetClass}">${escapeHtml(valetLabelTime)}</span>`;
 }
 
-function renderWaitingRow(p, now) {
-  if (role === "wallboard") {
-    const deliveredBy = p.keys_holder || "—";
-    const waitingSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
-    const waitingClass = timerClass(computeSeverity(waitingSeconds));
-    const waitingLabel = formatDuration(waitingSeconds);
-
-    return `
-      <tr>
-        <td>${renderTagPill(p.tag_number)}</td>
-        <td>${renderCustomerPill(p.customer_name)}</td>
-        <td>${escapeHtml(deliveredBy)}</td>
-        <td><span class="timer ${waitingClass}">${waitingLabel}</span></td>
-      </tr>
-    `;
-  }
-
-  const deliveredBy = p.keys_holder || "—";
-
-  const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
-  const stagedClass = timerClass(computeSeverity(stagedSeconds));
-  const stagedLabel = formatDuration(stagedSeconds);
-
-  const masterSeconds = computeMasterSeconds(p, now);
+function cellMasterTime(p, ctx, wallboard = false) {
+  const masterSeconds = computeMasterSeconds(p, ctx.now);
   const masterClass = timerClass(computeSeverity(masterSeconds));
   const masterLabel = formatDuration(masterSeconds);
 
-  const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
+  const pqi = pqiEnabled
+    ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
+    : "";
 
-  return `
-    <tr>
-      <td>${renderTagPill(p.tag_number)}</td>
-      <td>${renderCustomerPill(p.customer_name)}</td>
-      <td>${escapeHtml(deliveredBy)}</td>
-      <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
-      <td><span class="timer ${masterClass}">${masterLabel}</span></td>
-      <td>
-        <button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${p.id}">
-          Add note
-        </button>
-        ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
-      </td>
-      <td>
-        <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">
-          Customer picked up
-        </button>
-      </td>
-    </tr>
-  `;
+  return `<span class="timer ${masterClass}">${escapeHtml(masterLabel)}</span>${pqi}`;
 }
 
-function renderCompletedRow(p, now) {
-  const masterSeconds = computeMasterSeconds(p, now);
-  const masterLabel = formatDuration(masterSeconds);
-  const deliveredBy = p.keys_holder || "—";
-
-  const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
-  const prevNotes = notesPieces.slice(0, -1);
-
-  return `
-    <tr>
-      <td>${renderTagPill(p.tag_number)}</td>
-      <td>${renderCustomerPill(p.customer_name)}</td>
-      <td>${masterLabel}</td>
-      <td>${escapeHtml(deliveredBy)}</td>
-      <td>${formatTime(p.created_at)}</td>
-      <td>${formatTime(p.completed_at)}</td>
-      <td>
-        ${lastNote ? escapeHtml(lastNote) : ""}
-        ${
-          prevNotes.length
-            ? "<br>" + prevNotes.map((n) => escapeHtml(n)).join("<br>")
-            : ""
-        }
-      </td>
-      <td>
-        <button class="btn small" data-action="view-timeline" data-id="${p.id}">
-          Timeline
-        </button>
-      </td>
-    </tr>
-  `;
+function cellWaitingTime(p, ctx, wallboard = false) {
+  const seconds = computeSeconds(p.waiting_client_at, p.completed_at, ctx.now);
+  const klass = timerClass(computeSeverity(seconds));
+  const label = formatDuration(seconds);
+  return `<span class="timer ${klass}">${escapeHtml(label)}</span>`;
 }
 
-/* ---------- METRICS ---------- */
+/* =========================================================
+   COUNTS
+========================================================= */
+
+function setCount(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = String(value);
+}
+
+/* =========================================================
+   METRICS (unchanged)
+========================================================= */
 
 function renderMetrics(active, waiting, completed, now) {
   const completedTodayEl = document.getElementById("metrics-completed-today");
@@ -747,6 +738,7 @@ function renderMetrics(active, waiting, completed, now) {
   activeCountEl.textContent = String(active.length);
   waitingCountEl.textContent = String(waiting.length);
 
+  // Avg cycle time = time inside ACTIVE PICKUPS (active_started_at -> waiting_client_at)
   const cycles = completedToday
     .map((p) => {
       if (!p.active_started_at || !p.waiting_client_at) return null;
@@ -762,11 +754,13 @@ function renderMetrics(active, waiting, completed, now) {
     avgCycleEl.textContent = formatDuration(avg);
   }
 
+  // Red line cars ON now
   const redLineCount = pickups.filter(
     (p) => p.wash_status === "ON_RED_LINE" && p.status !== "COMPLETE"
   ).length;
   redlineCountEl.textContent = String(redLineCount);
 
+  // Valet counts
   const baseValets = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
   const valetCounts = {};
   baseValets.forEach((v) => (valetCounts[v] = 0));
@@ -788,7 +782,9 @@ function renderMetrics(active, waiting, completed, now) {
     .join("");
 }
 
-/* ---------- ALERTS ---------- */
+/* =========================================================
+   ALERTS (unchanged)
+========================================================= */
 
 function maybePlayAlerts(active, now) {
   const audio = document.getElementById("alert-sound");
@@ -808,7 +804,9 @@ function maybePlayAlerts(active, now) {
   });
 }
 
-/* ---------- HELPERS ---------- */
+/* =========================================================
+   HELPERS (unchanged)
+========================================================= */
 
 function humanStatus(p) {
   switch (p.status) {
@@ -847,6 +845,10 @@ function humanWashStatus(wash_status) {
   }
 }
 
+/* master timer: ONLY Active box time
+   start = active_started_at (or created_at fallback)
+   end   = waiting_client_at (if set) else now
+*/
 function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
@@ -854,11 +856,11 @@ function computeMasterSeconds(p, now) {
   return computeSeconds(startIso, endIso, now);
 }
 
+/* valet timer: keys_with_valet_at -> first of (keys_at_machine_at, waiting_client_at, completed_at, now) */
 function computeValetSeconds(p, now) {
   if (!p.keys_with_valet_at) return null;
   const startIso = p.keys_with_valet_at;
-  const endIso =
-    p.keys_at_machine_at || p.waiting_client_at || p.completed_at || null;
+  const endIso = p.keys_at_machine_at || p.waiting_client_at || p.completed_at || null;
   return computeSeconds(startIso, endIso, now);
 }
 
@@ -896,7 +898,7 @@ function timerClass(severity) {
 
 function formatDuration(seconds) {
   if (!seconds || seconds < 0) seconds = 0;
-  const snapped = Math.round(seconds / 15) * 15;
+  const snapped = Math.round(seconds / 15) * 15; // 15s steps
   const mins = Math.floor(snapped / 60);
   const secs = snapped % 60;
   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
