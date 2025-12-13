@@ -170,7 +170,6 @@ a {
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  user-select: none;
 }
 .btn:hover {
   background: #f5f5f5;
@@ -186,18 +185,18 @@ a {
   font-size: 0.72rem;
 }
 
-/* HARD LOCK: selected buttons must look like Tag/Customer pills */
+/* Shared blue pill style for any "selected" button */
 .btn.selected,
 .btn.active,
 .btn.is-active,
 .btn.is-selected,
 .keys-buttons .btn.selected,
 .wash-buttons .btn.selected {
-  border-radius: 999px !important;
-  border: 1px solid #60a5fa !important;
-  background: #0b1c3a !important;
-  color: #dbeafe !important;
-  font-weight: 700 !important;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
+  font-weight: 600;
 }
 
 /* Tag + customer pills */
@@ -247,7 +246,7 @@ a {
 
 /* Notes "Add note" button – keep rectangular */
 .notes-button {
-  border-radius: 4px !important;
+  border-radius: 4px;
   border-style: solid;
   border-color: #4b5563;
   background: transparent;
@@ -359,7 +358,7 @@ a {
 .section-staged .table-wrapper {
   max-height: 260px;
   overflow-y: auto;
-  overflow-x: auto; /* allow horizontal scroll instead of overlapping */
+  overflow-x: auto;
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -393,14 +392,6 @@ td {
   vertical-align: top;
 }
 
-/* IMPORTANT: pills should NOT become big circles.
-   They are inline-block; ensure they never stretch. */
-td .cell-tag,
-td .cell-customer {
-  display: inline-block;
-  max-width: 100%;
-}
-
 tr:nth-child(even) td {
   background: #05050b;
 }
@@ -415,7 +406,6 @@ tr:nth-child(even) td {
   background: #0b1c3a;
   font-weight: 700;
   color: #dbeafe;
-  line-height: 1.2;
 }
 
 /* Status badge */
@@ -477,10 +467,10 @@ tr:nth-child(even) td {
 
 /* Needs rewash – flashing blue pill */
 .wash-needs {
-  border-radius: 999px !important;
-  border: 1px solid #60a5fa !important;
-  background: #0b1c3a !important;
-  color: #dbeafe !important;
+  border-radius: 999px;
+  border: 1px solid #60a5fa;
+  background: #0b1c3a;
+  color: #dbeafe;
   animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
@@ -501,71 +491,6 @@ tr:nth-child(even) td {
   }
 }
 
-/* ========== COMPLETED TABLE ========== */
-.check-icon {
-  display: inline-block;
-  color: #4ade80;
-  margin-right: 0.25rem;
-}
-
-.completed-collapsed .section-completed-table {
-  display: none;
-}
-
-/* ========== METRICS SIDEBAR ========== */
-.section-metrics {
-  background: #070711;
-  border-radius: 10px;
-  border: 1px solid #19192b;
-  padding: 0.6rem 0.6rem 0.8rem;
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.4rem;
-}
-
-.metric-card {
-  background: #05050c;
-  border-radius: 8px;
-  border: 1px solid #181822;
-  padding: 0.35rem 0.5rem;
-}
-
-.metric-label {
-  font-size: 0.7rem;
-  color: #9b9bb5;
-}
-
-.metric-value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-top: 0.05rem;
-}
-
-/* Valet activity list */
-.valet-list {
-  list-style: none;
-  margin: 0.35rem 0 0;
-  padding: 0;
-  font-size: 0.75rem;
-  color: #c5c5dd;
-}
-.valet-list li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 0.12rem 0;
-}
-.valet-name {
-  font-weight: 500;
-}
-.valet-count {
-  font-size: 0.7rem;
-  color: #9b9bb5;
-}
-
 /* ========== EMPTY STATE ========== */
 .empty {
   padding: 0.75rem 1rem;
@@ -573,11 +498,7 @@ tr:nth-child(even) td {
   color: #888;
 }
 
-/* ========== ROLE VISIBILITY (SAFE) ========== */
-/*
-  .dispatcher-only is used on both table cells and normal layout elements.
-  Never force table-cell globally; scope it to th/td only.
-*/
+/* ========== ROLE VISIBILITY (FIXED) ========== */
 body.role-dispatcher .dispatcher-only {
   display: initial;
 }
@@ -585,7 +506,6 @@ body.role-dispatcher th.dispatcher-only,
 body.role-dispatcher td.dispatcher-only {
   display: table-cell;
 }
-
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
 body.role-wallboard .dispatcher-only,
@@ -599,12 +519,18 @@ body.role-dispatcher .keymachine-only,
 body.role-carwash .keymachine-only {
   display: initial;
 }
-body.role-wallboard .keymachine-only {
+body.role-wallboard .keymachine-only,
+body.role-serviceadvisor .keymachine-only,
+body.role-loancar .keymachine-only {
   display: none !important;
 }
 
 body.role-carwash .carwash-only {
   display: initial;
+}
+body.role-serviceadvisor .carwash-only,
+body.role-loancar .carwash-only {
+  display: none !important;
 }
 
 /* Wallboard styling */
@@ -621,6 +547,17 @@ body.role-carwash .carwash-only {
 body.role-wallboard button {
   pointer-events: none;
   opacity: 0.7;
+}
+
+/* ========== HARD UI LOCK FOR SERVICEADVISOR + LOANCAR ========== */
+/* Hide any chooser button rows if any ever render */
+body.role-serviceadvisor .wash-buttons,
+body.role-serviceadvisor .keys-buttons,
+body.role-serviceadvisor button[data-action^="toggle-"],
+body.role-loancar .wash-buttons,
+body.role-loancar .keys-buttons,
+body.role-loancar button[data-action^="toggle-"] {
+  display: none !important;
 }
 
 /* ========== RESPONSIVE ========== */
