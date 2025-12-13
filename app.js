@@ -8,7 +8,7 @@ let pqiEnabled = false;
 let uiStateLoaded = false;
 
 // UI collapse state per ticket row (pure UI, not stored in DB)
-// id -> { wash: boolean, valet: boolean } where true = "expanded chooser"
+// id -> { wash: boolean, valet: boolean, waitingValet: boolean }
 const expandState = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -114,9 +114,6 @@ function setupForm() {
 
     const nowIso = new Date().toISOString();
 
-    // Role-based routing for V1 screens
-    // - serviceadvisor: goes to STAGED
-    // - loancar: goes to NEW + note
     let insertData = {
       tag_number: tag,
       customer_name: name,
@@ -180,22 +177,17 @@ function onTableClick(e) {
   }
 
   // UI-only expand/collapse actions
-  if (action === "toggle-wash") {
-    toggleExpand(id, "wash");
-    return;
-  }
-  if (action === "toggle-valet") {
-    toggleExpand(id, "valet");
-    return;
-  }
+  if (action === "toggle-wash") return toggleExpand(id, "wash");
+  if (action === "toggle-valet") return toggleExpand(id, "valet");
+  if (action === "toggle-waiting-valet") return toggleExpand(id, "waitingValet");
 
   handleAction(id, action);
 }
 
 function toggleExpand(id, key) {
-  const cur = expandState.get(id) || { wash: false, valet: false };
+  const cur = expandState.get(String(id)) || { wash: false, valet: false, waitingValet: false };
   cur[key] = !cur[key];
-  expandState.set(id, cur);
+  expandState.set(String(id), cur);
   renderTables(false);
 }
 
@@ -204,13 +196,11 @@ async function handleAction(id, action) {
   const updates = {};
 
   switch (action) {
-    /* --- move staged -> active: start master time here --- */
     case "activate-from-staged":
       updates.status = "NEW";
       updates.active_started_at = now;
       break;
 
-    /* --- status/location & key machine --- */
     case "keys-machine":
       updates.status = "KEYS_IN_MACHINE";
       updates.keys_holder = "KEY_MACHINE";
@@ -220,7 +210,6 @@ async function handleAction(id, action) {
     case "car-wash-area":
       updates.wash_status = "IN_WASH_AREA";
       updates.wash_status_at = now;
-      // collapse after select
       collapseAfterSelect(id, "wash");
       break;
 
@@ -248,41 +237,42 @@ async function handleAction(id, action) {
       collapseAfterSelect(id, "wash");
       break;
 
-    /* --- valets --- */
     case "with-fernando":
       setValetUpdates(updates, "Fernando", now);
       collapseAfterSelect(id, "valet");
+      collapseAfterSelect(id, "waitingValet");
       break;
     case "with-juan":
       setValetUpdates(updates, "Juan", now);
       collapseAfterSelect(id, "valet");
+      collapseAfterSelect(id, "waitingValet");
       break;
     case "with-miguel":
       setValetUpdates(updates, "Miguel", now);
       collapseAfterSelect(id, "valet");
+      collapseAfterSelect(id, "waitingValet");
       break;
     case "with-maria":
       setValetUpdates(updates, "Maria", now);
       collapseAfterSelect(id, "valet");
+      collapseAfterSelect(id, "waitingValet");
       break;
     case "with-helper":
       setValetUpdates(updates, "Helper", now);
       collapseAfterSelect(id, "valet");
+      collapseAfterSelect(id, "waitingValet");
       break;
 
-    /* --- move to waiting/staged for customer: freeze master timer --- */
     case "waiting-customer":
       updates.status = "WAITING_FOR_CUSTOMER";
       updates.waiting_client_at = now;
       break;
 
-    /* --- customer picked up -> complete --- */
     case "customer-picked-up":
       updates.status = "COMPLETE";
       updates.completed_at = now;
       break;
 
-    /* --- notes: append history, do not erase --- */
     case "edit-note": {
       const current = pickups.find((p) => String(p.id) === String(id));
       const existing = current?.notes || "";
@@ -309,7 +299,6 @@ async function handleAction(id, action) {
       break;
     }
 
-    /* --- timeline view --- */
     case "view-timeline": {
       const p = pickups.find((pk) => String(pk.id) === String(id));
       if (!p) return;
@@ -368,9 +357,9 @@ async function handleAction(id, action) {
 }
 
 function collapseAfterSelect(id, key) {
-  const cur = expandState.get(id) || { wash: false, valet: false };
-  cur[key] = false; // collapse chooser after a selection
-  expandState.set(id, cur);
+  const cur = expandState.get(String(id)) || { wash: false, valet: false, waitingValet: false };
+  cur[key] = false;
+  expandState.set(String(id), cur);
 }
 
 function setValetUpdates(updates, name, nowIso) {
@@ -436,7 +425,6 @@ function renderTables(isTimerTick) {
     .filter((p) => p.status === "COMPLETE")
     .slice(0, 50);
 
-  // Oldest first in active box
   active.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
   setCount("count-staged", staged.length);
@@ -513,17 +501,8 @@ function renderStagedRow(p) {
   `;
 }
 
-/*
-  Active columns:
-   1 Tag #
-   2 Customer
-   3 Status/Location
-   4 Keys with
-   5 Valet Time
-   6 (Dispatcher only) Staged
-   7 Notes
-   8 Master Time
-*/
+/* ---------- ACTIVE ROW ---------- */
+
 function renderActiveRow(p, now) {
   if (role === "wallboard") return renderActiveRowWallboard(p, now);
 
@@ -547,7 +526,7 @@ function renderActiveRow(p, now) {
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
   const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
 
-  const expanded = expandState.get(String(p.id)) || { wash: false, valet: false };
+  const expanded = expandState.get(String(p.id)) || { wash: false, valet: false, waitingValet: false };
 
   const washChooser = `
     <div class="wash-buttons" style="margin-top:0.15rem;">
@@ -602,11 +581,8 @@ function renderActiveRow(p, now) {
     </div>
   `;
 
-  const washCell =
-    currentWash === "NONE" || expanded.wash ? washChooser : washCollapsed;
-
-  const valetCell =
-    !currentValet || expanded.valet ? valetChooser : valetCollapsed;
+  const washCell = currentWash === "NONE" || expanded.wash ? washChooser : washCollapsed;
+  const valetCell = !currentValet || expanded.valet ? valetChooser : valetCollapsed;
 
   const notesHtml = `
     <button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>
@@ -639,7 +615,6 @@ function renderActiveRow(p, now) {
     `;
   }
 
-  // keymachine / carwash / serviceadvisor / loancar: 7 cols (no staged)
   return `
     <tr>
       <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
@@ -686,6 +661,8 @@ function renderActiveRowWallboard(p, now) {
   `;
 }
 
+/* ---------- WAITING ROW (NEW: Delivered-by pill + Change) ---------- */
+
 function renderWaitingRow(p, now) {
   if (role === "wallboard") {
     const deliveredBy = p.keys_holder || "—";
@@ -703,7 +680,33 @@ function renderWaitingRow(p, now) {
     `;
   }
 
-  const deliveredBy = p.keys_holder || "—";
+  const deliveredBy = p.keys_holder || "";
+  const deliveredLabel = deliveredBy ? `Delivered by ${deliveredBy}` : "Delivered by —";
+
+  const expanded = expandState.get(String(p.id)) || { wash: false, valet: false, waitingValet: false };
+
+  const valetChooser = `
+    <div class="keys-buttons">
+      <button class="btn small ${deliveredBy === "Fernando" ? "selected" : ""}" data-action="with-fernando" data-id="${p.id}">Fernando</button>
+      <button class="btn small ${deliveredBy === "Juan" ? "selected" : ""}" data-action="with-juan" data-id="${p.id}">Juan</button>
+      <button class="btn small ${deliveredBy === "Miguel" ? "selected" : ""}" data-action="with-miguel" data-id="${p.id}">Miguel</button>
+      <button class="btn small ${deliveredBy === "Maria" ? "selected" : ""}" data-action="with-maria" data-id="${p.id}">Maria</button>
+      <button class="btn small ${deliveredBy === "Helper" ? "selected" : ""}" data-action="with-helper" data-id="${p.id}">Helper</button>
+    </div>
+  `;
+
+  const valetCollapsed = `
+    <div>
+      <button class="btn small selected" data-action="toggle-waiting-valet" data-id="${p.id}">
+        ${escapeHtml(deliveredLabel)}
+      </button>
+      <button class="btn small" style="margin-left:0.25rem;" data-action="toggle-waiting-valet" data-id="${p.id}">
+        Change
+      </button>
+    </div>
+  `;
+
+  const deliveredCell = !deliveredBy || expanded.waitingValet ? valetChooser : valetCollapsed;
 
   const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
   const stagedClass = timerClass(computeSeverity(stagedSeconds));
@@ -720,7 +723,7 @@ function renderWaitingRow(p, now) {
     <tr>
       <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
       <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
-      <td>${escapeHtml(deliveredBy)}</td>
+      <td>${deliveredCell}</td>
       <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
       <td><span class="timer ${masterClass}">${masterLabel}</span></td>
       <td>
@@ -737,6 +740,8 @@ function renderWaitingRow(p, now) {
     </tr>
   `;
 }
+
+/* ---------- COMPLETED ROW ---------- */
 
 function renderCompletedRow(p, now) {
   const masterSeconds = computeMasterSeconds(p, now);
@@ -907,7 +912,6 @@ function humanWashStatus(wash_status) {
   }
 }
 
-/* master timer: ONLY Active box time */
 function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
@@ -915,7 +919,6 @@ function computeMasterSeconds(p, now) {
   return computeSeconds(startIso, endIso, now);
 }
 
-/* valet timer */
 function computeValetSeconds(p, now) {
   if (!p.keys_with_valet_at) return null;
   const startIso = p.keys_with_valet_at;
