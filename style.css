@@ -106,7 +106,7 @@ a {
   align-items: center;
 }
 
-/* 3-column layout */
+/* 3-column layout: left ~7%, center ~86%, right ~7% */
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
@@ -170,6 +170,7 @@ a {
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  user-select: none;
 }
 .btn:hover {
   background: #f5f5f5;
@@ -185,18 +186,18 @@ a {
   font-size: 0.72rem;
 }
 
-/* Shared blue pill style for selected buttons */
+/* HARD LOCK: selected buttons must look like Tag/Customer pills */
 .btn.selected,
 .btn.active,
 .btn.is-active,
 .btn.is-selected,
 .keys-buttons .btn.selected,
 .wash-buttons .btn.selected {
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
-  font-weight: 600;
+  border-radius: 999px !important;
+  border: 1px solid #60a5fa !important;
+  background: #0b1c3a !important;
+  color: #dbeafe !important;
+  font-weight: 700 !important;
 }
 
 /* Tag + customer pills */
@@ -244,15 +245,15 @@ a {
   border-color: #9ca3af;
 }
 
-/* Notes button */
+/* Notes "Add note" button – keep rectangular */
 .notes-button {
-  border-radius: 4px;
+  border-radius: 4px !important;
   border-style: solid;
   border-color: #4b5563;
   background: transparent;
 }
 
-/* ========== NEW PICKUP FORM ========== */
+/* ========== NEW PICKUP FORM (DISPATCH) ========== */
 .new-pickup-form {
   display: flex;
   flex-wrap: wrap;
@@ -311,7 +312,7 @@ a {
   overflow-y: auto;
 }
 
-/* ACTIVE PICKUPS highlight */
+/* ACTIVE PICKUPS highlight – animated border */
 .section-active .table-wrapper {
   position: relative;
   border-width: 4px;
@@ -339,20 +340,26 @@ a {
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 .table-wrapper.small {
   max-height: 280px;
 }
 
-/* Staged column wrapper */
+/* Staged column wrapper needs its own scroll & width behaviour */
 .section-staged .table-wrapper {
   max-height: 260px;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: auto; /* allow horizontal scroll instead of overlapping */
 }
 
 /* ========== TABLE BASE STYLES ========== */
@@ -374,47 +381,41 @@ td {
   text-align: left;
 }
 
-/* headers 1 line */
 th {
   white-space: nowrap;
   font-weight: 500;
   color: #ccc;
 }
 
-/* cells wrap */
 td {
   white-space: normal;
   color: #f5f5f5;
   vertical-align: top;
 }
 
+/* IMPORTANT: pills should NOT become big circles.
+   They are inline-block; ensure they never stretch. */
+td .cell-tag,
+td .cell-customer {
+  display: inline-block;
+  max-width: 100%;
+}
+
 tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* ========== TAG / CUSTOMER PILL STYLING (FIX) ========== */
-/*
-  Critical fix for "giant circles":
-  - previous code applied pill styles directly to <td class="cell-tag">,
-    which turns the entire cell into a big rounded blob.
-  - We force table cells to behave like table-cells,
-    and apply the pill look to an inner <span>.
-*/
-td.cell-tag,
-td.cell-customer {
-  display: table-cell;
-  padding: 0.3rem 0.45rem;
-}
-
-.cell-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.12rem 0.45rem;
+/* ========== TAG / CUSTOMER PILL STYLING ========== */
+.cell-tag,
+.cell-customer {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   font-weight: 700;
   color: #dbeafe;
+  line-height: 1.2;
 }
 
 /* Status badge */
@@ -429,7 +430,7 @@ td.cell-customer {
   color: #d0d0d0;
 }
 
-/* ========== NOTES ========== */
+/* ========== NOTES AREA ========== */
 .notes-preview {
   font-size: 0.7rem;
   display: inline-block;
@@ -438,12 +439,6 @@ td.cell-customer {
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
-}
-
-.notes-history-line {
-  font-size: 0.68rem;
-  color: #9ca3af;
-  margin-top: 0.05rem;
 }
 
 /* ========== TIMERS ========== */
@@ -455,31 +450,69 @@ td.cell-customer {
   border: 1px solid transparent;
   display: inline-block;
 }
-.timer-green { border-color: #204d2a; background: #0b1b10; color: #a9ffb7; }
-.timer-yellow { border-color: #5c5213; background: #1b1808; color: #ffe28a; }
-.timer-orange { border-color: #7a4418; background: #221109; color: #ffb47a; }
-.timer-red { border-color: #7a1c1c; background: #220a0a; color: #ff9b9b; }
 
-/* Needs rewash flashing */
+.timer-green {
+  border-color: #204d2a;
+  background: #0b1b10;
+  color: #a9ffb7;
+}
+
+.timer-yellow {
+  border-color: #5c5213;
+  background: #1b1808;
+  color: #ffe28a;
+}
+
+.timer-orange {
+  border-color: #7a4418;
+  background: #221109;
+  color: #ffb47a;
+}
+
+.timer-red {
+  border-color: #7a1c1c;
+  background: #220a0a;
+  color: #ff9b9b;
+}
+
+/* Needs rewash – flashing blue pill */
 .wash-needs {
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
-  color: #dbeafe;
+  border-radius: 999px !important;
+  border: 1px solid #60a5fa !important;
+  background: #0b1c3a !important;
+  color: #dbeafe !important;
   animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
-  0% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,.9); }
-  50% { border-color: #bfdbfe; background: #1d4ed8; box-shadow: 0 0 18px 7px rgba(59,130,246,.95); }
-  100% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,.9); }
+  0% {
+    border-color: #60a5fa;
+    background: #0b1c3a;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
+  }
+  50% {
+    border-color: #bfdbfe;
+    background: #1d4ed8;
+    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
+  }
+  100% {
+    border-color: #60a5fa;
+    background: #0b1c3a;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
+  }
 }
 
-/* ========== COMPLETED COLLAPSE ========== */
+/* ========== COMPLETED TABLE ========== */
+.check-icon {
+  display: inline-block;
+  color: #4ade80;
+  margin-right: 0.25rem;
+}
+
 .completed-collapsed .section-completed-table {
   display: none;
 }
 
-/* ========== METRICS ========== */
+/* ========== METRICS SIDEBAR ========== */
 .section-metrics {
   background: #070711;
   border-radius: 10px;
@@ -511,6 +544,7 @@ td.cell-customer {
   margin-top: 0.05rem;
 }
 
+/* Valet activity list */
 .valet-list {
   list-style: none;
   margin: 0.35rem 0 0;
@@ -524,8 +558,13 @@ td.cell-customer {
   justify-content: space-between;
   padding: 0.12rem 0;
 }
-.valet-name { font-weight: 500; }
-.valet-count { font-size: 0.7rem; color: #9b9bb5; }
+.valet-name {
+  font-weight: 500;
+}
+.valet-count {
+  font-size: 0.7rem;
+  color: #9b9bb5;
+}
 
 /* ========== EMPTY STATE ========== */
 .empty {
@@ -535,10 +574,17 @@ td.cell-customer {
 }
 
 /* ========== ROLE VISIBILITY (SAFE) ========== */
-/* dispatcher-only */
-body.role-dispatcher .dispatcher-only { display: initial; }
+/*
+  .dispatcher-only is used on both table cells and normal layout elements.
+  Never force table-cell globally; scope it to th/td only.
+*/
+body.role-dispatcher .dispatcher-only {
+  display: initial;
+}
 body.role-dispatcher th.dispatcher-only,
-body.role-dispatcher td.dispatcher-only { display: table-cell; }
+body.role-dispatcher td.dispatcher-only {
+  display: table-cell;
+}
 
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
@@ -548,16 +594,27 @@ body.role-loancar .dispatcher-only {
   display: none !important;
 }
 
-/* keymachine-only */
 body.role-keymachine .keymachine-only,
 body.role-dispatcher .keymachine-only,
 body.role-carwash .keymachine-only {
   display: initial;
 }
-body.role-wallboard .keymachine-only,
-body.role-serviceadvisor .keymachine-only,
-body.role-loancar .keymachine-only {
+body.role-wallboard .keymachine-only {
   display: none !important;
+}
+
+body.role-carwash .carwash-only {
+  display: initial;
+}
+
+/* Wallboard styling */
+.wallboard-main {
+  max-width: 1600px;
+}
+.wallboard-table th,
+.wallboard-table td {
+  font-size: 1rem;
+  padding: 0.6rem 0.7rem;
 }
 
 /* Wallboard read-only */
@@ -566,38 +623,30 @@ body.role-wallboard button {
   opacity: 0.7;
 }
 
-/* ========== VISUAL PERMISSION LOCK (SERVICE ADVISOR + LOAN CAR) ========== */
-/*
-  They can:
-   - Create tickets (form)
-   - Add notes
-  They cannot:
-   - click wash/location/valet/key machine/move-to-staged/customer-picked-up/timeline
-*/
-body.role-serviceadvisor [data-action]:not([data-action="edit-note"]),
-body.role-loancar [data-action]:not([data-action="edit-note"]) {
-  pointer-events: none !important;
-  opacity: 0.35 !important;
-  filter: grayscale(1);
-}
-
-/* Also visually tone down entire action clusters */
-body.role-serviceadvisor .wash-buttons,
-body.role-serviceadvisor .keys-buttons,
-body.role-loancar .wash-buttons,
-body.role-loancar .keys-buttons {
-  opacity: 0.35;
-  filter: grayscale(1);
-}
-
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
-  .layout-grid { display: block; }
-  .layout-left, .layout-center, .layout-right { margin-bottom: 1rem; }
+  .layout-grid {
+    display: block;
+  }
+
+  .layout-left,
+  .layout-center,
+  .layout-right {
+    margin-bottom: 1rem;
+  }
 }
 
 @media (max-width: 900px) {
-  .app-main { padding: 0.75rem 0.75rem 1.5rem; }
-  .new-pickup-form { flex-direction: column; }
-  th, td { padding: 0.4rem 0.45rem; }
+  .app-main {
+    padding: 0.75rem 0.75rem 1.5rem;
+  }
+
+  .new-pickup-form {
+    flex-direction: column;
+  }
+
+  th,
+  td {
+    padding: 0.4rem 0.45rem;
+  }
 }
