@@ -183,13 +183,11 @@ async function handleAction(id, action) {
   const updates = {};
 
   switch (action) {
-    /* --- move staged -> active: start master time here --- */
     case "activate-from-staged":
       updates.status = "NEW";
       updates.active_started_at = now;
       break;
 
-    /* --- status/location & key machine --- */
     case "keys-machine":
       updates.status = "KEYS_IN_MACHINE";
       updates.keys_holder = "KEY_MACHINE";
@@ -221,7 +219,6 @@ async function handleAction(id, action) {
       updates.wash_status_at = now;
       break;
 
-    /* --- valets --- */
     case "with-fernando":
       setValetUpdates(updates, "Fernando", now);
       break;
@@ -238,19 +235,16 @@ async function handleAction(id, action) {
       setValetUpdates(updates, "Helper", now);
       break;
 
-    /* --- move to waiting/staged for customer: freeze master timer --- */
     case "waiting-customer":
       updates.status = "WAITING_FOR_CUSTOMER";
       updates.waiting_client_at = now;
       break;
 
-    /* --- customer picked up -> complete --- */
     case "customer-picked-up":
       updates.status = "COMPLETE";
       updates.completed_at = now;
       break;
 
-    /* --- notes: append history, do not erase --- */
     case "edit-note": {
       const current = pickups.find((p) => String(p.id) === String(id));
       const existing = current?.notes || "";
@@ -277,7 +271,6 @@ async function handleAction(id, action) {
       break;
     }
 
-    /* --- timeline view --- */
     case "view-timeline": {
       const p = pickups.find((pk) => String(pk.id) === String(id));
       if (!p) return;
@@ -394,9 +387,7 @@ function renderTables(isTimerTick) {
       p.status !== "COMPLETE"
   );
   const waiting = pickups.filter((p) => p.status === "WAITING_FOR_CUSTOMER");
-  const completed = pickups
-    .filter((p) => p.status === "COMPLETE")
-    .slice(0, 50);
+  const completed = pickups.filter((p) => p.status === "COMPLETE").slice(0, 50);
 
   // Oldest first in active box
   active.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -446,13 +437,11 @@ function renderTables(isTimerTick) {
 function activeColspan() {
   if (role === "wallboard") return 6;
   if (role === "dispatcher") return 8;
-  // keymachine / carwash / others share 7-column active table
   return 7;
 }
 
 function waitingColspan() {
   if (role === "wallboard") return 4;
-  // dispatcher waiting table has 7 columns
   return 7;
 }
 
@@ -462,11 +451,19 @@ function setCount(id, value) {
   el.textContent = String(value);
 }
 
+/* --- IMPORTANT FIX: pills are now spans, not the TD itself --- */
+function renderTagPill(tag) {
+  return `<span class="pill-blue">${escapeHtml(tag)}</span>`;
+}
+function renderCustomerPill(name) {
+  return `<span class="pill-blue">${escapeHtml(name)}</span>`;
+}
+
 function renderStagedRow(p) {
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td>${renderTagPill(p.tag_number)}</td>
+      <td>${renderCustomerPill(p.customer_name)}</td>
       <td>${formatTime(p.created_at)}</td>
       <td>
         <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
@@ -478,7 +475,6 @@ function renderStagedRow(p) {
 }
 
 /*
-  KEY FIX:
   Active row ALWAYS renders:
    1 Tag #
    2 Customer
@@ -488,8 +484,6 @@ function renderStagedRow(p) {
    6 (Dispatcher only) Staged
    7 Notes
    8 Master Time
-
-  Wallboard uses its own slim row.
 */
 function renderActiveRow(p, now) {
   if (role === "wallboard") return renderActiveRowWallboard(p, now);
@@ -510,13 +504,10 @@ function renderActiveRow(p, now) {
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
   const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
 
-  // Selected pill labels
   const washSelectedLabel =
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
   const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
 
-  // Buttons always clickable for dispatcher/keymachine/carwash
-  // (serviceadvisor/loancar are gated in click handler)
   const washBtns = `
     <div class="wash-buttons" style="margin-top:0.15rem;">
       <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected" : ""}"
@@ -553,12 +544,11 @@ function renderActiveRow(p, now) {
     ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
   `;
 
-  // Build the row with correct column order
   if (role === "dispatcher") {
     return `
       <tr>
-        <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-        <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+        <td>${renderTagPill(p.tag_number)}</td>
+        <td>${renderCustomerPill(p.customer_name)}</td>
         <td>
           <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
           ${washBtns}
@@ -586,11 +576,10 @@ function renderActiveRow(p, now) {
     `;
   }
 
-  // keymachine/carwash/serviceadvisor/loancar active table layout: 7 cols (no staged)
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td>${renderTagPill(p.tag_number)}</td>
+      <td>${renderCustomerPill(p.customer_name)}</td>
       <td>
         <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
         ${washBtns}
@@ -629,8 +618,8 @@ function renderActiveRowWallboard(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td>${renderTagPill(p.tag_number)}</td>
+      <td>${renderCustomerPill(p.customer_name)}</td>
       <td><span class="status-badge">${escapeHtml(statusLabel)}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
@@ -648,15 +637,14 @@ function renderWaitingRow(p, now) {
 
     return `
       <tr>
-        <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-        <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+        <td>${renderTagPill(p.tag_number)}</td>
+        <td>${renderCustomerPill(p.customer_name)}</td>
         <td>${escapeHtml(deliveredBy)}</td>
         <td><span class="timer ${waitingClass}">${waitingLabel}</span></td>
       </tr>
     `;
   }
 
-  // dispatcher waiting table
   const deliveredBy = p.keys_holder || "—";
 
   const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
@@ -672,8 +660,8 @@ function renderWaitingRow(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td>${renderTagPill(p.tag_number)}</td>
+      <td>${renderCustomerPill(p.customer_name)}</td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
       <td><span class="timer ${masterClass}">${masterLabel}</span></td>
@@ -703,8 +691,8 @@ function renderCompletedRow(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td>${renderTagPill(p.tag_number)}</td>
+      <td>${renderCustomerPill(p.customer_name)}</td>
       <td>${masterLabel}</td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td>${formatTime(p.created_at)}</td>
@@ -759,7 +747,6 @@ function renderMetrics(active, waiting, completed, now) {
   activeCountEl.textContent = String(active.length);
   waitingCountEl.textContent = String(waiting.length);
 
-  // Avg cycle time = time inside ACTIVE PICKUPS (active_started_at -> waiting_client_at)
   const cycles = completedToday
     .map((p) => {
       if (!p.active_started_at || !p.waiting_client_at) return null;
@@ -775,22 +762,18 @@ function renderMetrics(active, waiting, completed, now) {
     avgCycleEl.textContent = formatDuration(avg);
   }
 
-  // Red line cars ON now
   const redLineCount = pickups.filter(
     (p) => p.wash_status === "ON_RED_LINE" && p.status !== "COMPLETE"
   ).length;
   redlineCountEl.textContent = String(redLineCount);
 
-  // Valet counts
   const baseValets = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
   const valetCounts = {};
   baseValets.forEach((v) => (valetCounts[v] = 0));
 
   pickups.forEach((p) => {
     if (!p.keys_holder) return;
-    if (valetCounts[p.keys_holder] === undefined) {
-      valetCounts[p.keys_holder] = 0;
-    }
+    if (valetCounts[p.keys_holder] === undefined) valetCounts[p.keys_holder] = 0;
     valetCounts[p.keys_holder] += 1;
   });
 
@@ -864,10 +847,6 @@ function humanWashStatus(wash_status) {
   }
 }
 
-/* master timer: ONLY Active box time
-   start = active_started_at (or created_at fallback)
-   end   = waiting_client_at (if set) else now
-*/
 function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
@@ -875,7 +854,6 @@ function computeMasterSeconds(p, now) {
   return computeSeconds(startIso, endIso, now);
 }
 
-/* valet timer: keys_with_valet_at -> first of (keys_at_machine_at, waiting_client_at, completed_at, now) */
 function computeValetSeconds(p, now) {
   if (!p.keys_with_valet_at) return null;
   const startIso = p.keys_with_valet_at;
@@ -918,7 +896,7 @@ function timerClass(severity) {
 
 function formatDuration(seconds) {
   if (!seconds || seconds < 0) seconds = 0;
-  const snapped = Math.round(seconds / 15) * 15; // 15s steps
+  const snapped = Math.round(seconds / 15) * 15;
   const mins = Math.floor(snapped / 60);
   const secs = snapped % 60;
   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
