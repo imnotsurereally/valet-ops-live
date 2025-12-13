@@ -17,12 +17,19 @@
 
     <div class="app-shell">
       <header class="app-header">
-        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+        <img
+          src="assets/optima-logo.jpg"
+          alt="Optima Dealer Services"
+          class="logo"
+        />
         <div class="titles">
           <div class="brand">Valet Ops Wallboard</div>
           <div class="subtitle">Read-only view for TV screens</div>
         </div>
-        <div class="role-pill">Wallboard</div>
+        <div class="header-right">
+          <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
+          <div class="role-pill">Wallboard</div>
+        </div>
       </header>
 
       <main class="app-main wallboard-main">
@@ -31,9 +38,7 @@
           <div class="section-header">
             <div>
               <div class="section-title">Active Pickups</div>
-              <div class="section-subtitle">
-                Color-coded by time. Oldest first.
-              </div>
+              <div class="section-subtitle">Color-coded by time. Oldest first.</div>
             </div>
           </div>
 
@@ -61,9 +66,7 @@
           <div class="section-header">
             <div>
               <div class="section-title">Waiting for Customer</div>
-              <div class="section-subtitle">
-                Cars ready out front.
-              </div>
+              <div class="section-subtitle">Cars ready out front.</div>
             </div>
           </div>
 
