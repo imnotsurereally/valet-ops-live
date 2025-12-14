@@ -24,7 +24,6 @@
         </div>
 
         <div class="header-right">
-          <!-- NEW: History link -->
           <a class="btn small" href="history.html">History</a>
 
           <button id="pqi-toggle" class="pqi-toggle-global off">
@@ -52,15 +51,8 @@
             </div>
 
             <div class="table-wrapper small">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tag #</th>
-                    <th>Customer</th>
-                    <th>Staged At</th>
-                    <th>Activate</th>
-                  </tr>
-                </thead>
+              <table data-schema="staged">
+                <thead></thead>
                 <tbody id="staged-tbody">
                   <tr><td colspan="4" class="empty">No staged tickets.</td></tr>
                 </tbody>
@@ -130,19 +122,8 @@
             </div>
 
             <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tag #</th>
-                    <th>Customer</th>
-                    <th>Status/Location</th>
-                    <th>Keys with</th>
-                    <th>Valet Time</th>
-                    <th class="dispatcher-only">Staged</th>
-                    <th>Notes</th>
-                    <th>Master Time</th>
-                  </tr>
-                </thead>
+              <table data-schema="active">
+                <thead></thead>
                 <tbody id="active-tbody">
                   <tr><td colspan="8" class="empty">Loading…</td></tr>
                 </tbody>
@@ -165,18 +146,8 @@
             </div>
 
             <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tag #</th>
-                    <th>Customer</th>
-                    <th>Delivered by</th>
-                    <th>Staged Time</th>
-                    <th>Master Time</th>
-                    <th>Notes</th>
-                    <th>Customer Picked Up</th>
-                  </tr>
-                </thead>
+              <table data-schema="waiting">
+                <thead></thead>
                 <tbody id="waiting-tbody">
                   <tr><td colspan="7" class="empty">None currently waiting.</td></tr>
                 </tbody>
@@ -203,19 +174,8 @@
 
             <div class="section-completed-table">
               <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tag #</th>
-                      <th>Customer</th>
-                      <th>Total Time</th>
-                      <th>Delivered by</th>
-                      <th>Created</th>
-                      <th>Completed</th>
-                      <th>Notes</th>
-                      <th>Timeline</th>
-                    </tr>
-                  </thead>
+                <table data-schema="completed">
+                  <thead></thead>
                   <tbody id="completed-tbody">
                     <tr><td colspan="8" class="empty">No completed tickets yet.</td></tr>
                   </tbody>
@@ -260,9 +220,7 @@
             <div class="section-subtitle" style="margin-top: 0.7rem;">
               Valet Activity Today
             </div>
-            <ul class="valet-list" id="metrics-valets">
-              <!-- Filled dynamically -->
-            </ul>
+            <ul class="valet-list" id="metrics-valets"></ul>
           </section>
         </aside>
       </main>
