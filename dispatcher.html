@@ -12,12 +12,17 @@
     <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
+
   <body class="role-dispatcher">
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
     <div class="app-shell">
       <header class="app-header">
-        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+        <img
+          src="assets/optima-logo.jpg"
+          alt="Optima Dealer Services"
+          class="logo"
+        />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Dispatcher – Live Valet Operations</div>
@@ -26,9 +31,7 @@
         <div class="header-right">
           <a class="btn small" href="history.html">History</a>
 
-          <button id="pqi-toggle" class="pqi-toggle-global off">
-            PQI: Off
-          </button>
+          <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
           <div class="role-pill">Dispatcher</div>
         </div>
       </header>
@@ -36,7 +39,6 @@
       <main class="app-main layout-grid">
         <!-- Left column: staged / non-urgent -->
         <div class="layout-left dispatcher-only">
-          <!-- Staged -->
           <section class="section section-staged">
             <div class="section-header">
               <div>
@@ -61,7 +63,7 @@
           </section>
         </div>
 
-        <!-- Center column: form + active + waiting + completed -->
+        <!-- Center column -->
         <div class="layout-center">
           <!-- New pickup form -->
           <section class="section dispatcher-only">
@@ -85,6 +87,7 @@
                   required
                 />
               </div>
+
               <div class="input-group">
                 <label for="customer-name">Customer name</label>
                 <input
@@ -95,12 +98,14 @@
                   required
                 />
               </div>
+
               <div class="input-group checkbox-group">
                 <label class="checkbox-label">
                   <input type="checkbox" id="stage-only" />
                   Stage only (not active yet)
                 </label>
               </div>
+
               <div class="input-group" style="align-self: flex-end">
                 <button type="submit" class="btn btn-primary">Create</button>
               </div>
@@ -131,8 +136,8 @@
             </div>
           </section>
 
-          <!-- Waiting / staged for customer -->
-          <section class="section dispatcher-only">
+          <!-- Waiting -->
+          <section class="section dispatcher-only section-waiting">
             <div class="section-header">
               <div>
                 <div class="section-title">
@@ -156,7 +161,10 @@
           </section>
 
           <!-- Completed -->
-          <section class="section section-completed dispatcher-only" id="completed-section">
+          <section
+            class="section section-completed dispatcher-only"
+            id="completed-section"
+          >
             <div class="section-header">
               <div>
                 <div class="section-title">
@@ -167,6 +175,7 @@
                   Final time, notes, and full timeline history.
                 </div>
               </div>
+
               <button type="button" class="btn small" id="toggle-completed">
                 Hide
               </button>
@@ -185,7 +194,7 @@
           </section>
         </div>
 
-        <!-- Right column: metrics -->
+        <!-- Right column -->
         <aside class="layout-right dispatcher-only">
           <section class="section section-metrics">
             <div class="section-header">
@@ -199,18 +208,22 @@
                 <div class="metric-label">Completed Today</div>
                 <div class="metric-value" id="metrics-completed-today">0</div>
               </div>
+
               <div class="metric-card">
                 <div class="metric-label">Avg Cycle Time</div>
                 <div class="metric-value" id="metrics-avg-cycle">–</div>
               </div>
+
               <div class="metric-card">
                 <div class="metric-label">Active Tickets</div>
                 <div class="metric-value" id="metrics-active-count">0</div>
               </div>
+
               <div class="metric-card">
                 <div class="metric-label">Waiting/Staged</div>
                 <div class="metric-value" id="metrics-waiting-count">0</div>
               </div>
+
               <div class="metric-card">
                 <div class="metric-label">Red Line – Cars ON</div>
                 <div class="metric-value" id="metrics-redline-count">0</div>
@@ -220,6 +233,7 @@
             <div class="section-subtitle" style="margin-top: 0.7rem;">
               Valet Activity Today
             </div>
+
             <ul class="valet-list" id="metrics-valets"></ul>
           </section>
         </aside>
