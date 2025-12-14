@@ -12,6 +12,7 @@
     <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
+
   <body class="role-loancar">
     <div class="app-shell">
       <header class="app-header">
@@ -22,22 +23,22 @@
         />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Loan Car – Customer Arrival</div>
+          <div class="subtitle">Loan Car – Quick Intake</div>
         </div>
+
         <div class="header-right">
           <div class="role-pill">Loan Car</div>
         </div>
       </header>
 
-      <main class="app-main">
-        <!-- Intake form -->
+      <main class="app-main" style="max-width: 980px;">
+        <!-- Simple intake -->
         <section class="section">
           <div class="section-header">
             <div>
               <div class="section-title">Customer arrived in loaner</div>
               <div class="section-subtitle">
-                Creates a ticket directly in Active Pickups and auto-adds the note:
-                “customer just arrived in loaner”.
+                Enter Tag # + Customer. This creates a NEW ticket and adds a note automatically.
               </div>
             </div>
           </div>
@@ -49,36 +50,43 @@
                 id="tag-number"
                 name="tag-number"
                 class="input-text"
-                placeholder="e.g. 180097"
+                placeholder="e.g. 1432"
                 required
               />
             </div>
+
             <div class="input-group">
               <label for="customer-name">Customer name</label>
               <input
                 id="customer-name"
                 name="customer-name"
                 class="input-text"
-                placeholder="e.g. Randy Smith"
+                placeholder="e.g. Maria Lopez"
                 required
               />
             </div>
+
+            <!-- Stage-only checkbox hidden (loan car always creates NEW) -->
+            <div class="input-group" style="display:none;">
+              <input type="checkbox" id="stage-only" />
+            </div>
+
             <div class="input-group" style="align-self: flex-end">
-              <button type="submit" class="btn btn-primary">Create</button>
+              <button type="submit" class="btn btn-primary">Create active pickup</button>
             </div>
           </form>
         </section>
 
-        <!-- Active list (view-only except notes) -->
+        <!-- Read-only Active view (optional but useful) -->
         <section class="section">
           <div class="section-header">
             <div>
               <div class="section-title">
-                Active Pickups (view)
+                Active pickups
                 <span class="section-count" id="count-active">0</span>
               </div>
               <div class="section-subtitle">
-                View-only. Add notes if needed.
+                Read-only list. Notes allowed.
               </div>
             </div>
           </div>
@@ -89,13 +97,16 @@
                 <tr>
                   <th>Tag #</th>
                   <th>Customer</th>
-                  <th>Status</th>
+                  <th>Status/Location</th>
+                  <th>Keys with</th>
+                  <th>Valet Time</th>
                   <th>Notes</th>
                   <th>Master Time</th>
                 </tr>
               </thead>
+
               <tbody id="active-tbody">
-                <tr><td colspan="5" class="empty">Loading…</td></tr>
+                <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
