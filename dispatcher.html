@@ -12,7 +12,6 @@
     <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
-
   <body class="role-dispatcher">
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
@@ -53,8 +52,15 @@
             </div>
 
             <div class="table-wrapper small">
-              <table data-schema="staged">
-                <thead></thead>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Staged At</th>
+                    <th>Activate</th>
+                  </tr>
+                </thead>
                 <tbody id="staged-tbody">
                   <tr><td colspan="4" class="empty">No staged tickets.</td></tr>
                 </tbody>
@@ -63,7 +69,7 @@
           </section>
         </div>
 
-        <!-- Center column -->
+        <!-- Center column: form + active + waiting + completed -->
         <div class="layout-center">
           <!-- New pickup form -->
           <section class="section dispatcher-only">
@@ -87,7 +93,6 @@
                   required
                 />
               </div>
-
               <div class="input-group">
                 <label for="customer-name">Customer name</label>
                 <input
@@ -98,14 +103,12 @@
                   required
                 />
               </div>
-
               <div class="input-group checkbox-group">
                 <label class="checkbox-label">
                   <input type="checkbox" id="stage-only" />
                   Stage only (not active yet)
                 </label>
               </div>
-
               <div class="input-group" style="align-self: flex-end">
                 <button type="submit" class="btn btn-primary">Create</button>
               </div>
@@ -127,8 +130,19 @@
             </div>
 
             <div class="table-wrapper">
-              <table data-schema="active">
-                <thead></thead>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Status/Location</th>
+                    <th>Keys with</th>
+                    <th>Valet Time</th>
+                    <th class="dispatcher-only">Staged</th>
+                    <th>Notes</th>
+                    <th>Master Time</th>
+                  </tr>
+                </thead>
                 <tbody id="active-tbody">
                   <tr><td colspan="8" class="empty">Loading…</td></tr>
                 </tbody>
@@ -136,8 +150,8 @@
             </div>
           </section>
 
-          <!-- Waiting -->
-          <section class="section dispatcher-only section-waiting">
+          <!-- Waiting / staged for customer -->
+          <section class="section dispatcher-only">
             <div class="section-header">
               <div>
                 <div class="section-title">
@@ -151,8 +165,18 @@
             </div>
 
             <div class="table-wrapper">
-              <table data-schema="waiting">
-                <thead></thead>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Delivered by</th>
+                    <th>Staged Time</th>
+                    <th>Master Time</th>
+                    <th>Notes</th>
+                    <th>Customer Picked Up</th>
+                  </tr>
+                </thead>
                 <tbody id="waiting-tbody">
                   <tr><td colspan="7" class="empty">None currently waiting.</td></tr>
                 </tbody>
@@ -175,7 +199,6 @@
                   Final time, notes, and full timeline history.
                 </div>
               </div>
-
               <button type="button" class="btn small" id="toggle-completed">
                 Hide
               </button>
@@ -183,8 +206,19 @@
 
             <div class="section-completed-table">
               <div class="table-wrapper">
-                <table data-schema="completed">
-                  <thead></thead>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tag #</th>
+                      <th>Customer</th>
+                      <th>Total Time</th>
+                      <th>Delivered by</th>
+                      <th>Created</th>
+                      <th>Completed</th>
+                      <th>Notes</th>
+                      <th>Timeline</th>
+                    </tr>
+                  </thead>
                   <tbody id="completed-tbody">
                     <tr><td colspan="8" class="empty">No completed tickets yet.</td></tr>
                   </tbody>
@@ -194,7 +228,7 @@
           </section>
         </div>
 
-        <!-- Right column -->
+        <!-- Right column: metrics -->
         <aside class="layout-right dispatcher-only">
           <section class="section section-metrics">
             <div class="section-header">
@@ -208,32 +242,27 @@
                 <div class="metric-label">Completed Today</div>
                 <div class="metric-value" id="metrics-completed-today">0</div>
               </div>
-
               <div class="metric-card">
                 <div class="metric-label">Avg Cycle Time</div>
                 <div class="metric-value" id="metrics-avg-cycle">–</div>
               </div>
-
               <div class="metric-card">
                 <div class="metric-label">Active Tickets</div>
                 <div class="metric-value" id="metrics-active-count">0</div>
               </div>
-
               <div class="metric-card">
                 <div class="metric-label">Waiting/Staged</div>
                 <div class="metric-value" id="metrics-waiting-count">0</div>
               </div>
-
               <div class="metric-card">
                 <div class="metric-label">Red Line – Cars ON</div>
                 <div class="metric-value" id="metrics-redline-count">0</div>
               </div>
             </div>
 
-            <div class="section-subtitle" style="margin-top: 0.7rem;">
+            <div class="section-subtitle" style="margin-top: 0.7rem">
               Valet Activity Today
             </div>
-
             <ul class="valet-list" id="metrics-valets"></ul>
           </section>
         </aside>
