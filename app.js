@@ -1,4 +1,4 @@
-// app.js — Schema-based renderer + Schema-driven THEAD
+// app.js — Schema-based renderer + Schema-driven THEAD + Role-based visibility
 import { supabase } from "./supabaseClient.js";
 
 let pickups = [];
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   else if (document.body.classList.contains("role-loancar")) role = "loancar";
   else role = "dispatcher";
 
-  renderHeaders(); // ✅ NEW: lock headers to schema
+  renderHeaders();
 
   setupForm();
   setupTableActions();
@@ -30,40 +30,70 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================
+   CAPABILITIES (LOCKED)
+   ========================= */
+
+const CAP = {
+  dispatcher: { notes: true, wash: true, keys: true, flow: true, timeline: true, canSeeWaiting: true, canSeeCompleted: true },
+  keymachine: { notes: true, wash: true, keys: true, flow: false, timeline: false, canSeeWaiting: false, canSeeCompleted: false },
+  carwash: { notes: true, wash: true, keys: false, flow: false, timeline: false, canSeeWaiting: false, canSeeCompleted: false },
+  wallboard: { notes: false, wash: false, keys: false, flow: false, timeline: false, canSeeWaiting: true, canSeeCompleted: false },
+  serviceadvisor: { notes: true, wash: false, keys: false, flow: false, timeline: false, canSeeWaiting: false, canSeeCompleted: false },
+  loancar: { notes: true, wash: false, keys: false, flow: false, timeline: false, canSeeWaiting: false, canSeeCompleted: false }
+};
+
+function caps() {
+  return CAP[role] || CAP.dispatcher;
+}
+
+/* =========================
    SCHEMA REGISTRY (LOCKED)
    ========================= */
 
 const SCHEMAS = {
-  staged: {
+  // STAGED
+  staged_dispatcher: {
     headers: ["Tag #", "Customer", "Staged At", "Action"],
-    cols: ["tag", "customer", "stagedAt", "stagedActionOrNotes"]
+    cols: ["tag", "customer", "stagedAt", "stagedActivate"]
+  },
+  staged_serviceadvisor: {
+    headers: ["Tag #", "Customer", "Staged At", "Notes"],
+    cols: ["tag", "customer", "stagedAt", "notes"]
   },
 
+  // ACTIVE
   active_dispatcher: {
     headers: ["Tag #", "Customer", "Status/Location", "Keys with", "Valet Time", "Staged", "Notes", "Master Time"],
     cols: ["tag", "customer", "statusLocation", "keysWith", "valetTime", "stagedMove", "notes", "masterTime"]
   },
-
-  active_staff: {
+  active_keymachine: {
     headers: ["Tag #", "Customer", "Status/Location", "Keys with", "Valet Time", "Notes", "Master Time"],
     cols: ["tag", "customer", "statusLocation", "keysWith", "valetTime", "notes", "masterTime"]
   },
-
+  active_carwash: {
+    headers: ["Tag #", "Customer", "Status/Location", "Keys with", "Valet Time", "Notes", "Master Time"],
+    cols: ["tag", "customer", "statusLocation", "keysWith_readonly", "valetTime_readonly", "notes", "masterTime"]
+  },
+  active_limited: {
+    headers: ["Tag #", "Customer", "Notes", "Master Time"],
+    cols: ["tag", "customer", "notes", "masterTime"]
+  },
   active_wallboard: {
     headers: ["Tag #", "Customer", "Status", "Keys with", "Valet Time", "Master Time"],
-    cols: ["tag", "customer", "statusText", "keysWithText", "valetTime", "masterTime"]
+    cols: ["tag", "customer", "statusText", "keysWithText", "valetTime_readonly", "masterTime"]
   },
 
+  // WAITING
   waiting_dispatcher: {
     headers: ["Tag #", "Customer", "Delivered by", "Staged Time", "Master Time", "Notes", "Customer Picked Up"],
     cols: ["tag", "customer", "deliveredBy", "stagedTime", "masterTime", "notes", "pickedUp"]
   },
-
   waiting_wallboard: {
     headers: ["Tag #", "Customer", "Delivered by", "Waiting Time"],
     cols: ["tag", "customer", "deliveredBy", "waitingTime"]
   },
 
+  // COMPLETED
   completed_dispatcher: {
     headers: ["Tag #", "Customer", "Total Time", "Delivered by", "Created", "Completed", "Notes", "Timeline"],
     cols: ["tag", "customer", "totalTime", "deliveredBy", "createdAt", "completedAt", "notesFull", "timelineBtn"]
@@ -71,24 +101,37 @@ const SCHEMAS = {
 };
 
 function schemaFor(tableKey) {
+  if (tableKey === "staged") {
+    if (role === "dispatcher") return SCHEMAS.staged_dispatcher;
+    if (role === "serviceadvisor") return SCHEMAS.staged_serviceadvisor;
+    return null; // hidden
+  }
+
   if (tableKey === "active") {
     if (role === "wallboard") return SCHEMAS.active_wallboard;
     if (role === "dispatcher") return SCHEMAS.active_dispatcher;
-    return SCHEMAS.active_staff;
+    if (role === "keymachine") return SCHEMAS.active_keymachine;
+    if (role === "carwash") return SCHEMAS.active_carwash;
+    if (role === "serviceadvisor" || role === "loancar") return SCHEMAS.active_limited;
+    return SCHEMAS.active_keymachine;
   }
 
   if (tableKey === "waiting") {
+    if (!caps().canSeeWaiting) return null;
     if (role === "wallboard") return SCHEMAS.waiting_wallboard;
     return SCHEMAS.waiting_dispatcher;
   }
 
-  if (tableKey === "completed") return SCHEMAS.completed_dispatcher;
-  if (tableKey === "staged") return SCHEMAS.staged;
+  if (tableKey === "completed") {
+    if (!caps().canSeeCompleted) return null;
+    return SCHEMAS.completed_dispatcher;
+  }
+
   return null;
 }
 
 /* =========================
-   THEAD GENERATION (NEW)
+   THEAD GENERATION
    ========================= */
 
 function renderHeaders() {
@@ -104,8 +147,7 @@ function renderHeaders() {
       table.prepend(thead);
     }
 
-    const ths = schema.headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("");
-    thead.innerHTML = `<tr>${ths}</tr>`;
+    thead.innerHTML = `<tr>${schema.headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr>`;
   });
 }
 
@@ -137,11 +179,8 @@ function loadUIState() {
 
 function saveUIState() {
   const section = document.getElementById("completed-section");
-  const completedCollapsed = !!(
-    section && section.classList.contains("completed-collapsed")
-  );
+  const completedCollapsed = !!(section && section.classList.contains("completed-collapsed"));
   const state = { completedCollapsed, pqiEnabled };
-
   try {
     localStorage.setItem("valetOpsState", JSON.stringify(state));
   } catch {}
@@ -199,7 +238,6 @@ function setupForm() {
     const tag = tagInput?.value?.trim();
     const name = nameInput?.value?.trim();
     const staged = stageCheckbox?.checked || false;
-
     if (!tag || !name) return;
 
     const nowIso = new Date().toISOString();
@@ -220,15 +258,11 @@ function setupForm() {
     if (role === "loancar") {
       insertData.status = "NEW";
       insertData.active_started_at = nowIso;
-      insertData.notes = `[${new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      })}] customer just arrived in loaner`;
+      insertData.notes = `[${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}] customer just arrived in loaner`;
       insertData.notes_updated_at = nowIso;
     }
 
     const { error } = await supabase.from("pickups").insert(insertData);
-
     if (error) {
       console.error(error);
       alert("Error creating ticket. Check console.");
@@ -246,13 +280,11 @@ function setupForm() {
    ========================= */
 
 function setupTableActions() {
-  ["active-tbody", "staged-tbody", "waiting-tbody", "completed-tbody"].forEach(
-    (id) => {
-      const tbody = document.getElementById(id);
-      if (!tbody) return;
-      tbody.addEventListener("click", onTableClick);
-    }
-  );
+  ["active-tbody", "staged-tbody", "waiting-tbody", "completed-tbody"].forEach((id) => {
+    const tbody = document.getElementById(id);
+    if (!tbody) return;
+    tbody.addEventListener("click", onTableClick);
+  });
 }
 
 function onTableClick(e) {
@@ -263,11 +295,25 @@ function onTableClick(e) {
   const id = btn.getAttribute("data-id");
   if (!action || !id) return;
 
-  if ((role === "serviceadvisor" || role === "loancar") && action !== "edit-note") {
-    return;
-  }
+  // role-based action gating (render should already hide them, this is safety)
+  const c = caps();
+  if (action === "edit-note" && !c.notes) return;
+  if (isWashAction(action) && !c.wash) return;
+  if (isKeysAction(action) && !c.keys) return;
+  if (isFlowAction(action) && !c.flow) return;
+  if (action === "view-timeline" && !c.timeline) return;
 
   handleAction(id, action);
+}
+
+function isWashAction(a) {
+  return ["car-wash-area", "car-red-line", "wash-dusty", "wash-needs-rewash", "wash-rewash"].includes(a);
+}
+function isKeysAction(a) {
+  return ["with-fernando", "with-juan", "with-miguel", "with-maria", "with-helper", "keys-machine"].includes(a);
+}
+function isFlowAction(a) {
+  return ["activate-from-staged", "waiting-customer", "customer-picked-up"].includes(a);
 }
 
 async function handleAction(id, action) {
@@ -341,20 +387,14 @@ async function handleAction(id, action) {
       const current = pickups.find((p) => String(p.id) === String(id));
       const existing = current?.notes || "";
       const promptText = existing
-        ? "Add new note (previous notes stay on record):\n\n" +
-          existing +
-          "\n\nNew note:"
+        ? "Add new note (previous notes stay on record):\n\n" + existing + "\n\nNew note:"
         : "Add note:";
       const newNote = window.prompt(promptText, "");
       if (newNote === null) return;
       const trimmed = newNote.trim();
       if (!trimmed) return;
 
-      const stamp = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
+      const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       const line = `[${stamp}] ${trimmed}`;
       updates.notes = existing ? existing + "\n" + line : line;
       updates.notes_updated_at = now;
@@ -367,20 +407,13 @@ async function handleAction(id, action) {
       const lines = [];
       lines.push(`Ticket ${p.tag_number} – ${p.customer_name}`);
       lines.push("--------------------------------");
-
       if (p.created_at) lines.push("Created: " + formatTime(p.created_at));
-      if (p.active_started_at)
-        lines.push("Entered Active Pickups: " + formatTime(p.active_started_at));
-      if (p.keys_with_valet_at && p.keys_holder)
-        lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
-      if (p.keys_at_machine_at)
-        lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
+      if (p.active_started_at) lines.push("Entered Active Pickups: " + formatTime(p.active_started_at));
+      if (p.keys_with_valet_at && p.keys_holder) lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
+      if (p.keys_at_machine_at) lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
       if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
-        lines.push(
-          `Wash status (${humanWashStatus(p.wash_status)}): ` + formatTime(p.wash_status_at)
-        );
-      if (p.waiting_client_at)
-        lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
+        lines.push(`Wash status (${humanWashStatus(p.wash_status)}): ` + formatTime(p.wash_status_at));
+      if (p.waiting_client_at) lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
       if (p.completed_at) lines.push("Completed: " + formatTime(p.completed_at));
 
       const masterSeconds = computeMasterSeconds(p, new Date());
@@ -403,7 +436,6 @@ async function handleAction(id, action) {
   if (Object.keys(updates).length === 0) return;
 
   const { error } = await supabase.from("pickups").update(updates).eq("id", id);
-
   if (error) {
     console.error(error);
     alert("Error saving update. Check console.");
@@ -421,27 +453,17 @@ function setValetUpdates(updates, name, nowIso) {
    ========================= */
 
 async function loadPickups() {
-  const { data, error } = await supabase
-    .from("pickups")
-    .select("*")
-    .order("created_at", { ascending: false });
-
+  const { data, error } = await supabase.from("pickups").select("*").order("created_at", { ascending: false });
   if (error) {
     console.error(error);
     return;
   }
-
   pickups = data || [];
   renderAll(false);
 }
 
 function subscribeRealtime() {
-  supabase
-    .from("pickups")
-    .on("*", () => {
-      loadPickups();
-    })
-    .subscribe();
+  supabase.from("pickups").on("*", () => loadPickups()).subscribe();
 }
 
 /* =========================
@@ -452,12 +474,7 @@ function renderAll(isTimerTick) {
   const now = new Date();
 
   const staged = pickups.filter((p) => p.status === "STAGED");
-  const active = pickups.filter(
-    (p) =>
-      p.status !== "STAGED" &&
-      p.status !== "WAITING_FOR_CUSTOMER" &&
-      p.status !== "COMPLETE"
-  );
+  const active = pickups.filter((p) => p.status !== "STAGED" && p.status !== "WAITING_FOR_CUSTOMER" && p.status !== "COMPLETE");
   const waiting = pickups.filter((p) => p.status === "WAITING_FOR_CUSTOMER");
   const completed = pickups.filter((p) => p.status === "COMPLETE").slice(0, 50);
 
@@ -472,14 +489,14 @@ function renderAll(isTimerTick) {
   renderTableBody("active", "active-tbody", active, now, "No active pickups.");
   renderTableBody("waiting", "waiting-tbody", waiting, now, "None currently waiting.");
 
-  if (role === "dispatcher") {
+  if (caps().canSeeCompleted) {
     renderTableBody("completed", "completed-tbody", completed, now, "No completed tickets yet.");
-    renderMetrics(active, waiting, completed, now);
   } else {
     const completedTbody = document.getElementById("completed-tbody");
     if (completedTbody) completedTbody.innerHTML = "";
   }
 
+  if (role === "dispatcher") renderMetrics(active, waiting, completed, now);
   if (isTimerTick) maybePlayAlerts(active, now);
 }
 
@@ -488,7 +505,11 @@ function renderTableBody(tableKey, tbodyId, rows, now, emptyText) {
   if (!tbody) return;
 
   const schema = schemaFor(tableKey);
-  if (!schema) return;
+  if (!schema) {
+    // if table exists but role shouldn't see it, keep it empty
+    tbody.innerHTML = "";
+    return;
+  }
 
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="${schema.cols.length}" class="empty">${escapeHtml(emptyText)}</td></tr>`;
@@ -503,68 +524,91 @@ function renderRow(schema, p, now, tableKey) {
   return `<tr>${tds}</tr>`;
 }
 
-function renderCell(colKey, p, now, tableKey) {
+function renderCell(colKey, p, now) {
+  const c = caps();
+
   switch (colKey) {
     case "tag":
       return `<span class="cell-tag">${escapeHtml(p.tag_number)}</span>`;
     case "customer":
       return `<span class="cell-customer">${escapeHtml(p.customer_name)}</span>`;
+
     case "stagedAt":
       return escapeHtml(formatTime(p.created_at));
-    case "stagedActionOrNotes":
-      return renderStagedActionOrNotes(p);
+
+    case "stagedActivate":
+      if (!c.flow) return "—";
+      return `<button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">Activate</button>`;
+
     case "statusLocation":
-      return renderStatusLocationCell(p);
+      return c.wash ? renderStatusLocationCell(p) : renderStatusLocationReadonly(p);
+
     case "keysWith":
-      return renderKeysWithCell(p);
+      return c.keys ? renderKeysWithCell(p) : renderKeysWithReadonly(p);
+
+    case "keysWith_readonly":
+      return renderKeysWithReadonly(p);
+
     case "valetTime":
       return renderValetTimeCell(p, now);
+
+    case "valetTime_readonly":
+      return renderValetTimeCell(p, now);
+
     case "stagedMove":
-      return `
-        <button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">
-          Move to staged
-        </button>
-      `;
+      if (!c.flow) return "—";
+      return `<button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">Move to staged</button>`;
+
     case "notes":
-      return renderNotesCell(p);
+      return c.notes ? renderNotesCell(p) : "—";
+
     case "masterTime":
       return renderMasterTimeCell(p, now);
+
     case "statusText":
       return `<span class="status-badge">${escapeHtml(humanStatus(p))}</span>`;
+
     case "keysWithText":
       return escapeHtml(p.keys_holder ? `Keys with ${p.keys_holder}` : "—");
+
     case "deliveredBy":
       return escapeHtml(p.keys_holder || "—");
+
     case "stagedTime": {
       const seconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
       const klass = timerClass(computeSeverity(seconds));
       return `<span class="timer ${klass}">${escapeHtml(formatDuration(seconds))}</span>`;
     }
+
     case "waitingTime": {
       const seconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
       const klass = timerClass(computeSeverity(seconds));
       return `<span class="timer ${klass}">${escapeHtml(formatDuration(seconds))}</span>`;
     }
+
     case "pickedUp":
-      return `
-        <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">
-          Customer picked up
-        </button>
-      `;
+      if (!c.flow) return "—";
+      return `<button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">Customer picked up</button>`;
+
     case "totalTime": {
       const sec = computeMasterSeconds(p, now);
       return escapeHtml(formatDuration(sec));
     }
+
     case "createdAt":
       return escapeHtml(formatTime(p.created_at));
     case "completedAt":
       return escapeHtml(formatTime(p.completed_at));
+
     case "notesFull": {
       const notesPieces = (p.notes || "").split("\n").filter(Boolean);
       return notesPieces.length ? notesPieces.map(escapeHtml).join("<br>") : "";
     }
+
     case "timelineBtn":
+      if (!c.timeline) return "—";
       return `<button class="btn small" data-action="view-timeline" data-id="${p.id}">Timeline</button>`;
+
     default:
       return "";
   }
@@ -574,53 +618,37 @@ function renderCell(colKey, p, now, tableKey) {
    CELL HELPERS
    ========================= */
 
-function renderStagedActionOrNotes(p) {
-  if (role === "dispatcher") {
-    return `
-      <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
-        Activate
-      </button>
-    `;
-  }
+function renderStatusLocationReadonly(p) {
+  const currentWash = p.wash_status || "NONE";
+  const label = currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
+  return `<span class="status-badge">${escapeHtml(label)}</span>`;
+}
 
-  const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
-
-  return `
-    <button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">
-      Add note
-    </button>
-    ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
-  `;
+function renderKeysWithReadonly(p) {
+  const label = p.keys_holder ? `Keys with ${p.keys_holder}` : "—";
+  return `<span class="status-badge">${escapeHtml(label)}</span>`;
 }
 
 function renderStatusLocationCell(p) {
   const currentWash = p.wash_status || "NONE";
-  const washSelectedLabel =
-    currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
+  const washSelectedLabel = currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
 
   return `
     <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
 
     <div class="wash-buttons" style="margin-top:0.15rem;">
-      <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected" : ""}"
-        data-action="car-wash-area" data-id="${p.id}">Car in wash</button>
-      <button class="btn small ${currentWash === "ON_RED_LINE" ? "selected" : ""}"
-        data-action="car-red-line" data-id="${p.id}">Car on red line</button>
+      <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected" : ""}" data-action="car-wash-area" data-id="${p.id}">Car in wash</button>
+      <button class="btn small ${currentWash === "ON_RED_LINE" ? "selected" : ""}" data-action="car-red-line" data-id="${p.id}">Car on red line</button>
     </div>
 
     <div class="wash-buttons" style="margin-top:0.15rem;">
-      <button class="btn small ${currentWash === "DUSTY" ? "selected" : ""}"
-        data-action="wash-dusty" data-id="${p.id}">Dusty</button>
-      <button class="btn small keymachine-only ${p.status === "KEYS_IN_MACHINE" ? "selected" : ""}"
-        data-action="keys-machine" data-id="${p.id}">Key machine</button>
+      <button class="btn small ${currentWash === "DUSTY" ? "selected" : ""}" data-action="wash-dusty" data-id="${p.id}">Dusty</button>
+      <button class="btn small keymachine-only ${p.status === "KEYS_IN_MACHINE" ? "selected" : ""}" data-action="keys-machine" data-id="${p.id}">Key machine</button>
     </div>
 
     <div class="wash-buttons" style="margin-top:0.15rem;">
-      <button class="btn small ${currentWash === "NEEDS_REWASH" ? "selected wash-needs" : ""}"
-        data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
-      <button class="btn small ${currentWash === "REWASH" ? "selected" : ""}"
-        data-action="wash-rewash" data-id="${p.id}">Re wash</button>
+      <button class="btn small ${currentWash === "NEEDS_REWASH" ? "selected wash-needs" : ""}" data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
+      <button class="btn small ${currentWash === "REWASH" ? "selected" : ""}" data-action="wash-rewash" data-id="${p.id}">Re wash</button>
     </div>
   `;
 }
@@ -690,15 +718,7 @@ function renderMetrics(active, waiting, completed, now) {
   const redlineCountEl = document.getElementById("metrics-redline-count");
   const valetsEl = document.getElementById("metrics-valets");
 
-  if (
-    !completedTodayEl ||
-    !avgCycleEl ||
-    !activeCountEl ||
-    !waitingCountEl ||
-    !redlineCountEl ||
-    !valetsEl
-  )
-    return;
+  if (!completedTodayEl || !avgCycleEl || !activeCountEl || !waitingCountEl || !redlineCountEl || !valetsEl) return;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -714,19 +734,12 @@ function renderMetrics(active, waiting, completed, now) {
   waitingCountEl.textContent = String(waiting.length);
 
   const cycles = completedToday
-    .map((p) => {
-      if (!p.active_started_at || !p.waiting_client_at) return null;
-      return computeSeconds(p.active_started_at, p.waiting_client_at, now);
-    })
+    .map((p) => (!p.active_started_at || !p.waiting_client_at) ? null : computeSeconds(p.active_started_at, p.waiting_client_at, now))
     .filter((v) => v != null);
 
-  avgCycleEl.textContent = cycles.length
-    ? formatDuration(cycles.reduce((a, b) => a + b, 0) / cycles.length)
-    : "–";
+  avgCycleEl.textContent = cycles.length ? formatDuration(cycles.reduce((a, b) => a + b, 0) / cycles.length) : "–";
 
-  const redLineCount = pickups.filter(
-    (p) => p.wash_status === "ON_RED_LINE" && p.status !== "COMPLETE"
-  ).length;
+  const redLineCount = pickups.filter((p) => p.wash_status === "ON_RED_LINE" && p.status !== "COMPLETE").length;
   redlineCountEl.textContent = String(redLineCount);
 
   const baseValets = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
@@ -740,8 +753,7 @@ function renderMetrics(active, waiting, completed, now) {
   });
 
   valetsEl.innerHTML = baseValets
-    .map(
-      (name) => `
+    .map((name) => `
       <li>
         <span class="valet-name">${escapeHtml(name)}</span>
         <span class="valet-count">${valetCounts[name] || 0} tickets</span>
@@ -778,38 +790,25 @@ function maybePlayAlerts(active, now) {
 
 function humanStatus(p) {
   switch (p.status) {
-    case "STAGED":
-      return "Staged";
-    case "NEW":
-      return "New";
-    case "KEYS_IN_MACHINE":
-      return "Key machine";
-    case "KEYS_WITH_VALET":
-      return "Keys with valet";
-    case "WAITING_FOR_CUSTOMER":
-      return "Waiting/staged for customer";
-    case "COMPLETE":
-      return "Complete";
-    default:
-      return p.status || "";
+    case "STAGED": return "Staged";
+    case "NEW": return "New";
+    case "KEYS_IN_MACHINE": return "Key machine";
+    case "KEYS_WITH_VALET": return "Keys with valet";
+    case "WAITING_FOR_CUSTOMER": return "Waiting/staged for customer";
+    case "COMPLETE": return "Complete";
+    default: return p.status || "";
   }
 }
 
 function humanWashStatus(wash_status) {
   switch (wash_status) {
-    case "IN_WASH_AREA":
-      return "Car in wash area";
-    case "ON_RED_LINE":
-      return "Car on red line";
-    case "REWASH":
-      return "Re wash";
-    case "NEEDS_REWASH":
-      return "Needs rewash";
-    case "DUSTY":
-      return "Dusty";
+    case "IN_WASH_AREA": return "Car in wash area";
+    case "ON_RED_LINE": return "Car on red line";
+    case "REWASH": return "Re wash";
+    case "NEEDS_REWASH": return "Needs rewash";
+    case "DUSTY": return "Dusty";
     case "NONE":
-    default:
-      return "Not set";
+    default: return "Not set";
   }
 }
 
@@ -847,15 +846,11 @@ function computeSeverity(seconds) {
 
 function timerClass(severity) {
   switch (severity) {
-    case "yellow":
-      return "timer-yellow";
-    case "orange":
-      return "timer-orange";
-    case "red":
-      return "timer-red";
+    case "yellow": return "timer-yellow";
+    case "orange": return "timer-orange";
+    case "red": return "timer-red";
     case "green":
-    default:
-      return "timer-green";
+    default: return "timer-green";
   }
 }
 
