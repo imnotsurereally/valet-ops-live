@@ -1,9 +1,9 @@
-// app.js — Schema-based renderer (V1, no feature changes)
+// app.js — Schema-based renderer + Schema-driven THEAD
 import { supabase } from "./supabaseClient.js";
 
 let pickups = [];
 let role = "dispatcher";
-let severityMap = new Map(); // id -> severity for sound alerts
+let severityMap = new Map();
 let pqiEnabled = false;
 let uiStateLoaded = false;
 
@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
   else if (document.body.classList.contains("role-serviceadvisor")) role = "serviceadvisor";
   else if (document.body.classList.contains("role-loancar")) role = "loancar";
   else role = "dispatcher";
+
+  renderHeaders(); // ✅ NEW: lock headers to schema
 
   setupForm();
   setupTableActions();
@@ -82,12 +84,33 @@ function schemaFor(tableKey) {
 
   if (tableKey === "completed") return SCHEMAS.completed_dispatcher;
   if (tableKey === "staged") return SCHEMAS.staged;
-
   return null;
 }
 
 /* =========================
-   UI STATE (PQI + collapse)
+   THEAD GENERATION (NEW)
+   ========================= */
+
+function renderHeaders() {
+  const tables = document.querySelectorAll("table[data-schema]");
+  tables.forEach((table) => {
+    const key = table.getAttribute("data-schema");
+    const schema = schemaFor(key);
+    if (!schema) return;
+
+    let thead = table.querySelector("thead");
+    if (!thead) {
+      thead = document.createElement("thead");
+      table.prepend(thead);
+    }
+
+    const ths = schema.headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("");
+    thead.innerHTML = `<tr>${ths}</tr>`;
+  });
+}
+
+/* =========================
+   UI STATE
    ========================= */
 
 function loadUIState() {
@@ -160,7 +183,7 @@ function setupCompletedToggle() {
 }
 
 /* =========================
-   FORM (dispatcher + SA + loaner)
+   FORM
    ========================= */
 
 function setupForm() {
@@ -219,7 +242,7 @@ function setupForm() {
 }
 
 /* =========================
-   CLICK HANDLING (permission gate)
+   CLICK HANDLING
    ========================= */
 
 function setupTableActions() {
@@ -240,7 +263,6 @@ function onTableClick(e) {
   const id = btn.getAttribute("data-id");
   if (!action || !id) return;
 
-  // Permission gate: serviceadvisor + loancar can only edit notes
   if ((role === "serviceadvisor" || role === "loancar") && action !== "edit-note") {
     return;
   }
@@ -423,7 +445,7 @@ function subscribeRealtime() {
 }
 
 /* =========================
-   RENDER ENGINE (schema-based)
+   RENDER ENGINE
    ========================= */
 
 function renderAll(isTimerTick) {
@@ -454,7 +476,6 @@ function renderAll(isTimerTick) {
     renderTableBody("completed", "completed-tbody", completed, now, "No completed tickets yet.");
     renderMetrics(active, waiting, completed, now);
   } else {
-    // If completed exists on non-dispatcher pages, keep it clean (but those pages typically don’t have it)
     const completedTbody = document.getElementById("completed-tbody");
     if (completedTbody) completedTbody.innerHTML = "";
   }
@@ -482,100 +503,78 @@ function renderRow(schema, p, now, tableKey) {
   return `<tr>${tds}</tr>`;
 }
 
-/* =========================
-   CELL RENDERERS (one per column key)
-   ========================= */
-
 function renderCell(colKey, p, now, tableKey) {
   switch (colKey) {
     case "tag":
       return `<span class="cell-tag">${escapeHtml(p.tag_number)}</span>`;
-
     case "customer":
       return `<span class="cell-customer">${escapeHtml(p.customer_name)}</span>`;
-
     case "stagedAt":
       return escapeHtml(formatTime(p.created_at));
-
     case "stagedActionOrNotes":
       return renderStagedActionOrNotes(p);
-
     case "statusLocation":
       return renderStatusLocationCell(p);
-
     case "keysWith":
       return renderKeysWithCell(p);
-
     case "valetTime":
       return renderValetTimeCell(p, now);
-
     case "stagedMove":
       return `
         <button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">
           Move to staged
         </button>
       `;
-
     case "notes":
       return renderNotesCell(p);
-
     case "masterTime":
       return renderMasterTimeCell(p, now);
-
     case "statusText":
       return `<span class="status-badge">${escapeHtml(humanStatus(p))}</span>`;
-
     case "keysWithText":
       return escapeHtml(p.keys_holder ? `Keys with ${p.keys_holder}` : "—");
-
     case "deliveredBy":
       return escapeHtml(p.keys_holder || "—");
-
     case "stagedTime": {
       const seconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
       const klass = timerClass(computeSeverity(seconds));
       return `<span class="timer ${klass}">${escapeHtml(formatDuration(seconds))}</span>`;
     }
-
     case "waitingTime": {
       const seconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
       const klass = timerClass(computeSeverity(seconds));
       return `<span class="timer ${klass}">${escapeHtml(formatDuration(seconds))}</span>`;
     }
-
     case "pickedUp":
       return `
         <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">
           Customer picked up
         </button>
       `;
-
     case "totalTime": {
       const sec = computeMasterSeconds(p, now);
       return escapeHtml(formatDuration(sec));
     }
-
     case "createdAt":
       return escapeHtml(formatTime(p.created_at));
-
     case "completedAt":
       return escapeHtml(formatTime(p.completed_at));
-
     case "notesFull": {
       const notesPieces = (p.notes || "").split("\n").filter(Boolean);
       return notesPieces.length ? notesPieces.map(escapeHtml).join("<br>") : "";
     }
-
     case "timelineBtn":
       return `<button class="btn small" data-action="view-timeline" data-id="${p.id}">Timeline</button>`;
-
     default:
       return "";
   }
 }
 
+/* =========================
+   CELL HELPERS
+   ========================= */
+
 function renderStagedActionOrNotes(p) {
-  // Dispatcher: Activate
   if (role === "dispatcher") {
     return `
       <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
@@ -584,7 +583,6 @@ function renderStagedActionOrNotes(p) {
     `;
   }
 
-  // Service advisor: Add note + last note preview (4 cols preserved)
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
   const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
 
@@ -681,7 +679,7 @@ function setCount(id, value) {
 }
 
 /* =========================
-   METRICS (dispatcher)
+   METRICS
    ========================= */
 
 function renderMetrics(active, waiting, completed, now) {
@@ -753,7 +751,7 @@ function renderMetrics(active, waiting, completed, now) {
 }
 
 /* =========================
-   ALERTS (dispatcher + wallboard)
+   ALERTS
    ========================= */
 
 function maybePlayAlerts(active, now) {
