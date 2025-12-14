@@ -106,7 +106,7 @@ a {
   align-items: center;
 }
 
-/* 3-column layout: left ~7%, center ~86%, right ~7% */
+/* 3-column layout */
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
@@ -199,7 +199,7 @@ a {
   font-weight: 600;
 }
 
-/* Tag + customer pills */
+/* Generic pill */
 .pill-blue {
   display: inline-block;
   padding: 0.12rem 0.4rem;
@@ -331,23 +331,16 @@ a {
   );
   background-size: 200% 200%;
   animation: borderFlow 4s linear infinite;
-  -webkit-mask: linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
   z-index: 0;
 }
 @keyframes borderFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
-  }
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .table-wrapper.small {
@@ -396,17 +389,24 @@ tr:nth-child(even) td {
   background: #05050b;
 }
 
-/* ========== TAG / CUSTOMER PILL STYLING ========== */
-.cell-tag,
-.cell-customer {
-  display: inline-block;
-  padding: 0.12rem 0.4rem;
-  border-radius: 999px;
-  border: 1px solid #60a5fa;
-  background: #0b1c3a;
+/* ========== TAG / CUSTOMER (FIX: NO MORE GIANT CIRCLES) ========== */
+/*
+  These classes are applied directly on <td>.
+  Styling a <td> like an inline pill breaks table layout and can render as giant circles.
+  So: keep them as normal table cells, just give them readable emphasis.
+*/
+td.cell-tag,
+td.cell-customer {
+  display: table-cell;
+  border: none;
+  background: transparent;
+  border-radius: 0;
   font-weight: 700;
   color: #dbeafe;
+  white-space: nowrap;
 }
+
+/* If you later wrap text in <span class="pill-blue">, it will look like the pill you want. */
 
 /* Status badge */
 .status-badge {
@@ -441,29 +441,10 @@ tr:nth-child(even) td {
   display: inline-block;
 }
 
-.timer-green {
-  border-color: #204d2a;
-  background: #0b1b10;
-  color: #a9ffb7;
-}
-
-.timer-yellow {
-  border-color: #5c5213;
-  background: #1b1808;
-  color: #ffe28a;
-}
-
-.timer-orange {
-  border-color: #7a4418;
-  background: #221109;
-  color: #ffb47a;
-}
-
-.timer-red {
-  border-color: #7a1c1c;
-  background: #220a0a;
-  color: #ff9b9b;
-}
+.timer-green { border-color: #204d2a; background: #0b1b10; color: #a9ffb7; }
+.timer-yellow { border-color: #5c5213; background: #1b1808; color: #ffe28a; }
+.timer-orange { border-color: #7a4418; background: #221109; color: #ffb47a; }
+.timer-red { border-color: #7a1c1c; background: #220a0a; color: #ff9b9b; }
 
 /* Needs rewash – flashing blue pill */
 .wash-needs {
@@ -474,21 +455,9 @@ tr:nth-child(even) td {
   animation: washBlink 0.7s infinite;
 }
 @keyframes washBlink {
-  0% {
-    border-color: #60a5fa;
-    background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
-  }
-  50% {
-    border-color: #bfdbfe;
-    background: #1d4ed8;
-    box-shadow: 0 0 18px 7px rgba(59, 130, 246, 0.95);
-  }
-  100% {
-    border-color: #60a5fa;
-    background: #0b1c3a;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.9);
-  }
+  0% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,0.9); }
+  50% { border-color: #bfdbfe; background: #1d4ed8; box-shadow: 0 0 18px 7px rgba(59,130,246,0.95); }
+  100% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,0.9); }
 }
 
 /* ========== EMPTY STATE ========== */
@@ -498,14 +467,11 @@ tr:nth-child(even) td {
   color: #888;
 }
 
-/* ========== ROLE VISIBILITY (FIXED) ========== */
-body.role-dispatcher .dispatcher-only {
-  display: initial;
-}
+/* ========== ROLE VISIBILITY ========== */
+body.role-dispatcher .dispatcher-only { display: initial; }
 body.role-dispatcher th.dispatcher-only,
-body.role-dispatcher td.dispatcher-only {
-  display: table-cell;
-}
+body.role-dispatcher td.dispatcher-only { display: table-cell; }
+
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
 body.role-wallboard .dispatcher-only,
@@ -516,27 +482,20 @@ body.role-loancar .dispatcher-only {
 
 body.role-keymachine .keymachine-only,
 body.role-dispatcher .keymachine-only,
-body.role-carwash .keymachine-only {
-  display: initial;
-}
+body.role-carwash .keymachine-only { display: initial; }
+
 body.role-wallboard .keymachine-only,
 body.role-serviceadvisor .keymachine-only,
 body.role-loancar .keymachine-only {
   display: none !important;
 }
 
-body.role-carwash .carwash-only {
-  display: initial;
-}
+body.role-carwash .carwash-only { display: initial; }
 body.role-serviceadvisor .carwash-only,
-body.role-loancar .carwash-only {
-  display: none !important;
-}
+body.role-loancar .carwash-only { display: none !important; }
 
 /* Wallboard styling */
-.wallboard-main {
-  max-width: 1600px;
-}
+.wallboard-main { max-width: 1600px; }
 .wallboard-table th,
 .wallboard-table td {
   font-size: 1rem;
@@ -550,7 +509,6 @@ body.role-wallboard button {
 }
 
 /* ========== HARD UI LOCK FOR SERVICEADVISOR + LOANCAR ========== */
-/* Hide any chooser button rows if any ever render */
 body.role-serviceadvisor .wash-buttons,
 body.role-serviceadvisor .keys-buttons,
 body.role-serviceadvisor button[data-action^="toggle-"],
@@ -562,28 +520,14 @@ body.role-loancar button[data-action^="toggle-"] {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1100px) {
-  .layout-grid {
-    display: block;
-  }
-
+  .layout-grid { display: block; }
   .layout-left,
   .layout-center,
-  .layout-right {
-    margin-bottom: 1rem;
-  }
+  .layout-right { margin-bottom: 1rem; }
 }
 
 @media (max-width: 900px) {
-  .app-main {
-    padding: 0.75rem 0.75rem 1.5rem;
-  }
-
-  .new-pickup-form {
-    flex-direction: column;
-  }
-
-  th,
-  td {
-    padding: 0.4rem 0.45rem;
-  }
+  .app-main { padding: 0.75rem 0.75rem 1.5rem; }
+  .new-pickup-form { flex-direction: column; }
+  th, td { padding: 0.4rem 0.45rem; }
 }
