@@ -7,9 +7,7 @@
 
     <link rel="stylesheet" href="style.css" />
 
-    <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
   <body class="role-keymachine">
@@ -17,19 +15,12 @@
 
     <div class="app-shell">
       <header class="app-header">
-        <img
-          src="assets/optima-logo.jpg"
-          alt="Optima Dealer Services"
-          class="logo"
-        />
+        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Key Machine – Live View</div>
         </div>
-        <div class="header-right">
-          <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
-          <div class="role-pill">Key Machine</div>
-        </div>
+        <div class="role-pill">Key Machine</div>
       </header>
 
       <main class="app-main">
@@ -47,18 +38,8 @@
           </div>
 
           <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Status/Location</th>
-                  <th>Keys with</th>
-                  <th>Valet Time</th>
-                  <th>Notes</th>
-                  <th>Master Time</th>
-                </tr>
-              </thead>
+            <table data-schema="active">
+              <thead></thead>
               <tbody id="active-tbody">
                 <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
