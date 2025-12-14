@@ -12,7 +12,6 @@
     <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
-
   <body class="role-keymachine">
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
@@ -27,9 +26,7 @@
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Key Machine – Live View</div>
         </div>
-        <div class="header-right">
-          <div class="role-pill">Key Machine</div>
-        </div>
+        <div class="role-pill">Key Machine</div>
       </header>
 
       <main class="app-main">
@@ -47,8 +44,18 @@
           </div>
 
           <div class="table-wrapper">
-            <table data-schema="active">
-              <thead></thead>
+            <table>
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Status/Location</th>
+                  <th>Keys with</th>
+                  <th>Valet Time</th>
+                  <th>Notes</th>
+                  <th>Master Time</th>
+                </tr>
+              </thead>
               <tbody id="active-tbody">
                 <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
