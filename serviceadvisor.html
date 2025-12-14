@@ -14,6 +14,8 @@
   </head>
 
   <body class="role-serviceadvisor">
+    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
+
     <div class="app-shell">
       <header class="app-header">
         <img
@@ -31,14 +33,14 @@
         </div>
       </header>
 
-      <main class="app-main" style="max-width: 980px;">
-        <!-- Simple intake -->
+      <main class="app-main">
+        <!-- New request form (creates STAGED always via app.js role routing) -->
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">Request car to be staged</div>
+              <div class="section-title">Request Car to be Staged</div>
               <div class="section-subtitle">
-                Enter Tag # + Customer. This creates a ticket in Staged (non urgent).
+                Enter Tag # + Customer name. This creates a STAGED ticket (non-urgent).
               </div>
             </div>
           </div>
@@ -66,43 +68,62 @@
               />
             </div>
 
-            <!-- Stage-only checkbox hidden (service advisor always stages) -->
+            <!-- keep checkbox hidden for this role (routing forces STAGED anyway) -->
             <div class="input-group" style="display:none;">
-              <input type="checkbox" id="stage-only" checked />
+              <label class="checkbox-label">
+                <input type="checkbox" id="stage-only" checked />
+                Stage only
+              </label>
             </div>
 
             <div class="input-group" style="align-self: flex-end">
-              <button type="submit" class="btn btn-primary">Create staged request</button>
+              <button type="submit" class="btn btn-primary">Create</button>
             </div>
           </form>
         </section>
 
-        <!-- Read-only staged list (optional but useful) -->
-        <section class="section">
+        <!-- Staged list (Service Advisor schema: Tag, Customer, Staged At, Notes) -->
+        <section class="section section-staged">
           <div class="section-header">
             <div>
               <div class="section-title">
-                Current staged requests
+                Staged (non urgent)
                 <span class="section-count" id="count-staged">0</span>
               </div>
               <div class="section-subtitle">
-                Read-only list. Notes allowed.
+                You can add notes. Dispatch will activate when ready.
               </div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Staged At</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-
+            <table data-schema="staged">
+              <thead></thead>
               <tbody id="staged-tbody">
+                <tr><td colspan="4" class="empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Active list (Limited schema: Tag, Customer, Notes, Master Time) -->
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">
+                Active (Read-only + Notes)
+                <span class="section-count" id="count-active">0</span>
+              </div>
+              <div class="section-subtitle">
+                You can only add notes (no wash/valet actions).
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table data-schema="active">
+              <thead></thead>
+              <tbody id="active-tbody">
                 <tr><td colspan="4" class="empty">Loading…</td></tr>
               </tbody>
             </table>
@@ -110,15 +131,5 @@
         </section>
       </main>
     </div>
-
-    <!-- IMPORTANT:
-      app.js currently renders staged rows with 4 columns (Tag, Customer, Time, Activate/Locked)
-      For this page, we want Notes instead of Activate.
-      So we give the page its own staged-tbody but still use app.js — the simplest V1 approach is:
-      - keep column count at 4
-      - treat 4th column as "Locked / Notes"
-      Notes editing is still available from Active/Waiting tables.
-      If you want Notes here too, that becomes Section T (renderer tweak).
-    -->
   </body>
 </html>
