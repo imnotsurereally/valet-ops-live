@@ -27,7 +27,9 @@
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Car Wash – Live Queue</div>
         </div>
+
         <div class="header-right">
+          <a class="btn small" href="index.html">Home</a>
           <div class="role-pill">Car Wash</div>
         </div>
       </header>
@@ -41,14 +43,24 @@
                 <span class="section-count" id="count-active">0</span>
               </div>
               <div class="section-subtitle">
-                See which cars are in wash area, dusty, rewash, etc.
+                Update wash status flags. Timers update live.
               </div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table data-schema="active">
-              <thead></thead>
+            <table>
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Status/Location</th>
+                  <th>Keys with</th>
+                  <th>Valet Time</th>
+                  <th>Notes</th>
+                  <th>Master Time</th>
+                </tr>
+              </thead>
               <tbody id="active-tbody">
                 <tr><td colspan="7" class="empty">Loading…</td></tr>
               </tbody>
