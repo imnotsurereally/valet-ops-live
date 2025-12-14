@@ -7,20 +7,29 @@
 
     <link rel="stylesheet" href="style.css" />
 
+    <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
+
   <body class="role-wallboard">
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
     <div class="app-shell">
       <header class="app-header">
-        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+        <img
+          src="assets/optima-logo.jpg"
+          alt="Optima Dealer Services"
+          class="logo"
+        />
         <div class="titles">
           <div class="brand">Valet Ops Wallboard</div>
           <div class="subtitle">Read-only view for TV screens</div>
         </div>
-        <div class="role-pill">Wallboard</div>
+        <div class="header-right">
+          <div class="role-pill">Wallboard</div>
+        </div>
       </header>
 
       <main class="app-main wallboard-main">
@@ -28,7 +37,10 @@
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">Active Pickups</div>
+              <div class="section-title">
+                Active Pickups
+                <span class="section-count" id="count-active">0</span>
+              </div>
               <div class="section-subtitle">
                 Color-coded by time. Oldest first.
               </div>
@@ -49,10 +61,11 @@
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">Waiting for Customer</div>
-              <div class="section-subtitle">
-                Cars ready out front.
+              <div class="section-title">
+                Waiting for Customer
+                <span class="section-count" id="count-waiting">0</span>
               </div>
+              <div class="section-subtitle">Cars ready out front.</div>
             </div>
           </div>
 
