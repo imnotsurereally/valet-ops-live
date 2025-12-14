@@ -7,9 +7,7 @@
 
     <link rel="stylesheet" href="style.css" />
 
-    <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
   <body class="role-wallboard">
@@ -17,19 +15,12 @@
 
     <div class="app-shell">
       <header class="app-header">
-        <img
-          src="assets/optima-logo.jpg"
-          alt="Optima Dealer Services"
-          class="logo"
-        />
+        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
         <div class="titles">
           <div class="brand">Valet Ops Wallboard</div>
           <div class="subtitle">Read-only view for TV screens</div>
         </div>
-        <div class="header-right">
-          <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
-          <div class="role-pill">Wallboard</div>
-        </div>
+        <div class="role-pill">Wallboard</div>
       </header>
 
       <main class="app-main wallboard-main">
@@ -38,22 +29,15 @@
           <div class="section-header">
             <div>
               <div class="section-title">Active Pickups</div>
-              <div class="section-subtitle">Color-coded by time. Oldest first.</div>
+              <div class="section-subtitle">
+                Color-coded by time. Oldest first.
+              </div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table class="wallboard-table">
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Status</th>
-                  <th>Keys with</th>
-                  <th>Valet Time</th>
-                  <th>Master Time</th>
-                </tr>
-              </thead>
+            <table class="wallboard-table" data-schema="active">
+              <thead></thead>
               <tbody id="active-tbody">
                 <tr><td colspan="6" class="empty">Loading…</td></tr>
               </tbody>
@@ -66,20 +50,15 @@
           <div class="section-header">
             <div>
               <div class="section-title">Waiting for Customer</div>
-              <div class="section-subtitle">Cars ready out front.</div>
+              <div class="section-subtitle">
+                Cars ready out front.
+              </div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table class="wallboard-table">
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Delivered by</th>
-                  <th>Waiting Time</th>
-                </tr>
-              </thead>
+            <table class="wallboard-table" data-schema="waiting">
+              <thead></thead>
               <tbody id="waiting-tbody">
                 <tr><td colspan="4" class="empty">None currently waiting.</td></tr>
               </tbody>
