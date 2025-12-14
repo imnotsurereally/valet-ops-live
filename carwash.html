@@ -7,20 +7,29 @@
 
     <link rel="stylesheet" href="style.css" />
 
+    <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- Our app logic -->
     <script type="module" src="app.js"></script>
   </head>
+
   <body class="role-carwash">
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
     <div class="app-shell">
       <header class="app-header">
-        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+        <img
+          src="assets/optima-logo.jpg"
+          alt="Optima Dealer Services"
+          class="logo"
+        />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Car Wash – Live Queue</div>
         </div>
-        <div class="role-pill">Car Wash</div>
+        <div class="header-right">
+          <div class="role-pill">Car Wash</div>
+        </div>
       </header>
 
       <main class="app-main">
