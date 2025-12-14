@@ -14,6 +14,8 @@
   </head>
 
   <body class="role-loancar">
+    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
+
     <div class="app-shell">
       <header class="app-header">
         <img
@@ -23,7 +25,7 @@
         />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Loan Car – Quick Intake</div>
+          <div class="subtitle">Loan Car – Customer Arrival Intake</div>
         </div>
 
         <div class="header-right">
@@ -31,14 +33,14 @@
         </div>
       </header>
 
-      <main class="app-main" style="max-width: 980px;">
-        <!-- Simple intake -->
+      <main class="app-main">
+        <!-- New pickup form (creates NEW + auto note via app.js role routing) -->
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">Customer arrived in loaner</div>
+              <div class="section-title">Customer Arrived in Loaner</div>
               <div class="section-subtitle">
-                Enter Tag # + Customer. This creates a NEW ticket and adds a note automatically.
+                Enter Tag # + Customer name. This creates an ACTIVE ticket with an auto note.
               </div>
             </div>
           </div>
@@ -66,47 +68,39 @@
               />
             </div>
 
-            <!-- Stage-only checkbox hidden (loan car always creates NEW) -->
+            <!-- keep checkbox hidden for this role (routing forces NEW anyway) -->
             <div class="input-group" style="display:none;">
-              <input type="checkbox" id="stage-only" />
+              <label class="checkbox-label">
+                <input type="checkbox" id="stage-only" />
+                Stage only
+              </label>
             </div>
 
             <div class="input-group" style="align-self: flex-end">
-              <button type="submit" class="btn btn-primary">Create active pickup</button>
+              <button type="submit" class="btn btn-primary">Create</button>
             </div>
           </form>
         </section>
 
-        <!-- Read-only Active view (optional but useful) -->
+        <!-- Active list (Limited schema: Tag, Customer, Notes, Master Time) -->
         <section class="section">
           <div class="section-header">
             <div>
               <div class="section-title">
-                Active pickups
+                Active (Read-only + Notes)
                 <span class="section-count" id="count-active">0</span>
               </div>
               <div class="section-subtitle">
-                Read-only list. Notes allowed.
+                You can only add notes (no wash/valet actions).
               </div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Status/Location</th>
-                  <th>Keys with</th>
-                  <th>Valet Time</th>
-                  <th>Notes</th>
-                  <th>Master Time</th>
-                </tr>
-              </thead>
-
+            <table data-schema="active">
+              <thead></thead>
               <tbody id="active-tbody">
-                <tr><td colspan="7" class="empty">Loading…</td></tr>
+                <tr><td colspan="4" class="empty">Loading…</td></tr>
               </tbody>
             </table>
           </div>
