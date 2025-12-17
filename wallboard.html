@@ -25,7 +25,7 @@
         />
         <div class="titles">
           <div class="brand">Valet Ops Wallboard</div>
-          <div class="subtitle">Read-only view for TV screens</div>
+          <div class="subtitle">Read-only live display</div>
         </div>
         <div class="header-right">
           <div class="role-pill">Wallboard</div>
@@ -33,23 +33,29 @@
       </header>
 
       <main class="app-main wallboard-main">
-        <!-- Active -->
+        <!-- ACTIVE -->
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">
-                Active Pickups
-                <span class="section-count" id="count-active">0</span>
-              </div>
+              <div class="section-title">Active Pickups</div>
               <div class="section-subtitle">
-                Color-coded by time. Oldest first.
+                Oldest first. Color-coded by time.
               </div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table class="wallboard-table" data-schema="active">
-              <thead></thead>
+            <table class="wallboard-table">
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th>Keys with</th>
+                  <th>Valet Time</th>
+                  <th>Master Time</th>
+                </tr>
+              </thead>
               <tbody id="active-tbody">
                 <tr><td colspan="6" class="empty">Loading…</td></tr>
               </tbody>
@@ -57,21 +63,25 @@
           </div>
         </section>
 
-        <!-- Waiting -->
+        <!-- WAITING -->
         <section class="section">
           <div class="section-header">
             <div>
-              <div class="section-title">
-                Waiting for Customer
-                <span class="section-count" id="count-waiting">0</span>
-              </div>
-              <div class="section-subtitle">Cars ready out front.</div>
+              <div class="section-title">Waiting for Customer</div>
+              <div class="section-subtitle">Cars ready out front</div>
             </div>
           </div>
 
           <div class="table-wrapper">
-            <table class="wallboard-table" data-schema="waiting">
-              <thead></thead>
+            <table class="wallboard-table">
+              <thead>
+                <tr>
+                  <th>Tag #</th>
+                  <th>Customer</th>
+                  <th>Delivered by</th>
+                  <th>Waiting Time</th>
+                </tr>
+              </thead>
               <tbody id="waiting-tbody">
                 <tr><td colspan="4" class="empty">None currently waiting.</td></tr>
               </tbody>
