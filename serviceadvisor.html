@@ -9,13 +9,11 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
+    <!-- App logic -->
     <script type="module" src="app.js"></script>
   </head>
 
   <body class="role-serviceadvisor">
-    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
-
     <div class="app-shell">
       <header class="app-header">
         <img
@@ -25,22 +23,20 @@
         />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Service Advisor – Request Staging</div>
+          <div class="subtitle">Service Advisor</div>
         </div>
-
         <div class="header-right">
           <div class="role-pill">Service Advisor</div>
         </div>
       </header>
 
-      <main class="app-main">
-        <!-- New request form (creates STAGED always via app.js role routing) -->
-        <section class="section">
+      <main class="app-main app-main-center">
+        <section class="section" style="max-width:420px;width:100%;">
           <div class="section-header">
             <div>
-              <div class="section-title">Request Car to be Staged</div>
+              <div class="section-title">Request Vehicle Staged</div>
               <div class="section-subtitle">
-                Enter Tag # + Customer name. This creates a STAGED ticket (non-urgent).
+                Creates a staged (non-urgent) request only.
               </div>
             </div>
           </div>
@@ -68,66 +64,12 @@
               />
             </div>
 
-            <!-- keep checkbox hidden for this role (routing forces STAGED anyway) -->
-            <div class="input-group" style="display:none;">
-              <label class="checkbox-label">
-                <input type="checkbox" id="stage-only" checked />
-                Stage only
-              </label>
-            </div>
-
-            <div class="input-group" style="align-self: flex-end">
-              <button type="submit" class="btn btn-primary">Create</button>
+            <div class="input-group" style="align-self:flex-end;">
+              <button type="submit" class="btn btn-primary">
+                Request Staging
+              </button>
             </div>
           </form>
-        </section>
-
-        <!-- Staged list (Service Advisor schema: Tag, Customer, Staged At, Notes) -->
-        <section class="section section-staged">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Staged (non urgent)
-                <span class="section-count" id="count-staged">0</span>
-              </div>
-              <div class="section-subtitle">
-                You can add notes. Dispatch will activate when ready.
-              </div>
-            </div>
-          </div>
-
-          <div class="table-wrapper">
-            <table data-schema="staged">
-              <thead></thead>
-              <tbody id="staged-tbody">
-                <tr><td colspan="4" class="empty">Loading…</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Active list (Limited schema: Tag, Customer, Notes, Master Time) -->
-        <section class="section">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Active (Read-only + Notes)
-                <span class="section-count" id="count-active">0</span>
-              </div>
-              <div class="section-subtitle">
-                You can only add notes (no wash/valet actions).
-              </div>
-            </div>
-          </div>
-
-          <div class="table-wrapper">
-            <table data-schema="active">
-              <thead></thead>
-              <tbody id="active-tbody">
-                <tr><td colspan="4" class="empty">Loading…</td></tr>
-              </tbody>
-            </table>
-          </div>
         </section>
       </main>
     </div>
