@@ -1,32 +1,45 @@
 // app.js
 import { supabase } from "./supabaseClient.js";
+import { requireAuthGate, getAuth, signOutNow } from "./auth.js";
 
 let pickups = [];
 let role = "dispatcher";
 let severityMap = new Map(); // id -> severity for sound alerts
 let pqiEnabled = false;
 let uiStateLoaded = false;
+let storeId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  // role from body class
-  if (document.body.classList.contains("role-keymachine")) role = "keymachine";
-  else if (document.body.classList.contains("role-carwash")) role = "carwash";
-  else if (document.body.classList.contains("role-wallboard")) role = "wallboard";
-  else if (document.body.classList.contains("role-serviceadvisor")) role = "serviceadvisor";
-  else if (document.body.classList.contains("role-loancar")) role = "loancar";
-  else role = "dispatcher";
+  (async () => {
+    // AUTH GATE (hard lock)
+    const auth = await requireAuthGate();
+    if (!auth) return; // redirected or on login
+    storeId = auth.storeId || null;
 
-  setupForm();
-  setupTableActions();
-  setupCompletedToggle();
-  setupPqiToggle();
-  loadUIState();
+    // role from body class (screen role)
+    if (document.body.classList.contains("role-keymachine")) role = "keymachine";
+    else if (document.body.classList.contains("role-carwash")) role = "carwash";
+    else if (document.body.classList.contains("role-wallboard")) role = "wallboard";
+    else if (document.body.classList.contains("role-serviceadvisor")) role = "serviceadvisor";
+    else if (document.body.classList.contains("role-loancar")) role = "loancar";
+    else role = "dispatcher";
 
-  loadPickups();
-  subscribeRealtime();
+    // optional logout button support if you add one later
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) logoutBtn.addEventListener("click", () => signOutNow());
 
-  // Timers tick in 15s intervals
-  setInterval(() => renderTables(true), 15 * 1000);
+    setupForm();
+    setupTableActions();
+    setupCompletedToggle();
+    setupPqiToggle();
+    loadUIState();
+
+    await loadPickups();
+    subscribeRealtime();
+
+    // Timers tick in 15s intervals
+    setInterval(() => renderTables(true), 15 * 1000);
+  })();
 });
 
 /* ---------- UI STATE (completed collapse + PQI) ---------- */
@@ -114,6 +127,7 @@ function setupForm() {
     // - serviceadvisor: goes to STAGED
     // - loancar: goes to NEW + note
     let insertData = {
+      store_id: storeId, // IMPORTANT: store scoping (RLS will enforce too)
       tag_number: tag,
       customer_name: name,
       status: staged ? "STAGED" : "NEW",
@@ -307,7 +321,9 @@ async function handleAction(id, action) {
         lines.push("Completed: " + formatTime(p.completed_at));
 
       const masterSeconds = computeMasterSeconds(p, new Date());
-      lines.push("Master cycle (Active box in/out): " + formatDuration(masterSeconds));
+      lines.push(
+        "Master cycle (Active box in/out): " + formatDuration(masterSeconds)
+      );
 
       if (p.notes) {
         lines.push("");
@@ -356,10 +372,14 @@ function setupCompletedToggle() {
 /* ---------- DATA + REALTIME ---------- */
 
 async function loadPickups() {
-  const { data, error } = await supabase
-    .from("pickups")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // Store-scoped query (RLS should also enforce)
+  let q = supabase.from("pickups").select("*").order("created_at", {
+    ascending: false
+  });
+
+  if (storeId) q = q.eq("store_id", storeId);
+
+  const { data, error } = await q;
 
   if (error) {
     console.error(error);
@@ -371,68 +391,13 @@ async function loadPickups() {
 }
 
 function subscribeRealtime() {
+  // IMPORTANT: keep simple v1 subscription. RLS limits events too.
   supabase
     .from("pickups")
     .on("*", () => {
       loadPickups();
     })
     .subscribe();
-}
-
-/* ---------- COLUMN CONTRACT: DOM-DRIVEN ---------- */
-
-function getHeaderColCountForTbody(tbodyId) {
-  const tbody = document.getElementById(tbodyId);
-  if (!tbody) return null;
-  const table = tbody.closest("table");
-  if (!table) return null;
-  const headRow = table.querySelector("thead tr");
-  if (!headRow) return null;
-  const ths = Array.from(headRow.querySelectorAll("th"));
-  // Count ALL th in DOM (even if hidden by CSS). This keeps contract stable.
-  return ths.length || null;
-}
-
-function setEmptyRow(tbodyId, message) {
-  const tbody = document.getElementById(tbodyId);
-  if (!tbody) return;
-  const cols = getHeaderColCountForTbody(tbodyId) || 1;
-  tbody.innerHTML = `<tr><td colspan="${cols}" class="empty">${escapeHtml(message)}</td></tr>`;
-}
-
-function assertAndRepairRows(tbodyId) {
-  const tbody = document.getElementById(tbodyId);
-  if (!tbody) return;
-
-  const expected = getHeaderColCountForTbody(tbodyId);
-  if (!expected) return;
-
-  const rows = Array.from(tbody.querySelectorAll("tr"));
-  for (const tr of rows) {
-    // Skip empty-state row (it uses colspan)
-    const onlyCell = tr.children.length === 1 ? tr.children[0] : null;
-    if (onlyCell && onlyCell.hasAttribute("colspan")) continue;
-
-    const actual = tr.querySelectorAll(":scope > td").length;
-    if (actual === expected) continue;
-
-    console.error(
-      `[COLUMN_MISMATCH] ${tbodyId}: expected ${expected} td, got ${actual}. Repairing row.`,
-      tr
-    );
-
-    // Repair: pad or trim TDs to match header count.
-    if (actual < expected) {
-      const missing = expected - actual;
-      for (let i = 0; i < missing; i++) tr.insertAdjacentHTML("beforeend", "<td></td>");
-    } else {
-      // Trim extra cells from end
-      for (let i = actual; i > expected; i--) {
-        const last = tr.querySelector(":scope > td:last-child");
-        if (last) last.remove();
-      }
-    }
-  }
 }
 
 /* ---------- RENDERING ---------- */
@@ -466,31 +431,48 @@ function renderTables(isTimerTick) {
   const completedTbody = document.getElementById("completed-tbody");
 
   if (stagedTbody) {
-    if (staged.length === 0) setEmptyRow("staged-tbody", "No staged tickets.");
-    else stagedTbody.innerHTML = staged.map((p) => renderStagedRow(p)).join("");
-    assertAndRepairRows("staged-tbody");
+    stagedTbody.innerHTML =
+      staged.length === 0
+        ? '<tr><td colspan="4" class="empty">No staged tickets.</td></tr>'
+        : staged.map((p) => renderStagedRow(p)).join("");
   }
 
   if (activeTbody) {
-    if (active.length === 0) setEmptyRow("active-tbody", "No active pickups.");
-    else activeTbody.innerHTML = active.map((p) => renderActiveRow(p, now)).join("");
-    assertAndRepairRows("active-tbody");
+    activeTbody.innerHTML =
+      active.length === 0
+        ? `<tr><td colspan="${activeColspan()}" class="empty">No active pickups.</td></tr>`
+        : active.map((p) => renderActiveRow(p, now)).join("");
   }
 
   if (waitingTbody) {
-    if (waiting.length === 0) setEmptyRow("waiting-tbody", "None currently waiting.");
-    else waitingTbody.innerHTML = waiting.map((p) => renderWaitingRow(p, now)).join("");
-    assertAndRepairRows("waiting-tbody");
+    waitingTbody.innerHTML =
+      waiting.length === 0
+        ? `<tr><td colspan="${waitingColspan()}" class="empty">None currently waiting.</td></tr>`
+        : waiting.map((p) => renderWaitingRow(p, now)).join("");
   }
 
   if (completedTbody) {
-    if (completed.length === 0) setEmptyRow("completed-tbody", "No completed tickets yet.");
-    else completedTbody.innerHTML = completed.map((p) => renderCompletedRow(p, now)).join("");
-    assertAndRepairRows("completed-tbody");
+    completedTbody.innerHTML =
+      completed.length === 0
+        ? '<tr><td colspan="8" class="empty">No completed tickets yet.</td></tr>'
+        : completed.map((p) => renderCompletedRow(p, now)).join("");
   }
 
   if (role === "dispatcher") renderMetrics(active, waiting, completed, now);
   if (isTimerTick) maybePlayAlerts(active, now);
+}
+
+function activeColspan() {
+  if (role === "wallboard") return 6;
+  if (role === "dispatcher") return 8;
+  // keymachine / carwash / others share 7-column active table
+  return 7;
+}
+
+function waitingColspan() {
+  if (role === "wallboard") return 4;
+  // dispatcher waiting table has 7 columns
+  return 7;
 }
 
 function setCount(id, value) {
@@ -515,8 +497,17 @@ function renderStagedRow(p) {
 }
 
 /*
-  Active row ALWAYS renders correct column order (no feature changes).
-  Wallboard uses slim row.
+  Active row ALWAYS renders:
+   1 Tag #
+   2 Customer
+   3 Status/Location
+   4 Keys with
+   5 Valet Time
+   6 (Dispatcher only) Staged
+   7 Notes
+   8 Master Time
+
+  Wallboard uses its own slim row.
 */
 function renderActiveRow(p, now) {
   if (role === "wallboard") return renderActiveRowWallboard(p, now);
@@ -537,7 +528,6 @@ function renderActiveRow(p, now) {
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
   const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
 
-  // Selected pill labels
   const washSelectedLabel =
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
   const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
@@ -610,7 +600,6 @@ function renderActiveRow(p, now) {
     `;
   }
 
-  // keymachine/carwash/serviceadvisor/loancar: no "Staged" column
   return `
     <tr>
       <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
@@ -681,7 +670,6 @@ function renderWaitingRow(p, now) {
   }
 
   const deliveredBy = p.keys_holder || "—";
-
   const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
   const stagedClass = timerClass(computeSeverity(stagedSeconds));
   const stagedLabel = formatDuration(stagedSeconds);
@@ -798,13 +786,11 @@ function renderMetrics(active, waiting, completed, now) {
     avgCycleEl.textContent = formatDuration(avg);
   }
 
-  // Red line cars ON now
   const redLineCount = pickups.filter(
     (p) => p.wash_status === "ON_RED_LINE" && p.status !== "COMPLETE"
   ).length;
   redlineCountEl.textContent = String(redLineCount);
 
-  // Valet counts
   const baseValets = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
   const valetCounts = {};
   baseValets.forEach((v) => (valetCounts[v] = 0));
