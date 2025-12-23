@@ -2,43 +2,50 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <title>Valet Ops Live – Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Valet Ops Live</title>
-    <link rel="stylesheet" href="./style.css" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- Our app logic -->
+    <script type="module" src="app.js"></script>
   </head>
   <body class="role-dispatcher">
     <div class="app-shell">
       <header class="app-header">
-        <img class="logo" src="./assets/logo.png" alt="Logo" onerror="this.style.display='none'" />
+        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
         <div class="titles">
-          <div class="brand">OPTIMA DEALER SERVICES</div>
-          <div class="subtitle" id="page-subtitle">Loading…</div>
-        </div>
-
-        <div class="header-right">
-          <a class="btn small" href="./history.html">History</a>
-          <button class="pqi-toggle-global" id="pqiToggle">PQI: On</button>
-          <span class="role-pill" id="rolePill">…</span>
-          <button class="btn small" id="signout-btn">Sign out</button>
+          <div class="brand">Optima Dealer Services</div>
+          <div class="subtitle">Valet Operations Live Board</div>
         </div>
       </header>
 
-      <main class="app-main" id="appMain">
-        <div class="empty">Loading…</div>
+      <main class="app-main app-main-center">
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Choose a Screen</div>
+              <div class="section-subtitle">
+                Live views share the same real-time data for your team.
+              </div>
+            </div>
+          </div>
+
+          <div class="screen-links">
+            <a class="btn btn-primary" href="dispatcher.html">Dispatcher Screen</a>
+            <a class="btn" href="keymachine.html">Key Machine Screen</a>
+            <a class="btn" href="carwash.html">Car Wash Screen</a>
+            <a class="btn" href="wallboard.html">TV Wallboard</a>
+            <a class="btn" href="serviceadvisor.html">Service Advisor</a>
+            <a class="btn" href="loancar.html">Loan Car</a>
+
+            <!-- Intentionally NOT shown on Home in V1 to limit access:
+                 History is accessible from the Dispatcher header only. -->
+          </div>
+        </section>
       </main>
     </div>
-
-    <script type="module">
-      window.APP_PAGE = "dispatcher";
-      const { requireAuth, wireSignOut } = await import("./auth.js");
-      const res = await requireAuth({ page: "dispatcher" });
-      if (res?.effectiveRole) {
-        document.getElementById("rolePill").textContent = res.effectiveRole.toUpperCase();
-        document.getElementById("page-subtitle").textContent = `${res.effectiveRole.toUpperCase()} — LIVE VALET OPERATIONS`;
-      }
-      wireSignOut();
-    </script>
-
-    <script type="module" src="./app.js"></script>
   </body>
 </html>
