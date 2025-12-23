@@ -2,46 +2,99 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Valet Ops Live — Login</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="app-header">
-        <img class="logo" src="./assets/logo.png" alt="Logo" onerror="this.style.display='none'" />
-        <div class="titles">
-          <div class="brand">OPTIMA DEALER SERVICES</div>
-          <div class="subtitle">Sign in</div>
-        </div>
-      </header>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-      <main class="app-main app-main-center">
-        <div style="width: min(420px, 92vw); background:#0a0b10; border:1px solid #191b22; border-radius:10px; padding:16px;">
-          <form id="login-form" class="new-pickup-form" style="background:transparent;border:none;padding:0;">
-            <div class="input-group" style="flex:1; min-width: 220px;">
-              <label for="login-email">Email</label>
-              <input id="login-email" class="input-text" type="email" autocomplete="email" placeholder="you@company.com" />
-            </div>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* minimal login layout (V1) */
+      .login-wrap {
+        max-width: 420px;
+        margin: 10vh auto 0;
+        background: #0a0b10;
+        border: 1px solid #191b22;
+        border-radius: 12px;
+        padding: 1rem;
+      }
+      .login-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+      .login-sub {
+        font-size: 0.8rem;
+        color: #a0a0a0;
+        margin-bottom: 0.9rem;
+      }
+      .login-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 0.75rem;
+      }
+      .login-error {
+        margin-top: 0.6rem;
+        font-size: 0.8rem;
+        color: #ff9b9b;
+        display: none;
+      }
+    </style>
 
-            <div class="input-group" style="flex:1; min-width: 220px;">
-              <label for="login-password">Password</label>
-              <input id="login-password" class="input-text" type="password" autocomplete="current-password" placeholder="••••••••" />
-            </div>
-
-            <div style="display:flex; align-items:flex-end;">
-              <button class="btn btn-primary" type="submit">Sign in</button>
-            </div>
-
-            <div id="login-error" style="display:none; width:100%; color:#ff9b9b; font-size:0.8rem; padding-top:6px;"></div>
-          </form>
-        </div>
-      </main>
-    </div>
-
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
     <script type="module">
-      const { wireLoginForm } = await import("./auth.js");
-      wireLoginForm();
+      import { requireAuthGate, signInWithEmail } from "./auth.js";
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        // If already logged in, this will redirect away from login page
+        await requireAuthGate();
+
+        const form = document.getElementById("login-form");
+        const errEl = document.getElementById("login-error");
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          errEl.style.display = "none";
+          const email = document.getElementById("email").value.trim();
+          const password = document.getElementById("password").value;
+
+          if (!email || !password) return;
+
+          try {
+            await signInWithEmail(email, password);
+          } catch (err) {
+            console.error(err);
+            errEl.textContent =
+              err?.message || "Login failed. Check email/password.";
+            errEl.style.display = "block";
+          }
+        });
+      });
     </script>
+  </head>
+
+  <body>
+    <div class="login-wrap">
+      <div class="login-title">Valet Ops Live</div>
+      <div class="login-sub">Sign in (email + password)</div>
+
+      <form id="login-form">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input id="email" class="input-text" type="email" required />
+        </div>
+
+        <div class="input-group" style="margin-top: 0.6rem;">
+          <label for="password">Password</label>
+          <input id="password" class="input-text" type="password" required />
+        </div>
+
+        <div class="login-actions">
+          <button class="btn btn-primary" type="submit">Sign in</button>
+        </div>
+
+        <div id="login-error" class="login-error"></div>
+      </form>
+    </div>
   </body>
 </html>
