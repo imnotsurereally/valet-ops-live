@@ -1,214 +1,238 @@
-// auth.js (Supabase v1)
-// Purpose: hard auth gate + role-to-screen routing + store context loader
-
+// auth.js
 import { supabase } from "./supabaseClient.js";
 
-/* --------- PAGE MAP --------- */
-const ROLE_TO_PAGE = {
+/**
+ * V1 Auth Gate
+ * - Requires Supabase session
+ * - Loads profile (role/store)
+ * - Adds role class to <body> for CSS gating
+ * - Redirects user to their allowed screen if they hit the wrong page
+ *
+ * Profiles assumptions (flexible):
+ * - profiles.role may be: owner|manager|dispatcher|keymachine|carwash|serviceadvisor|loancar|wallboard
+ * - OR profiles.role is owner|manager|employee AND profiles.operational_role holds the screen role
+ */
+
+const ROUTES = {
   dispatcher: "dispatcher.html",
   keymachine: "keymachine.html",
   carwash: "carwash.html",
-  wallboard: "wallboard.html",
   serviceadvisor: "serviceadvisor.html",
   loancar: "loancar.html",
+  wallboard: "wallboard.html",
   history: "history.html",
-  settings: "settings.html"
+  login: "login.html"
 };
 
-const PAGE_TO_ALLOWED_ROLES = {
-  "dispatcher.html": ["dispatcher", "owner", "manager"],
-  "keymachine.html": ["keymachine", "owner", "manager"],
-  "carwash.html": ["carwash", "owner", "manager"],
-  "wallboard.html": ["wallboard", "owner", "manager"],
-  "serviceadvisor.html": ["serviceadvisor", "owner", "manager"],
-  "loancar.html": ["loancar", "owner", "manager"],
-  "history.html": ["owner", "manager"], // V1: keep archive + exports restricted
-  "settings.html": ["owner", "manager"]
-};
+// pages that are always owner/manager only in V1
+const OWNER_MANAGER_ONLY = new Set(["history"]); // add "settings" later when you have settings.html
 
-function currentPageName() {
-  const p = (location.pathname || "").split("/").pop();
-  return p || "dispatcher.html";
+function normalizeRole(profile) {
+  const raw = (profile?.role || "").toLowerCase().trim();
+  const op = (profile?.operational_role || "").toLowerCase().trim();
+
+  // if owner/manager, keep it
+  if (raw === "owner" || raw === "manager") return raw;
+
+  // if operational_role exists, use it
+  if (op) return op;
+
+  // otherwise role is already a screen role
+  return raw;
 }
 
-function inferPageFromBodyClass() {
-  const b = document.body;
-  if (!b) return currentPageName();
-  if (b.classList.contains("role-dispatcher")) return "dispatcher.html";
-  if (b.classList.contains("role-keymachine")) return "keymachine.html";
-  if (b.classList.contains("role-carwash")) return "carwash.html";
-  if (b.classList.contains("role-wallboard")) return "wallboard.html";
-  if (b.classList.contains("role-serviceadvisor")) return "serviceadvisor.html";
-  if (b.classList.contains("role-loancar")) return "loancar.html";
-  // history/settings pages should not rely on body class
-  return currentPageName();
-}
+function pageKeyFromPath() {
+  const path = (window.location.pathname || "").split("/").pop() || "";
+  const file = path.toLowerCase();
 
-function normalizeOperationalRole(profile) {
-  // We support multiple schema variants safely:
-  // - profile.operational_role
-  // - profile.app_role
-  // - profile.screen_role
-  // - profile.role (if it’s actually a screen role)
-  const candidate =
-    profile?.operational_role ||
-    profile?.app_role ||
-    profile?.screen_role ||
-    profile?.role ||
-    null;
-
-  const allowed = new Set([
-    "dispatcher",
-    "keymachine",
-    "carwash",
-    "wallboard",
-    "serviceadvisor",
-    "loancar"
-  ]);
-
-  if (typeof candidate === "string" && allowed.has(candidate)) return candidate;
-  return null;
-}
-
-function isOwnerOrManager(profile) {
-  const r = String(profile?.role || "").toLowerCase();
-  return r === "owner" || r === "manager";
-}
-
-function bestLandingPage(profile) {
-  if (!profile) return "login.html";
-  if (isOwnerOrManager(profile)) return "dispatcher.html"; // V1 default landing
-  const op = normalizeOperationalRole(profile) || "dispatcher";
-  return ROLE_TO_PAGE[op] || "dispatcher.html";
-}
-
-async function fetchMyProfile(userId) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-async function fetchStoreSettings(storeId) {
-  if (!storeId) return null;
-  const { data } = await supabase
-    .from("store_settings")
-    .select("*")
-    .eq("store_id", storeId)
-    .single();
-
-  return data || null;
-}
-
-/* --------- PUBLIC API --------- */
-
-export async function requireAuthGate() {
-  const page = inferPageFromBodyClass();
-  const isLogin = page === "login.html";
-
-  const session = supabase.auth.session();
-  const user = session?.user || null;
-
-  if (!user) {
-    if (!isLogin) location.href = "login.html";
-    return null;
-  }
-
-  // Logged in but on login page -> bounce to landing
-  if (isLogin) {
-    // try to use profile to land correctly, otherwise fallback
-    try {
-      const profile = await fetchMyProfile(user.id);
-      location.href = bestLandingPage(profile);
-      return null;
-    } catch {
-      location.href = "dispatcher.html";
-      return null;
-    }
-  }
-
-  // Load profile (hard requirement)
-  let profile = null;
-  try {
-    profile = await fetchMyProfile(user.id);
-  } catch (e) {
-    console.error("Profile missing or fetch failed:", e);
-    alert(
-      "Login OK but profile not found. Ask admin to create your profile row."
-    );
-    // safest: sign out to avoid partial access
-    await supabase.auth.signOut().catch(() => {});
-    location.href = "login.html";
-    return null;
-  }
-
-  const allowed = PAGE_TO_ALLOWED_ROLES[page] || null;
-
-  // Owner/manager: can access any V1 page; employee: locked to their operational screen only
-  if (allowed) {
-    if (isOwnerOrManager(profile)) {
-      // allowed anywhere
-    } else {
-      const opRole = normalizeOperationalRole(profile);
-      if (!opRole) {
-        alert(
-          "Your account is missing an operational role (dispatcher/keymachine/etc)."
-        );
-        await supabase.auth.signOut().catch(() => {});
-        location.href = "login.html";
-        return null;
-      }
-      if (!allowed.includes(opRole)) {
-        location.href = ROLE_TO_PAGE[opRole] || "dispatcher.html";
-        return null;
-      }
-    }
-  }
-
-  // Store context (optional but used by app.js)
-  const storeId = profile.store_id || null;
-  const storeSettings = await fetchStoreSettings(storeId);
-
-  // Make context globally available (simple V1)
-  window.__AUTH = {
-    user,
-    profile,
-    storeId,
-    storeSettings
+  const map = {
+    "dispatcher.html": "dispatcher",
+    "keymachine.html": "keymachine",
+    "carwash.html": "carwash",
+    "serviceadvisor.html": "serviceadvisor",
+    "loancar.html": "loancar",
+    "wallboard.html": "wallboard",
+    "history.html": "history",
+    "login.html": "login",
+    "index.html": "dispatcher" // if someone lands on index, we treat it like dispatcher route
   };
 
-  return window.__AUTH;
+  return map[file] || null;
 }
 
-export async function signInWithEmail(email, password) {
-  const { error } = await supabase.auth.signIn({ email, password });
-  if (error) throw error;
+function setBodyRoleClass(role) {
+  // wipe known role classes
+  const classes = [
+    "role-dispatcher",
+    "role-keymachine",
+    "role-carwash",
+    "role-wallboard",
+    "role-serviceadvisor",
+    "role-loancar",
+    "role-owner",
+    "role-manager"
+  ];
+  classes.forEach((c) => document.body.classList.remove(c));
 
-  // After sign-in, redirect using profile
-  const session = supabase.auth.session();
-  const user = session?.user;
-  if (!user) {
-    location.href = "dispatcher.html";
-    return;
+  // apply
+  if (!role) return;
+  document.body.classList.add(`role-${role}`);
+}
+
+function routeForRole(role) {
+  // owner/manager default landing:
+  if (role === "owner" || role === "manager") return ROUTES.dispatcher;
+
+  // employee screen roles
+  if (ROUTES[role]) return ROUTES[role];
+
+  // fallback
+  return ROUTES.login;
+}
+
+function hardRedirect(toFile) {
+  const base = window.location.pathname.includes("/")
+    ? window.location.pathname.split("/").slice(0, -1).join("/") + "/"
+    : "/";
+  window.location.replace(base + toFile);
+}
+
+/**
+ * Call this at the top of EVERY protected page.
+ * Example: await requireAuth({ page: "dispatcher" });
+ */
+export async function requireAuth({ page } = {}) {
+  const currentPage = page || pageKeyFromPath();
+
+  // login page doesn't require auth gate
+  if (currentPage === "login") return { ok: true, page: "login" };
+
+  // 1) require session
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    hardRedirect(ROUTES.login);
+    return { ok: false, reason: "no-session" };
   }
-  const profile = await fetchMyProfile(user.id);
-  location.href = bestLandingPage(profile);
+
+  const userId = session.user.id;
+
+  // 2) load profile
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("user_id, store_id, role, operational_role, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !profile) {
+    // If profile missing, treat as locked out
+    console.error("Profile load failed:", error);
+    await supabase.auth.signOut().catch(() => {});
+    hardRedirect(ROUTES.login);
+    return { ok: false, reason: "no-profile" };
+  }
+
+  const effectiveRole = normalizeRole(profile);
+
+  // 3) apply CSS role class
+  setBodyRoleClass(effectiveRole);
+
+  // 4) page access rules
+  // owner/manager can access everything in V1 (except we can enforce settings later)
+  if (effectiveRole === "owner" || effectiveRole === "manager") {
+    // owner/manager still blocked from nothing here
+    return { ok: true, session, profile, effectiveRole };
+  }
+
+  // employees: one allowed page only (their role)
+  const allowedFile = routeForRole(effectiveRole);
+  const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
+
+  // block owner/manager-only pages
+  if (OWNER_MANAGER_ONLY.has(currentPage)) {
+    hardRedirect(allowedFile);
+    return { ok: false, reason: "owner-manager-only" };
+  }
+
+  // if user hits wrong page, redirect to their one page
+  if (currentPage && allowedKey && currentPage !== allowedKey) {
+    hardRedirect(allowedFile);
+    return { ok: false, reason: "wrong-page" };
+  }
+
+  return { ok: true, session, profile, effectiveRole };
 }
 
-export async function signOutNow() {
-  await supabase.auth.signOut();
-  location.href = "login.html";
+/**
+ * Login helper for login.html
+ * Expects:
+ * - form#login-form
+ * - input#login-email
+ * - input#login-password
+ * - div#login-error (optional)
+ */
+export function wireLoginForm() {
+  const form = document.getElementById("login-form");
+  if (!form) return;
+
+  const emailEl = document.getElementById("login-email");
+  const passEl = document.getElementById("login-password");
+  const errEl = document.getElementById("login-error");
+
+  const setErr = (msg) => {
+    if (!errEl) return;
+    errEl.textContent = msg || "";
+    errEl.style.display = msg ? "block" : "none";
+  };
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setErr("");
+
+    const email = (emailEl?.value || "").trim();
+    const password = passEl?.value || "";
+
+    if (!email || !password) {
+      setErr("Email + password required.");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error || !data?.session?.user) {
+      setErr(error?.message || "Login failed.");
+      return;
+    }
+
+    // load profile to route correctly
+    const userId = data.session.user.id;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, operational_role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const effectiveRole = normalizeRole(profile);
+    const dest = routeForRole(effectiveRole);
+    hardRedirect(dest);
+  });
 }
 
-/* Convenience helpers */
-export function getAuth() {
-  return window.__AUTH || null;
-}
-export function isPrivileged() {
-  const p = window.__AUTH?.profile;
-  return isOwnerOrManager(p);
+/**
+ * Optional: sign out button wiring
+ * - button#signout-btn
+ */
+export function wireSignOut() {
+  const btn = document.getElementById("signout-btn");
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    await supabase.auth.signOut().catch(() => {});
+    hardRedirect(ROUTES.login);
+  });
 }
