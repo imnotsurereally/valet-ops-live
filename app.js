@@ -1,6 +1,8 @@
-// app.js
+// app.js  (FULL FILE REPLACEMENT)
+// Requires: ./supabaseClient.js  +  ./auth.js (the version you pasted with requireAuth / wireSignOut)
+
 import { supabase } from "./supabaseClient.js";
-import { requireAuthGate, getAuth, signOutNow } from "./auth.js";
+import { requireAuth, wireSignOut } from "./auth.js";
 
 let pickups = [];
 let role = "dispatcher";
@@ -12,11 +14,12 @@ let storeId = null;
 document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     // AUTH GATE (hard lock)
-    const auth = await requireAuthGate();
-    if (!auth) return; // redirected or on login
-    storeId = auth.storeId || null;
+    const auth = await requireAuth({ page: pageKeyFromPath() });
+    if (!auth?.ok) return; // redirected or blocked
 
-    // role from body class (screen role)
+    storeId = auth?.profile?.store_id || null;
+
+    // Set role (screen role) from body class
     if (document.body.classList.contains("role-keymachine")) role = "keymachine";
     else if (document.body.classList.contains("role-carwash")) role = "carwash";
     else if (document.body.classList.contains("role-wallboard")) role = "wallboard";
@@ -24,9 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (document.body.classList.contains("role-loancar")) role = "loancar";
     else role = "dispatcher";
 
-    // optional logout button support if you add one later
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) logoutBtn.addEventListener("click", () => signOutNow());
+    // Optional sign-out support if a button exists (id="signout-btn")
+    wireSignOut();
 
     setupForm();
     setupTableActions();
@@ -127,7 +129,7 @@ function setupForm() {
     // - serviceadvisor: goes to STAGED
     // - loancar: goes to NEW + note
     let insertData = {
-      store_id: storeId, // IMPORTANT: store scoping (RLS will enforce too)
+      store_id: storeId,
       tag_number: tag,
       customer_name: name,
       status: staged ? "STAGED" : "NEW",
@@ -341,6 +343,7 @@ async function handleAction(id, action) {
 
   if (Object.keys(updates).length === 0) return;
 
+  // Store scoped update (RLS enforces too)
   const { error } = await supabase.from("pickups").update(updates).eq("id", id);
 
   if (error) {
@@ -372,7 +375,6 @@ function setupCompletedToggle() {
 /* ---------- DATA + REALTIME ---------- */
 
 async function loadPickups() {
-  // Store-scoped query (RLS should also enforce)
   let q = supabase.from("pickups").select("*").order("created_at", {
     ascending: false
   });
@@ -391,7 +393,6 @@ async function loadPickups() {
 }
 
 function subscribeRealtime() {
-  // IMPORTANT: keep simple v1 subscription. RLS limits events too.
   supabase
     .from("pickups")
     .on("*", () => {
@@ -413,9 +414,7 @@ function renderTables(isTimerTick) {
       p.status !== "COMPLETE"
   );
   const waiting = pickups.filter((p) => p.status === "WAITING_FOR_CUSTOMER");
-  const completed = pickups
-    .filter((p) => p.status === "COMPLETE")
-    .slice(0, 50);
+  const completed = pickups.filter((p) => p.status === "COMPLETE").slice(0, 50);
 
   // Oldest first in active box
   active.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -465,13 +464,11 @@ function renderTables(isTimerTick) {
 function activeColspan() {
   if (role === "wallboard") return 6;
   if (role === "dispatcher") return 8;
-  // keymachine / carwash / others share 7-column active table
   return 7;
 }
 
 function waitingColspan() {
   if (role === "wallboard") return 4;
-  // dispatcher waiting table has 7 columns
   return 7;
 }
 
@@ -496,19 +493,6 @@ function renderStagedRow(p) {
   `;
 }
 
-/*
-  Active row ALWAYS renders:
-   1 Tag #
-   2 Customer
-   3 Status/Location
-   4 Keys with
-   5 Valet Time
-   6 (Dispatcher only) Staged
-   7 Notes
-   8 Master Time
-
-  Wallboard uses its own slim row.
-*/
 function renderActiveRow(p, now) {
   if (role === "wallboard") return renderActiveRowWallboard(p, now);
 
@@ -655,7 +639,11 @@ function renderActiveRowWallboard(p, now) {
 function renderWaitingRow(p, now) {
   if (role === "wallboard") {
     const deliveredBy = p.keys_holder || "—";
-    const waitingSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
+    const waitingSeconds = computeSeconds(
+      p.waiting_client_at,
+      p.completed_at,
+      now
+    );
     const waitingClass = timerClass(computeSeverity(waitingSeconds));
     const waitingLabel = formatDuration(waitingSeconds);
 
@@ -770,7 +758,6 @@ function renderMetrics(active, waiting, completed, now) {
   activeCountEl.textContent = String(active.length);
   waitingCountEl.textContent = String(waiting.length);
 
-  // Avg cycle time = time inside ACTIVE PICKUPS (active_started_at -> waiting_client_at)
   const cycles = completedToday
     .map((p) => {
       if (!p.active_started_at || !p.waiting_client_at) return null;
@@ -873,10 +860,6 @@ function humanWashStatus(wash_status) {
   }
 }
 
-/* master timer: ONLY Active box time
-   start = active_started_at (or created_at fallback)
-   end   = waiting_client_at (if set) else now
-*/
 function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
@@ -884,7 +867,6 @@ function computeMasterSeconds(p, now) {
   return computeSeconds(startIso, endIso, now);
 }
 
-/* valet timer: keys_with_valet_at -> first of (keys_at_machine_at, waiting_client_at, completed_at, now) */
 function computeValetSeconds(p, now) {
   if (!p.keys_with_valet_at) return null;
   const startIso = p.keys_with_valet_at;
@@ -927,7 +909,7 @@ function timerClass(severity) {
 
 function formatDuration(seconds) {
   if (!seconds || seconds < 0) seconds = 0;
-  const snapped = Math.round(seconds / 15) * 15; // 15s steps
+  const snapped = Math.round(seconds / 15) * 15;
   const mins = Math.floor(snapped / 60);
   const secs = snapped % 60;
   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
@@ -950,4 +932,23 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function pageKeyFromPath() {
+  const path = (window.location.pathname || "").split("/").pop() || "";
+  const file = path.toLowerCase();
+
+  const map = {
+    "dispatcher.html": "dispatcher",
+    "keymachine.html": "keymachine",
+    "carwash.html": "carwash",
+    "serviceadvisor.html": "serviceadvisor",
+    "loancar.html": "loancar",
+    "wallboard.html": "wallboard",
+    "history.html": "history",
+    "login.html": "login",
+    "index.html": "dispatcher"
+  };
+
+  return map[file] || null;
 }
