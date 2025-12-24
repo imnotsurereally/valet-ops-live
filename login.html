@@ -4,84 +4,19 @@
     <meta charset="utf-8" />
     <title>Valet Ops Live — Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <link rel="stylesheet" href="style.css" />
 
-    <style>
-      .login-wrap{max-width:420px;margin:10vh auto 0;background:#0a0b10;border:1px solid #191b22;border-radius:12px;padding:1rem}
-      .login-title{font-size:1rem;font-weight:700;margin-bottom:.25rem}
-      .login-sub{font-size:.8rem;color:#a0a0a0;margin-bottom:.9rem}
-      .login-actions{display:flex;gap:.5rem;align-items:center;margin-top:.75rem}
-      .login-error{margin-top:.6rem;font-size:.85rem;color:#ff9b9b;display:none;white-space:pre-wrap}
-      .login-debug{margin-top:.6rem;font-size:.75rem;color:#9ca3af;opacity:.9}
-    </style>
-
-    <!-- Supabase v1 global MUST load before modules that use window.supabase -->
+    <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
     <script type="module">
-      import { supabase } from "./supabaseClient.js";
-
-      const showErr = (msg) => {
-        const errEl = document.getElementById("login-error");
-        if (!errEl) return;
-        errEl.textContent = msg || "";
-        errEl.style.display = msg ? "block" : "none";
-      };
-
-      // keep this simple + visible
-      const go = (file) => {
-        const base = window.location.pathname.includes("/")
-          ? window.location.pathname.split("/").slice(0, -1).join("/") + "/"
-          : "/";
-        window.location.replace(base + file);
-      };
-
-      async function alreadyLoggedInRedirect() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) go("index.html");
-      }
+      // 🚨 cache-bust the import so GH Pages can’t serve stale auth.js
+      import { requireAuth, wireLoginForm } from "./auth.js?v=20251224a";
 
       document.addEventListener("DOMContentLoaded", async () => {
-        // If you're already logged in, bounce to index
-        try {
-          await alreadyLoggedInRedirect();
-        } catch (e) {
-          showErr("Session check failed:\n" + (e?.message || String(e)));
-        }
-
-        const form = document.getElementById("login-form");
-        const emailEl = document.getElementById("login-email");
-        const passEl = document.getElementById("login-password");
-
-        if (!form || !emailEl || !passEl) {
-          showErr(
-            "Login DOM IDs missing.\nNeed: #login-form, #login-email, #login-password"
-          );
-          return;
-        }
-
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          showErr("");
-
-          const email = (emailEl.value || "").trim();
-          const password = passEl.value || "";
-          if (!email || !password) {
-            showErr("Email + password required.");
-            return;
-          }
-
-          try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            if (!data?.session?.user) throw new Error("No session returned.");
-
-            // success -> index so owner can choose any screen
-            go("index.html");
-          } catch (err) {
-            showErr("Sign-in failed:\n" + (err?.message || String(err)));
-          }
-        });
+        await requireAuth({ page: "login" });
+        wireLoginForm();
       });
     </script>
   </head>
@@ -97,7 +32,7 @@
           <input id="login-email" class="input-text" type="email" required />
         </div>
 
-        <div class="input-group" style="margin-top:.6rem">
+        <div class="input-group" style="margin-top: 0.6rem;">
           <label for="login-password">Password</label>
           <input id="login-password" class="input-text" type="password" required />
         </div>
@@ -107,7 +42,6 @@
         </div>
 
         <div id="login-error" class="login-error"></div>
-        <div class="login-debug">If Sign in does nothing, this page will show the exact reason.</div>
       </form>
     </div>
   </body>
