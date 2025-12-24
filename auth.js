@@ -1,4 +1,6 @@
-// auth.js
+// auth.js (SAFE + BORING VERSION)
+// Does NOT touch <body> classes. HTML controls screen behavior via body class.
+
 import { supabase } from "./supabaseClient.js";
 
 const ROUTES = {
@@ -13,22 +15,19 @@ const ROUTES = {
   login: "login.html"
 };
 
-// owner/manager only pages (V1)
+// owner/manager-only pages
 const OWNER_MANAGER_ONLY = new Set(["history"]);
 
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
   const op = (profile?.operational_role || "").toLowerCase().trim();
-
   if (raw === "owner" || raw === "manager") return raw;
   if (op) return op;
   return raw;
 }
 
 function pageKeyFromPath() {
-  const path = (window.location.pathname || "").split("/").pop() || "";
-  const file = path.toLowerCase();
-
+  const file = ((window.location.pathname || "").split("/").pop() || "").toLowerCase();
   const map = {
     "index.html": "index",
     "dispatcher.html": "dispatcher",
@@ -40,7 +39,6 @@ function pageKeyFromPath() {
     "history.html": "history",
     "login.html": "login"
   };
-
   return map[file] || null;
 }
 
@@ -51,59 +49,18 @@ function hardRedirect(toFile) {
   window.location.replace(base + toFile);
 }
 
-function routeForRole(role) {
-  // employee screen roles
+function routeForEmployeeRole(role) {
   if (ROUTES[role]) return ROUTES[role];
   return ROUTES.login;
 }
 
-function rememberLastPage() {
-  const key = pageKeyFromPath();
-  if (!key) return;
-  if (key === "login") return;
-  try {
-    localStorage.setItem("lastPage", key);
-  } catch {}
-}
-
-function getLastPageFileFallback() {
-  try {
-    const last = (localStorage.getItem("lastPage") || "").toLowerCase().trim();
-    if (last && ROUTES[last]) return ROUTES[last];
-  } catch {}
-  return ROUTES.index;
-}
-
-function setBodyRoleClassForScreen(screenKey) {
-  const classes = [
-    "role-dispatcher",
-    "role-keymachine",
-    "role-carwash",
-    "role-wallboard",
-    "role-serviceadvisor",
-    "role-loancar"
-  ];
-  classes.forEach((c) => document.body.classList.remove(c));
-
-  if (!screenKey) return;
-  document.body.classList.add(`role-${screenKey}`);
-}
-
-/**
- * Auth gate:
- * - employees: redirected to ONLY their allowed page
- * - owner/manager: allowed anywhere (+ owner-only pages), and we set body role to the current page screen
- */
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
 
-  // login page doesn't require gate
+  // login does not require gate
   if (currentPage === "login") return { ok: true, page: "login" };
 
-  // 1) require session
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
   if (!session?.user) {
     hardRedirect(ROUTES.login);
@@ -112,7 +69,6 @@ export async function requireAuth({ page } = {}) {
 
   const userId = session.user.id;
 
-  // 2) load profile
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, store_id, role, operational_role, display_name")
@@ -128,22 +84,13 @@ export async function requireAuth({ page } = {}) {
 
   const effectiveRole = normalizeRole(profile);
 
-  // Save last page (for return-after-login)
-  rememberLastPage();
-
-  // OWNER/MANAGER: allow all pages, but set UI role based on the page they are viewing
+  // owner/manager can access any page (and future owner pages)
   if (effectiveRole === "owner" || effectiveRole === "manager") {
-    // history is fine for owner/manager; anything else is fine too.
-    // Set screen role class so app.js behaves correctly on each page:
-    // - index page doesn't run tables anyway, but safe
-    if (currentPage && currentPage !== "login" && currentPage !== "index") {
-      setBodyRoleClassForScreen(currentPage);
-    }
     return { ok: true, session, profile, effectiveRole };
   }
 
-  // EMPLOYEES: enforce access to one page only
-  const allowedFile = routeForRole(effectiveRole);
+  // employee rules: one page only
+  const allowedFile = routeForEmployeeRole(effectiveRole);
   const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
 
   // block owner/manager-only pages
@@ -152,25 +99,15 @@ export async function requireAuth({ page } = {}) {
     return { ok: false, reason: "owner-manager-only" };
   }
 
-  // wrong page -> redirect to their allowed page
+  // redirect if wrong page
   if (currentPage && allowedKey && currentPage !== allowedKey) {
     hardRedirect(allowedFile);
     return { ok: false, reason: "wrong-page" };
   }
 
-  // set screen class for employee
-  if (currentPage && currentPage !== "index") {
-    setBodyRoleClassForScreen(currentPage);
-  }
-
   return { ok: true, session, profile, effectiveRole };
 }
 
-/**
- * Login helper for login.html
- * - redirects owner/manager to last page (or index)
- * - redirects employees to their allowed page
- */
 export function wireLoginForm() {
   const form = document.getElementById("login-form");
   if (!form) return;
@@ -197,10 +134,7 @@ export function wireLoginForm() {
       return;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error || !data?.session?.user) {
       setErr(error?.message || "Login failed.");
@@ -217,22 +151,17 @@ export function wireLoginForm() {
 
     const effectiveRole = normalizeRole(profile);
 
-    // owner/manager: go to last page or index
+    // owner/manager: go to index so you can choose screens
     if (effectiveRole === "owner" || effectiveRole === "manager") {
-      hardRedirect(getLastPageFileFallback());
+      hardRedirect(ROUTES.index);
       return;
     }
 
-    // employee: go to their allowed screen
-    const dest = routeForRole(effectiveRole);
-    hardRedirect(dest);
+    // employee: go to their locked screen
+    hardRedirect(routeForEmployeeRole(effectiveRole));
   });
 }
 
-/**
- * Optional: sign out button wiring
- * - button#signout-btn
- */
 export function wireSignOut() {
   const btn = document.getElementById("signout-btn");
   if (!btn) return;
