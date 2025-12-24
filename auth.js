@@ -1,20 +1,7 @@
-// FILE: auth.js (FULL FILE REPLACEMENT)
+// auth.js (Supabase JS v1 compatible)
 import { supabase } from "./supabaseClient.js";
 
-/**
- * V1 Auth Gate
- * - Requires Supabase session
- * - Loads profile (role/store)
- * - Adds role class to <body> for CSS gating
- * - Redirects user to their allowed screen if they hit the wrong page
- *
- * Profiles assumptions (flexible):
- * - profiles.role may be: owner|manager|dispatcher|keymachine|carwash|serviceadvisor|loancar|wallboard
- * - OR profiles.role is owner|manager|employee AND profiles.operational_role holds the screen role
- */
-
 const ROUTES = {
-  home: "index.html",
   dispatcher: "dispatcher.html",
   keymachine: "keymachine.html",
   carwash: "carwash.html",
@@ -26,20 +13,15 @@ const ROUTES = {
 };
 
 // pages that are always owner/manager only in V1
-// (Add "settings" once settings.html exists)
 const OWNER_MANAGER_ONLY = new Set(["history"]);
 
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
+  // operational_role might NOT exist in your schema (you hit that earlier), so ignore it safely
   const op = (profile?.operational_role || "").toLowerCase().trim();
 
-  // if owner/manager, keep it
   if (raw === "owner" || raw === "manager") return raw;
-
-  // if operational_role exists, use it
-  if (op) return op;
-
-  // otherwise role is already a screen role
+  if (op) return op; // if you add it later
   return raw;
 }
 
@@ -48,7 +30,6 @@ function pageKeyFromPath() {
   const file = path.toLowerCase();
 
   const map = {
-    "index.html": "home",
     "dispatcher.html": "dispatcher",
     "keymachine.html": "keymachine",
     "carwash.html": "carwash",
@@ -56,14 +37,14 @@ function pageKeyFromPath() {
     "loancar.html": "loancar",
     "wallboard.html": "wallboard",
     "history.html": "history",
-    "login.html": "login"
+    "login.html": "login",
+    "index.html": "dispatcher"
   };
 
   return map[file] || null;
 }
 
 function setBodyRoleClass(role) {
-  // wipe known role classes
   const classes = [
     "role-dispatcher",
     "role-keymachine",
@@ -75,24 +56,14 @@ function setBodyRoleClass(role) {
     "role-manager"
   ];
   classes.forEach((c) => document.body.classList.remove(c));
-
-  if (!role) return;
-  document.body.classList.add(`role-${role}`);
-}
-
-function isOwnerManager(role) {
-  return role === "owner" || role === "manager";
+  if (role) document.body.classList.add(`role-${role}`);
 }
 
 function routeForRole(role) {
-  // owner/manager default landing:
-  // IMPORTANT CHANGE: land on HOME (index.html), not dispatcher
-  if (isOwnerManager(role)) return ROUTES.home;
+  // owner/manager can go anywhere; default landing is dispatcher
+  if (role === "owner" || role === "manager") return ROUTES.dispatcher;
 
-  // employee screen roles
   if (ROUTES[role]) return ROUTES[role];
-
-  // fallback
   return ROUTES.login;
 }
 
@@ -103,6 +74,18 @@ function hardRedirect(toFile) {
   window.location.replace(base + toFile);
 }
 
+async function loadProfile(userId) {
+  // IMPORTANT: operational_role might not exist in your table.
+  // So we only select fields we know exist. Add operational_role later if/when you add the column.
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("user_id, store_id, role, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return { profile, error };
+}
+
 /**
  * Call this at the top of EVERY protected page.
  * Example: await requireAuth({ page: "dispatcher" });
@@ -110,14 +93,26 @@ function hardRedirect(toFile) {
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
 
-  // login page doesn't require auth gate
-  if (currentPage === "login") return { ok: true, page: "login" };
+  // Supabase v1 session
+  const session = supabase.auth.session();
 
-  // 1) require session
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
+  // LOGIN PAGE: if already logged in, route them away
+  if (currentPage === "login") {
+    if (session?.user) {
+      const userId = session.user.id;
+      const { profile, error } = await loadProfile(userId);
 
+      if (!error && profile) {
+        const effectiveRole = normalizeRole(profile);
+        const dest = routeForRole(effectiveRole);
+        hardRedirect(dest);
+        return { ok: true, session, profile, effectiveRole };
+      }
+    }
+    return { ok: true, page: "login" };
+  }
+
+  // Protected pages require session
   if (!session?.user) {
     hardRedirect(ROUTES.login);
     return { ok: false, reason: "no-session" };
@@ -125,12 +120,7 @@ export async function requireAuth({ page } = {}) {
 
   const userId = session.user.id;
 
-  // 2) load profile
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("user_id, store_id, role, operational_role, display_name")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { profile, error } = await loadProfile(userId);
 
   if (error || !profile) {
     console.error("Profile load failed:", error);
@@ -140,21 +130,14 @@ export async function requireAuth({ page } = {}) {
   }
 
   const effectiveRole = normalizeRole(profile);
-
-  // 3) apply CSS role class
   setBodyRoleClass(effectiveRole);
 
-  // 4) page access rules
-
-  // owner/manager:
-  // - can access ANY operational page
-  // - also can access owner/manager-only pages
-  // - if they hit a bad/unknown route, send them HOME
-  if (isOwnerManager(effectiveRole)) {
+  // owner/manager can access everything in V1
+  if (effectiveRole === "owner" || effectiveRole === "manager") {
     return { ok: true, session, profile, effectiveRole };
   }
 
-  // employees: one allowed page only (their role)
+  // Employees: only their one screen
   const allowedFile = routeForRole(effectiveRole);
   const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
 
@@ -164,7 +147,7 @@ export async function requireAuth({ page } = {}) {
     return { ok: false, reason: "owner-manager-only" };
   }
 
-  // if user hits wrong page, redirect to their one page
+  // if user hits wrong page, redirect to their allowed page
   if (currentPage && allowedKey && currentPage !== allowedKey) {
     hardRedirect(allowedFile);
     return { ok: false, reason: "wrong-page" };
@@ -207,27 +190,19 @@ export function wireLoginForm() {
       return;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // ✅ Supabase v1 sign-in API:
+    const { user, session, error } = await supabase.auth.signIn({ email, password });
 
-    if (error || !data?.session?.user) {
+    if (error || !session?.user) {
       setErr(error?.message || "Login failed.");
       return;
     }
 
     // load profile to route correctly
-    const userId = data.session.user.id;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, operational_role")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const userId = session.user.id;
+    const { profile } = await loadProfile(userId);
 
     const effectiveRole = normalizeRole(profile);
-
-    // IMPORTANT CHANGE: owner/manager => index.html, employees => their screen
     const dest = routeForRole(effectiveRole);
     hardRedirect(dest);
   });
