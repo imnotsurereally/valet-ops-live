@@ -2,7 +2,7 @@
 // Requires: ./supabaseClient.js  +  ./auth.js (the version you pasted with requireAuth / wireSignOut)
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js";
+import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
 
 let pickups = [];
 let role = "dispatcher";
