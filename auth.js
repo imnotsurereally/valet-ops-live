@@ -1,16 +1,12 @@
-// auth.js
+// auth.js (Supabase v1 compatible)
 import { supabase } from "./supabaseClient.js";
 
 /**
- * V1 Auth Gate
+ * V1 Auth Gate (Supabase JS v1)
  * - Requires Supabase session
  * - Loads profile (role/store)
  * - Adds role class to <body> for CSS gating
  * - Redirects user to their allowed screen if they hit the wrong page
- *
- * Profiles assumptions (flexible):
- * - profiles.role may be: owner|manager|dispatcher|keymachine|carwash|serviceadvisor|loancar|wallboard
- * - OR profiles.role is owner|manager|employee AND profiles.operational_role holds the screen role
  */
 
 const ROUTES = {
@@ -24,20 +20,13 @@ const ROUTES = {
   login: "login.html"
 };
 
-// pages that are always owner/manager only in V1
-const OWNER_MANAGER_ONLY = new Set(["history"]); // add "settings" later when you have settings.html
+const OWNER_MANAGER_ONLY = new Set(["history"]);
 
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
   const op = (profile?.operational_role || "").toLowerCase().trim();
-
-  // if owner/manager, keep it
   if (raw === "owner" || raw === "manager") return raw;
-
-  // if operational_role exists, use it
   if (op) return op;
-
-  // otherwise role is already a screen role
   return raw;
 }
 
@@ -54,14 +43,13 @@ function pageKeyFromPath() {
     "wallboard.html": "wallboard",
     "history.html": "history",
     "login.html": "login",
-    "index.html": "dispatcher" // if someone lands on index, we treat it like dispatcher route
+    "index.html": "dispatcher"
   };
 
   return map[file] || null;
 }
 
 function setBodyRoleClass(role) {
-  // wipe known role classes
   const classes = [
     "role-dispatcher",
     "role-keymachine",
@@ -73,20 +61,13 @@ function setBodyRoleClass(role) {
     "role-manager"
   ];
   classes.forEach((c) => document.body.classList.remove(c));
-
-  // apply
   if (!role) return;
   document.body.classList.add(`role-${role}`);
 }
 
 function routeForRole(role) {
-  // owner/manager default landing:
   if (role === "owner" || role === "manager") return ROUTES.dispatcher;
-
-  // employee screen roles
   if (ROUTES[role]) return ROUTES[role];
-
-  // fallback
   return ROUTES.login;
 }
 
@@ -107,11 +88,8 @@ export async function requireAuth({ page } = {}) {
   // login page doesn't require auth gate
   if (currentPage === "login") return { ok: true, page: "login" };
 
-  // 1) require session
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
-
+  // Supabase v1 session
+  const session = supabase.auth.session();
   if (!session?.user) {
     hardRedirect(ROUTES.login);
     return { ok: false, reason: "no-session" };
@@ -119,7 +97,7 @@ export async function requireAuth({ page } = {}) {
 
   const userId = session.user.id;
 
-  // 2) load profile
+  // load profile
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, store_id, role, operational_role, display_name")
@@ -127,7 +105,6 @@ export async function requireAuth({ page } = {}) {
     .maybeSingle();
 
   if (error || !profile) {
-    // If profile missing, treat as locked out
     console.error("Profile load failed:", error);
     await supabase.auth.signOut().catch(() => {});
     hardRedirect(ROUTES.login);
@@ -136,17 +113,14 @@ export async function requireAuth({ page } = {}) {
 
   const effectiveRole = normalizeRole(profile);
 
-  // 3) apply CSS role class
+  // apply CSS role class
   setBodyRoleClass(effectiveRole);
 
-  // 4) page access rules
-  // owner/manager can access everything in V1 (except we can enforce settings later)
+  // owner/manager can access everything in V1
   if (effectiveRole === "owner" || effectiveRole === "manager") {
-    // owner/manager still blocked from nothing here
     return { ok: true, session, profile, effectiveRole };
   }
 
-  // employees: one allowed page only (their role)
   const allowedFile = routeForRole(effectiveRole);
   const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
 
@@ -193,28 +167,24 @@ export function wireLoginForm() {
 
     const email = (emailEl?.value || "").trim();
     const password = passEl?.value || "";
-
     if (!email || !password) {
       setErr("Email + password required.");
       return;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // Supabase v1 sign-in
+    const { user, error } = await supabase.auth.signIn({ email, password });
 
-    if (error || !data?.session?.user) {
+    if (error || !user) {
       setErr(error?.message || "Login failed.");
       return;
     }
 
-    // load profile to route correctly
-    const userId = data.session.user.id;
+    // fetch profile to route correctly
     const { data: profile } = await supabase
       .from("profiles")
       .select("role, operational_role")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .maybeSingle();
 
     const effectiveRole = normalizeRole(profile);
