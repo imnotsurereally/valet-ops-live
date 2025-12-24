@@ -1,15 +1,20 @@
-// auth.js (Supabase v1 compatible)
+// FILE: auth.js (FULL FILE REPLACEMENT)
 import { supabase } from "./supabaseClient.js";
 
 /**
- * V1 Auth Gate (Supabase JS v1)
+ * V1 Auth Gate
  * - Requires Supabase session
  * - Loads profile (role/store)
  * - Adds role class to <body> for CSS gating
  * - Redirects user to their allowed screen if they hit the wrong page
+ *
+ * Profiles assumptions (flexible):
+ * - profiles.role may be: owner|manager|dispatcher|keymachine|carwash|serviceadvisor|loancar|wallboard
+ * - OR profiles.role is owner|manager|employee AND profiles.operational_role holds the screen role
  */
 
 const ROUTES = {
+  home: "index.html",
   dispatcher: "dispatcher.html",
   keymachine: "keymachine.html",
   carwash: "carwash.html",
@@ -20,13 +25,21 @@ const ROUTES = {
   login: "login.html"
 };
 
+// pages that are always owner/manager only in V1
+// (Add "settings" once settings.html exists)
 const OWNER_MANAGER_ONLY = new Set(["history"]);
 
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
   const op = (profile?.operational_role || "").toLowerCase().trim();
+
+  // if owner/manager, keep it
   if (raw === "owner" || raw === "manager") return raw;
+
+  // if operational_role exists, use it
   if (op) return op;
+
+  // otherwise role is already a screen role
   return raw;
 }
 
@@ -35,6 +48,7 @@ function pageKeyFromPath() {
   const file = path.toLowerCase();
 
   const map = {
+    "index.html": "home",
     "dispatcher.html": "dispatcher",
     "keymachine.html": "keymachine",
     "carwash.html": "carwash",
@@ -42,14 +56,14 @@ function pageKeyFromPath() {
     "loancar.html": "loancar",
     "wallboard.html": "wallboard",
     "history.html": "history",
-    "login.html": "login",
-    "index.html": "dispatcher"
+    "login.html": "login"
   };
 
   return map[file] || null;
 }
 
 function setBodyRoleClass(role) {
+  // wipe known role classes
   const classes = [
     "role-dispatcher",
     "role-keymachine",
@@ -61,13 +75,24 @@ function setBodyRoleClass(role) {
     "role-manager"
   ];
   classes.forEach((c) => document.body.classList.remove(c));
+
   if (!role) return;
   document.body.classList.add(`role-${role}`);
 }
 
+function isOwnerManager(role) {
+  return role === "owner" || role === "manager";
+}
+
 function routeForRole(role) {
-  if (role === "owner" || role === "manager") return ROUTES.dispatcher;
+  // owner/manager default landing:
+  // IMPORTANT CHANGE: land on HOME (index.html), not dispatcher
+  if (isOwnerManager(role)) return ROUTES.home;
+
+  // employee screen roles
   if (ROUTES[role]) return ROUTES[role];
+
+  // fallback
   return ROUTES.login;
 }
 
@@ -88,8 +113,11 @@ export async function requireAuth({ page } = {}) {
   // login page doesn't require auth gate
   if (currentPage === "login") return { ok: true, page: "login" };
 
-  // Supabase v1 session
-  const session = supabase.auth.session();
+  // 1) require session
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
   if (!session?.user) {
     hardRedirect(ROUTES.login);
     return { ok: false, reason: "no-session" };
@@ -97,7 +125,7 @@ export async function requireAuth({ page } = {}) {
 
   const userId = session.user.id;
 
-  // load profile
+  // 2) load profile
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, store_id, role, operational_role, display_name")
@@ -113,14 +141,20 @@ export async function requireAuth({ page } = {}) {
 
   const effectiveRole = normalizeRole(profile);
 
-  // apply CSS role class
+  // 3) apply CSS role class
   setBodyRoleClass(effectiveRole);
 
-  // owner/manager can access everything in V1
-  if (effectiveRole === "owner" || effectiveRole === "manager") {
+  // 4) page access rules
+
+  // owner/manager:
+  // - can access ANY operational page
+  // - also can access owner/manager-only pages
+  // - if they hit a bad/unknown route, send them HOME
+  if (isOwnerManager(effectiveRole)) {
     return { ok: true, session, profile, effectiveRole };
   }
 
+  // employees: one allowed page only (their role)
   const allowedFile = routeForRole(effectiveRole);
   const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
 
@@ -167,27 +201,33 @@ export function wireLoginForm() {
 
     const email = (emailEl?.value || "").trim();
     const password = passEl?.value || "";
+
     if (!email || !password) {
       setErr("Email + password required.");
       return;
     }
 
-    // Supabase v1 sign-in
-    const { user, error } = await supabase.auth.signIn({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
-    if (error || !user) {
+    if (error || !data?.session?.user) {
       setErr(error?.message || "Login failed.");
       return;
     }
 
-    // fetch profile to route correctly
+    // load profile to route correctly
+    const userId = data.session.user.id;
     const { data: profile } = await supabase
       .from("profiles")
       .select("role, operational_role")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .maybeSingle();
 
     const effectiveRole = normalizeRole(profile);
+
+    // IMPORTANT CHANGE: owner/manager => index.html, employees => their screen
     const dest = routeForRole(effectiveRole);
     hardRedirect(dest);
   });
