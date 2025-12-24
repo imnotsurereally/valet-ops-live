@@ -43,15 +43,14 @@
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <!-- Auth wiring -->
     <script type="module">
       import { requireAuth, wireLoginForm } from "./auth.js";
 
       document.addEventListener("DOMContentLoaded", async () => {
-        // If already logged in, redirect to the correct allowed screen
+        // If already logged in, this will redirect to the right page
         await requireAuth({ page: "login" });
 
-        // Wire the form (auth.js handles sign-in + routing)
+        // Wire login form (auth.js handles sign-in + redirect)
         wireLoginForm();
       });
     </script>
