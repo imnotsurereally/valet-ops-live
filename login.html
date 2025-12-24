@@ -1,3 +1,4 @@
+<!-- FILE: login.html (FULL FILE REPLACEMENT) -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -7,7 +8,6 @@
 
     <link rel="stylesheet" href="style.css" />
     <style>
-      /* minimal login layout (V1) */
       .login-wrap {
         max-width: 420px;
         margin: 10vh auto 0;
@@ -42,33 +42,17 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+
+    <!-- Auth wiring -->
     <script type="module">
-      import { requireAuthGate, signInWithEmail } from "./auth.js";
+      import { requireAuth, wireLoginForm } from "./auth.js";
 
       document.addEventListener("DOMContentLoaded", async () => {
-        // If already logged in, this will redirect away from login page
-        await requireAuthGate();
+        // If already logged in, redirect to the correct allowed screen
+        await requireAuth({ page: "login" });
 
-        const form = document.getElementById("login-form");
-        const errEl = document.getElementById("login-error");
-
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          errEl.style.display = "none";
-          const email = document.getElementById("email").value.trim();
-          const password = document.getElementById("password").value;
-
-          if (!email || !password) return;
-
-          try {
-            await signInWithEmail(email, password);
-          } catch (err) {
-            console.error(err);
-            errEl.textContent =
-              err?.message || "Login failed. Check email/password.";
-            errEl.style.display = "block";
-          }
-        });
+        // Wire the form (auth.js handles sign-in + routing)
+        wireLoginForm();
       });
     </script>
   </head>
@@ -80,13 +64,13 @@
 
       <form id="login-form">
         <div class="input-group">
-          <label for="email">Email</label>
-          <input id="email" class="input-text" type="email" required />
+          <label for="login-email">Email</label>
+          <input id="login-email" class="input-text" type="email" required />
         </div>
 
         <div class="input-group" style="margin-top: 0.6rem;">
-          <label for="password">Password</label>
-          <input id="password" class="input-text" type="password" required />
+          <label for="login-password">Password</label>
+          <input id="login-password" class="input-text" type="password" required />
         </div>
 
         <div class="login-actions">
