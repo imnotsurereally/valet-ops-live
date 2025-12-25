@@ -9,8 +9,8 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
-    <script type="module" src="app.js"></script>
+    <!-- History logic (NOT app.js) -->
+    <script type="module" src="history.js"></script>
   </head>
 
   <body class="role-history">
@@ -45,7 +45,6 @@
             </div>
           </div>
 
-          <!-- Controls (IDs are stable; app.js can bind) -->
           <form class="new-pickup-form" id="history-controls" onsubmit="return false;">
             <div class="input-group">
               <label for="history-date">Date</label>
@@ -67,7 +66,6 @@
           </form>
         </section>
 
-        <!-- Results: Completed -->
         <section class="section section-completed" id="history-completed">
           <div class="section-header">
             <div>
@@ -91,7 +89,6 @@
           </div>
         </section>
 
-        <!-- Results: Staged/Active/Waiting (optional, but stable) -->
         <section class="section" id="history-open">
           <div class="section-header">
             <div>
@@ -100,7 +97,7 @@
                 <span class="section-count" id="count-active">0</span>
               </div>
               <div class="section-subtitle">
-                Snapshot of matching tickets still open (if your logic supports it).
+                Snapshot of matching tickets still open.
               </div>
             </div>
           </div>
