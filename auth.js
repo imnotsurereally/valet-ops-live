@@ -1,4 +1,4 @@
-// auth.js (Supabase v1 compatible - NO getSession / NO signInWithPassword)
+// auth.js (Supabase v1 compatible)
 import { supabase } from "./supabaseClient.js";
 
 const ROUTES = {
@@ -13,50 +13,21 @@ const ROUTES = {
   login: "login.html"
 };
 
-// V1 rule: pages that ONLY owner/manager can access
-// NOTE: You asked to allow DISPATCHER employees to see History too,
-// so we do NOT hard-block "history" globally anymore. We handle it by role below.
-const OWNER_MANAGER_ONLY = new Set([]);
+// Pages that should always be accessible once logged in (router pages / non-operational)
+const ALWAYS_ALLOWED = new Set(["home"]);
 
-// V1 exception list: dispatcher employees can access these extra pages
-const DISPATCHER_ALLOWED_PAGES = new Set(["dispatcher", "history"]);
-
+// Owner/Manager can access everything. Employees are restricted.
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
   const op = (profile?.operational_role || "").toLowerCase().trim();
 
-  // if owner/manager, keep it
   if (raw === "owner" || raw === "manager") return raw;
-
-  // if operational_role exists, use it
-  if (op) return op;
-
-  // otherwise role is already a screen role
-  return raw;
-}
-
-function hardRedirect(toFile) {
-  const base = window.location.pathname.includes("/")
-    ? window.location.pathname.split("/").slice(0, -1).join("/") + "/"
-    : "/";
-  window.location.replace(base + toFile);
-}
-
-function routeForRole(role) {
-  // owner/manager should be able to go anywhere -> land on home/index
-  if (role === "owner" || role === "manager") return ROUTES.home;
-
-  // employees land on their role page
-  if (ROUTES[role]) return ROUTES[role];
-
-  return ROUTES.login;
+  if (op) return op; // employee with operational_role set
+  return raw; // employee role already equals screen role
 }
 
 function pageKeyFromPath() {
-  const file = (
-    (window.location.pathname || "").split("/").pop() || ""
-  ).toLowerCase();
-
+  const file = ((window.location.pathname || "").split("/").pop() || "").toLowerCase();
   const map = {
     "index.html": "home",
     "dispatcher.html": "dispatcher",
@@ -68,8 +39,14 @@ function pageKeyFromPath() {
     "history.html": "history",
     "login.html": "login"
   };
-
   return map[file] || null;
+}
+
+function hardRedirect(toFile) {
+  const base = window.location.pathname.includes("/")
+    ? window.location.pathname.split("/").slice(0, -1).join("/") + "/"
+    : "/";
+  window.location.replace(base + toFile);
 }
 
 function setBodyRoleClass(role) {
@@ -87,37 +64,76 @@ function setBodyRoleClass(role) {
   if (role) document.body.classList.add(`role-${role}`);
 }
 
+function routeForRole(role) {
+  // owner/manager land on home/index (router) — they can go anywhere after
+  if (role === "owner" || role === "manager") return ROUTES.home;
+
+  // employees land on their operational page
+  if (ROUTES[role]) return ROUTES[role];
+
+  // fallback
+  return ROUTES.login;
+}
+
+/**
+ * Allowed pages matrix (V1)
+ * - owner/manager: everything
+ * - dispatcher employee: dispatcher + history (+ home)
+ * - other employees: only their one screen (+ home)
+ */
+function isEmployeeAllowedOnPage(effectiveRole, currentPage) {
+  if (!currentPage) return false;
+  if (ALWAYS_ALLOWED.has(currentPage)) return true;
+
+  // Dispatcher employee gets History too
+  if (effectiveRole === "dispatcher") {
+    return currentPage === "dispatcher" || currentPage === "history";
+  }
+
+  // Everyone else: only their own page
+  return currentPage === effectiveRole;
+}
+
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
 
-  // ✅ Supabase v1 session check
+  // Supabase v1 session check
   const session = supabase.auth.session();
 
-  // LOGIN page behavior
+  // LOGIN PAGE:
+  // - if not logged in: allow login page to load
+  // - if logged in: redirect to correct landing route
   if (currentPage === "login") {
     if (!session?.user) return { ok: true, page: "login" };
 
-    // Already logged in -> route based on profile
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from("profiles")
       .select("user_id, store_id, role, operational_role, display_name")
       .eq("user_id", session.user.id)
       .maybeSingle();
+
+    if (error || !profile) {
+      // session exists but profile broken -> sign out and stay on login
+      console.error("Profile load failed:", error);
+      await supabase.auth.signOut().catch(() => {});
+      return { ok: true, page: "login" };
+    }
 
     const effectiveRole = normalizeRole(profile);
     hardRedirect(routeForRole(effectiveRole));
     return { ok: false, reason: "already-logged-in" };
   }
 
-  // Protected pages: require session
+  // PROTECTED PAGES:
+  // Require session
   if (!session?.user) {
     hardRedirect(ROUTES.login);
     return { ok: false, reason: "no-session" };
   }
 
+  // Load profile
   const userId = session.user.id;
 
-  // Load profile
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, store_id, role, operational_role, display_name")
@@ -133,42 +149,35 @@ export async function requireAuth({ page } = {}) {
 
   const effectiveRole = normalizeRole(profile);
 
-  // Apply CSS role class
+  // Apply CSS role class to body (for your .dispatcher-only etc.)
   setBodyRoleClass(effectiveRole);
 
-  // Owner/manager: can access anything
+  // Owner/Manager: allow everything
   if (effectiveRole === "owner" || effectiveRole === "manager") {
     return { ok: true, session, profile, effectiveRole };
   }
 
-  // Employees: block owner/manager-only pages (if any)
-  if (OWNER_MANAGER_ONLY.has(currentPage)) {
+  // Employee access rules
+  const allowed = isEmployeeAllowedOnPage(effectiveRole, currentPage);
+
+  if (!allowed) {
+    // If they hit the wrong page, send them to their landing screen.
+    // Dispatcher employees still land on dispatcher, not history.
     hardRedirect(routeForRole(effectiveRole));
-    return { ok: false, reason: "owner-manager-only" };
-  }
-
-  // Employees: role-based page access
-  // Special case: dispatcher employees can access dispatcher + history
-  if (effectiveRole === "dispatcher") {
-    if (currentPage && !DISPATCHER_ALLOWED_PAGES.has(currentPage)) {
-      hardRedirect(ROUTES.dispatcher);
-      return { ok: false, reason: "wrong-page" };
-    }
-    return { ok: true, session, profile, effectiveRole };
-  }
-
-  // All other employees: only their own screen
-  const allowedFile = routeForRole(effectiveRole);
-  const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
-
-  if (currentPage && allowedKey && currentPage !== allowedKey) {
-    hardRedirect(allowedFile);
     return { ok: false, reason: "wrong-page" };
   }
 
   return { ok: true, session, profile, effectiveRole };
 }
 
+/**
+ * Login helper for login.html
+ * Expects:
+ * - form#login-form
+ * - input#login-email
+ * - input#login-password
+ * - div#login-error (optional)
+ */
 export function wireLoginForm() {
   const form = document.getElementById("login-form");
   if (!form) return;
@@ -189,16 +198,14 @@ export function wireLoginForm() {
 
     const email = (emailEl?.value || "").trim();
     const password = passEl?.value || "";
+
     if (!email || !password) {
       setErr("Email + password required.");
       return;
     }
 
-    // ✅ Supabase v1 sign-in
-    const { user, session, error } = await supabase.auth.signIn({
-      email,
-      password
-    });
+    // Supabase v1 sign-in
+    const { user, session, error } = await supabase.auth.signIn({ email, password });
 
     if (error || !session?.user || !user?.id) {
       setErr(error?.message || "Login failed.");
@@ -222,6 +229,10 @@ export function wireLoginForm() {
   });
 }
 
+/**
+ * Optional: sign out button wiring
+ * - button#signout-btn
+ */
 export function wireSignOut() {
   const btn = document.getElementById("signout-btn");
   if (!btn) return;
