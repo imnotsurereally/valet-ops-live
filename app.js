@@ -182,6 +182,9 @@ function onTableClick(e) {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
 
+  // ✅ HARD READ-ONLY: wallboard can never trigger actions
+  if (role === "wallboard") return;
+
   // Permission gate: service advisor + loan car can only add notes.
   if (role === "serviceadvisor" || role === "loancar") {
     const action = btn.getAttribute("data-action");
