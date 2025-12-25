@@ -13,13 +13,25 @@ const ROUTES = {
   login: "login.html"
 };
 
-const OWNER_MANAGER_ONLY = new Set(["history"]);
+// V1 rule: pages that ONLY owner/manager can access
+// NOTE: You asked to allow DISPATCHER employees to see History too,
+// so we do NOT hard-block "history" globally anymore. We handle it by role below.
+const OWNER_MANAGER_ONLY = new Set([]);
+
+// V1 exception list: dispatcher employees can access these extra pages
+const DISPATCHER_ALLOWED_PAGES = new Set(["dispatcher", "history"]);
 
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
   const op = (profile?.operational_role || "").toLowerCase().trim();
+
+  // if owner/manager, keep it
   if (raw === "owner" || raw === "manager") return raw;
+
+  // if operational_role exists, use it
   if (op) return op;
+
+  // otherwise role is already a screen role
   return raw;
 }
 
@@ -33,12 +45,18 @@ function hardRedirect(toFile) {
 function routeForRole(role) {
   // owner/manager should be able to go anywhere -> land on home/index
   if (role === "owner" || role === "manager") return ROUTES.home;
+
+  // employees land on their role page
   if (ROUTES[role]) return ROUTES[role];
+
   return ROUTES.login;
 }
 
 function pageKeyFromPath() {
-  const file = ((window.location.pathname || "").split("/").pop() || "").toLowerCase();
+  const file = (
+    (window.location.pathname || "").split("/").pop() || ""
+  ).toLowerCase();
+
   const map = {
     "index.html": "home",
     "dispatcher.html": "dispatcher",
@@ -50,6 +68,7 @@ function pageKeyFromPath() {
     "history.html": "history",
     "login.html": "login"
   };
+
   return map[file] || null;
 }
 
@@ -78,6 +97,7 @@ export async function requireAuth({ page } = {}) {
   if (currentPage === "login") {
     if (!session?.user) return { ok: true, page: "login" };
 
+    // Already logged in -> route based on profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("user_id, store_id, role, operational_role, display_name")
@@ -97,6 +117,7 @@ export async function requireAuth({ page } = {}) {
 
   const userId = session.user.id;
 
+  // Load profile
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, store_id, role, operational_role, display_name")
@@ -111,22 +132,35 @@ export async function requireAuth({ page } = {}) {
   }
 
   const effectiveRole = normalizeRole(profile);
+
+  // Apply CSS role class
   setBodyRoleClass(effectiveRole);
 
-  // owner/manager can access anything
+  // Owner/manager: can access anything
   if (effectiveRole === "owner" || effectiveRole === "manager") {
     return { ok: true, session, profile, effectiveRole };
   }
 
-  // employees: block owner/manager pages
+  // Employees: block owner/manager-only pages (if any)
   if (OWNER_MANAGER_ONLY.has(currentPage)) {
     hardRedirect(routeForRole(effectiveRole));
     return { ok: false, reason: "owner-manager-only" };
   }
 
-  // employees: only their own screen
+  // Employees: role-based page access
+  // Special case: dispatcher employees can access dispatcher + history
+  if (effectiveRole === "dispatcher") {
+    if (currentPage && !DISPATCHER_ALLOWED_PAGES.has(currentPage)) {
+      hardRedirect(ROUTES.dispatcher);
+      return { ok: false, reason: "wrong-page" };
+    }
+    return { ok: true, session, profile, effectiveRole };
+  }
+
+  // All other employees: only their own screen
   const allowedFile = routeForRole(effectiveRole);
   const allowedKey = Object.keys(ROUTES).find((k) => ROUTES[k] === allowedFile);
+
   if (currentPage && allowedKey && currentPage !== allowedKey) {
     hardRedirect(allowedFile);
     return { ok: false, reason: "wrong-page" };
@@ -161,13 +195,17 @@ export function wireLoginForm() {
     }
 
     // ✅ Supabase v1 sign-in
-    const { user, session, error } = await supabase.auth.signIn({ email, password });
+    const { user, session, error } = await supabase.auth.signIn({
+      email,
+      password
+    });
 
     if (error || !session?.user || !user?.id) {
       setErr(error?.message || "Login failed.");
       return;
     }
 
+    // Load profile to route correctly
     const { data: profile, error: pErr } = await supabase
       .from("profiles")
       .select("role, operational_role")
