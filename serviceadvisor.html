@@ -9,6 +9,7 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+
     <!-- App logic -->
     <script type="module" src="app.js"></script>
   </head>
@@ -23,8 +24,9 @@
         />
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Service Advisor</div>
+          <div class="subtitle">Service Advisor – Staging Request</div>
         </div>
+
         <div class="header-right">
           <a class="btn small" href="index.html">Home</a>
           <button id="signout-btn" class="btn small">Sign out</button>
@@ -33,12 +35,12 @@
       </header>
 
       <main class="app-main app-main-center">
-        <section class="section" style="max-width:420px;width:100%;">
+        <section class="section" style="max-width: 480px; width: 100%;">
           <div class="section-header">
             <div>
               <div class="section-title">Request Vehicle Staged</div>
               <div class="section-subtitle">
-                Creates a staged (non-urgent) request only.
+                This creates a <b>staged (non-urgent)</b> request that dispatch can activate later.
               </div>
             </div>
           </div>
@@ -66,10 +68,23 @@
               />
             </div>
 
-            <div class="input-group" style="align-self:flex-end;">
-              <button type="submit" class="btn btn-primary">
-                Request Staging
-              </button>
+            <!-- Optional note input for the “original note” you mentioned -->
+            <div class="input-group">
+              <label for="initial-note">Note (optional)</label>
+              <input
+                id="initial-note"
+                name="initial-note"
+                class="input-text"
+                placeholder="Optional details for dispatch (leave blank if none)"
+              />
+            </div>
+
+            <div class="input-group" style="align-self: flex-end;">
+              <button type="submit" class="btn btn-primary">Request Staging</button>
+            </div>
+
+            <div class="section-subtitle" style="margin-top: 0.6rem;">
+              Auto-note will include: <b>“service advisor request”</b>.
             </div>
           </form>
         </section>
