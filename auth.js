@@ -1,4 +1,4 @@
-// auth.js (Supabase v1 compatible)
+// auth.js (FULL FILE REPLACEMENT) — Supabase v1 compatible
 import { supabase } from "./supabaseClient.js";
 
 const ROUTES = {
@@ -27,7 +27,10 @@ function normalizeRole(profile) {
 }
 
 function pageKeyFromPath() {
-  const file = ((window.location.pathname || "").split("/").pop() || "").toLowerCase();
+  const file = (
+    (window.location.pathname || "").split("/").pop() || ""
+  ).toLowerCase();
+
   const map = {
     "index.html": "home",
     "dispatcher.html": "dispatcher",
@@ -39,6 +42,7 @@ function pageKeyFromPath() {
     "history.html": "history",
     "login.html": "login"
   };
+
   return map[file] || null;
 }
 
@@ -97,7 +101,7 @@ function isEmployeeAllowedOnPage(effectiveRole, currentPage) {
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
 
-  // Supabase v1 session check
+  // ✅ Supabase v1 session check
   const session = supabase.auth.session();
 
   // LOGIN PAGE:
@@ -113,7 +117,6 @@ export async function requireAuth({ page } = {}) {
       .maybeSingle();
 
     if (error || !profile) {
-      // session exists but profile broken -> sign out and stay on login
       console.error("Profile load failed:", error);
       await supabase.auth.signOut().catch(() => {});
       return { ok: true, page: "login" };
@@ -204,8 +207,11 @@ export function wireLoginForm() {
       return;
     }
 
-    // Supabase v1 sign-in
-    const { user, session, error } = await supabase.auth.signIn({ email, password });
+    // ✅ Supabase v1 sign-in
+    const { user, session, error } = await supabase.auth.signIn({
+      email,
+      password
+    });
 
     if (error || !session?.user || !user?.id) {
       setErr(error?.message || "Login failed.");
