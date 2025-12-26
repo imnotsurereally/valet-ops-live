@@ -7,73 +7,53 @@
 
     <link rel="stylesheet" href="style.css" />
 
-    <!-- Supabase v1 global (required by supabaseClient.js -> window.supabase) -->
+    <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+    <!-- App logic -->
+    <script type="module" src="app.js"></script>
 
-    <!-- Home only needs auth + signout + role filtering (NOT app.js) -->
-    <script type="module">
-      import { requireAuth, wireSignOut } from "./auth.js?v=20251225a";
-
-      function show(el) {
-        if (!el) return;
-        el.style.display = "";
-        el.removeAttribute("aria-hidden");
+    <!-- Role-based visibility rules -->
+    <style>
+      /* Default: hide everything */
+      .screen-links a {
+        display: none;
       }
 
-      function hide(el) {
-        if (!el) return;
-        el.style.display = "none";
-        el.setAttribute("aria-hidden", "true");
+      /* OWNER / MANAGER: see everything */
+      body.role-owner .screen-links a,
+      body.role-manager .screen-links a {
+        display: inline-flex;
       }
 
-      function applyHomeLinks(effectiveRole) {
-        const linksWrap = document.getElementById("screen-links");
-        if (!linksWrap) return;
-
-        const allLinks = Array.from(linksWrap.querySelectorAll("[data-screen]"));
-
-        // Default: hide everything first
-        allLinks.forEach(hide);
-
-        // Owner/Manager: show all
-        if (effectiveRole === "owner" || effectiveRole === "manager") {
-          allLinks.forEach(show);
-          return;
-        }
-
-        // Dispatcher employee: dispatcher + history
-        if (effectiveRole === "dispatcher") {
-          allLinks
-            .filter((a) => a.dataset.screen === "dispatcher" || a.dataset.screen === "history")
-            .forEach(show);
-          return;
-        }
-
-        // Everyone else: only their one screen
-        allLinks
-          .filter((a) => a.dataset.screen === effectiveRole)
-          .forEach(show);
+      /* DISPATCHER EMPLOYEE */
+      body.role-dispatcher .link-dispatcher,
+      body.role-dispatcher .link-history {
+        display: inline-flex;
       }
 
-      document.addEventListener("DOMContentLoaded", async () => {
-        // Treat this page as HOME for auth rules
-        const auth = await requireAuth({ page: "home" });
-        if (!auth?.ok) return;
+      /* KEY MACHINE */
+      body.role-keymachine .link-keymachine {
+        display: inline-flex;
+      }
 
-        // Wire signout button (id="signout-btn")
-        wireSignOut();
+      /* CAR WASH */
+      body.role-carwash .link-carwash {
+        display: inline-flex;
+      }
 
-        // Update role pill text
-        const pill = document.getElementById("role-pill");
-        if (pill) pill.textContent = auth.effectiveRole ? auth.effectiveRole.toUpperCase() : "HOME";
+      /* SERVICE ADVISOR */
+      body.role-serviceadvisor .link-serviceadvisor {
+        display: inline-flex;
+      }
 
-        // Filter links based on role
-        applyHomeLinks(auth.effectiveRole);
-      });
-    </script>
+      /* LOAN CAR */
+      body.role-loancar .link-loancar {
+        display: inline-flex;
+      }
+    </style>
   </head>
 
-  <body class="role-home">
+  <body>
     <div class="app-shell">
       <header class="app-header">
         <img
@@ -88,7 +68,7 @@
 
         <div class="header-right">
           <button id="signout-btn" class="btn small">Sign out</button>
-          <div class="role-pill" id="role-pill">HOME</div>
+          <div class="role-pill">Home</div>
         </div>
       </header>
 
@@ -98,19 +78,39 @@
             <div>
               <div class="section-title">Choose a Screen</div>
               <div class="section-subtitle">
-                You will only see screens your role is allowed to access.
+                You only see what your role is allowed to access.
               </div>
             </div>
           </div>
 
-          <div class="screen-links" id="screen-links">
-            <a class="btn btn-primary" href="dispatcher.html" data-screen="dispatcher">Dispatcher Screen</a>
-            <a class="btn" href="keymachine.html" data-screen="keymachine">Key Machine Screen</a>
-            <a class="btn" href="carwash.html" data-screen="carwash">Car Wash Screen</a>
-            <a class="btn" href="wallboard.html" data-screen="wallboard">TV Wallboard</a>
-            <a class="btn" href="serviceadvisor.html" data-screen="serviceadvisor">Service Advisor</a>
-            <a class="btn" href="loancar.html" data-screen="loancar">Loan Car</a>
-            <a class="btn" href="history.html" data-screen="history">History</a>
+          <div class="screen-links">
+            <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
+              Dispatcher Screen
+            </a>
+
+            <a class="btn link-keymachine" href="keymachine.html">
+              Key Machine Screen
+            </a>
+
+            <a class="btn link-carwash" href="carwash.html">
+              Car Wash Screen
+            </a>
+
+            <a class="btn link-wallboard" href="wallboard.html">
+              TV Wallboard
+            </a>
+
+            <a class="btn link-serviceadvisor" href="serviceadvisor.html">
+              Service Advisor
+            </a>
+
+            <a class="btn link-loancar" href="loancar.html">
+              Loan Car
+            </a>
+
+            <a class="btn link-history" href="history.html">
+              History
+            </a>
           </div>
         </section>
       </main>
