@@ -9,7 +9,8 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
+
+    <!-- Our app logic (renders the tables live) -->
     <script type="module" src="app.js"></script>
 
     <style>
@@ -23,9 +24,26 @@
       body.role-wallboard * {
         cursor: default !important;
       }
-      /* prevent focus outlines if something somehow gets focus */
       body.role-wallboard :focus {
         outline: none !important;
+      }
+
+      /* HARD: prevent any pointer interaction on the wallboard content */
+      body.role-wallboard .app-main,
+      body.role-wallboard .table-wrapper,
+      body.role-wallboard table,
+      body.role-wallboard tbody,
+      body.role-wallboard tr,
+      body.role-wallboard td,
+      body.role-wallboard th {
+        pointer-events: none !important;
+      }
+
+      /* Optional: make header look like a pure display (no “app” controls) */
+      body.role-wallboard .header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
     </style>
   </head>
@@ -44,8 +62,9 @@
           <div class="brand">Valet Ops Wallboard</div>
           <div class="subtitle">Read-only live display</div>
         </div>
+
+        <!-- No signout on wallboard (TV display). If you want it, use Home. -->
         <div class="header-right">
-          <button id="signout-btn" class="btn small">Sign out</button>
           <div class="role-pill">Wallboard</div>
         </div>
       </header>
@@ -56,9 +75,7 @@
           <div class="section-header">
             <div>
               <div class="section-title">Active Pickups</div>
-              <div class="section-subtitle">
-                Oldest first. Color-coded by time.
-              </div>
+              <div class="section-subtitle">Oldest first. Color-coded by time.</div>
             </div>
           </div>
 
@@ -101,9 +118,7 @@
                 </tr>
               </thead>
               <tbody id="waiting-tbody">
-                <tr>
-                  <td colspan="4" class="empty">None currently waiting.</td>
-                </tr>
+                <tr><td colspan="4" class="empty">None currently waiting.</td></tr>
               </tbody>
             </table>
           </div>
