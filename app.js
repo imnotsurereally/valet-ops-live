@@ -198,6 +198,9 @@ function onTableClick(e) {
 }
 
 async function handleAction(id, action) {
+  // ✅ DOUBLE LOCK: even if a click slips through, wallboard can never mutate data
+  if (role === "wallboard") return;
+
   const now = new Date().toISOString();
   const updates = {};
 
