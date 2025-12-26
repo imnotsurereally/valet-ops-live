@@ -1,8 +1,8 @@
-// history.js (NEW FILE)
-// Requires: supabaseClient.js + auth.js (requireAuth)
+// history.js  (FULL FILE REPLACEMENT)
+// Requires: ./supabaseClient.js + ./auth.js
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
+import { requireAuth, wireSignOut } from "./auth.js";
 
 let storeId = null;
 let pickups = [];
@@ -15,10 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
     storeId = auth?.profile?.store_id || null;
 
     wireSignOut();
-
     wireControls();
+    wireTimelineClicks();
+
+    // auto-run once on load
+    runSearch();
   })();
 });
+
+/* ---------- Controls ---------- */
 
 function wireControls() {
   const dateEl = document.getElementById("history-date");
@@ -34,19 +39,42 @@ function wireControls() {
     dateEl.value = `${yyyy}-${mm}-${dd}`;
   }
 
-  const run = async () => {
-    const dateVal = dateEl?.value || "";
-    const q = (searchEl?.value || "").trim().toLowerCase();
-    await loadHistory({ dateVal, q });
-    renderHistory({ q });
-  };
+  if (applyBtn) applyBtn.addEventListener("click", runSearch);
 
-  if (applyBtn) applyBtn.addEventListener("click", run);
+  // Enter key triggers Apply
+  if (searchEl) {
+    searchEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSearch();
+      }
+    });
+  }
+  if (dateEl) {
+    dateEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSearch();
+      }
+    });
+  }
 }
 
+async function runSearch() {
+  const dateEl = document.getElementById("history-date");
+  const searchEl = document.getElementById("history-search");
+
+  const dateVal = dateEl?.value || "";
+  const q = (searchEl?.value || "").trim().toLowerCase();
+
+  await loadHistory({ dateVal, q });
+  renderHistory({ q });
+}
+
+/* ---------- Data ---------- */
+
 async function loadHistory({ dateVal, q }) {
-  // We query by created_at day window (simple + reliable)
-  // If you want completed_at day window later, we can add a toggle.
+  // Query by created_at day window (simple + reliable)
   let start = null;
   let end = null;
 
@@ -55,13 +83,17 @@ async function loadHistory({ dateVal, q }) {
     end = new Date(dateVal + "T23:59:59.999");
   }
 
-  let query = supabase.from("pickups").select("*").order("created_at", { ascending: false });
+  let query = supabase
+    .from("pickups")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (storeId) query = query.eq("store_id", storeId);
   if (start) query = query.gte("created_at", start.toISOString());
   if (end) query = query.lte("created_at", end.toISOString());
 
   const { data, error } = await query;
+
   if (error) {
     console.error(error);
     alert("History load failed. Check console.");
@@ -69,17 +101,21 @@ async function loadHistory({ dateVal, q }) {
     return;
   }
 
-  pickups = data || [];
+  let rows = data || [];
 
   // lightweight client-side search
   if (q) {
-    pickups = pickups.filter((p) => {
+    rows = rows.filter((p) => {
       const tag = String(p.tag_number || "").toLowerCase();
       const name = String(p.customer_name || "").toLowerCase();
       return tag.includes(q) || name.includes(q);
     });
   }
+
+  pickups = rows;
 }
+
+/* ---------- Render ---------- */
 
 function renderHistory({ q }) {
   const completedTbody = document.getElementById("completed-tbody");
@@ -94,28 +130,20 @@ function renderHistory({ q }) {
   if (completedTbody) {
     completedTbody.innerHTML =
       completed.length === 0
-        ? `<tr><td colspan="8" class="empty">${q ? "No matches." : "No completed tickets for this date."}</td></tr>`
+        ? `<tr><td colspan="8" class="empty">${
+            q ? "No matches." : "No completed tickets for this date."
+          }</td></tr>`
         : completed.map((p) => renderCompletedRow(p)).join("");
   }
 
   if (activeTbody) {
     activeTbody.innerHTML =
       open.length === 0
-        ? `<tr><td colspan="7" class="empty">${q ? "No matches." : "No open results."}</td></tr>`
+        ? `<tr><td colspan="7" class="empty">${
+            q ? "No matches." : "No open results."
+          }</td></tr>`
         : open.map((p) => renderOpenRow(p)).join("");
   }
-
-  // click handler for Timeline buttons
-  [completedTbody, activeTbody].forEach((tb) => {
-    if (!tb) return;
-    tb.onclick = (e) => {
-      const btn = e.target.closest("[data-action]");
-      if (!btn) return;
-      const id = btn.getAttribute("data-id");
-      const action = btn.getAttribute("data-action");
-      if (action === "view-timeline") showTimeline(id);
-    };
-  });
 }
 
 function renderCompletedRow(p) {
@@ -123,7 +151,11 @@ function renderCompletedRow(p) {
   const masterSeconds = computeMasterSeconds(p, new Date());
   const masterLabel = formatDuration(masterSeconds);
 
-  const notes = (p.notes || "").split("\n").filter(Boolean).map(escapeHtml).join("<br>");
+  const notes = (p.notes || "")
+    .split("\n")
+    .filter(Boolean)
+    .map(escapeHtml)
+    .join("<br>");
 
   return `
     <tr>
@@ -164,6 +196,24 @@ function renderOpenRow(p) {
   `;
 }
 
+/* ---------- Timeline clicks (bind once) ---------- */
+
+function wireTimelineClicks() {
+  const completedTbody = document.getElementById("completed-tbody");
+  const activeTbody = document.getElementById("active-tbody");
+
+  [completedTbody, activeTbody].forEach((tb) => {
+    if (!tb) return;
+    tb.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.getAttribute("data-action");
+      const id = btn.getAttribute("data-id");
+      if (action === "view-timeline") showTimeline(id);
+    });
+  });
+}
+
 function showTimeline(id) {
   const p = pickups.find((x) => String(x.id) === String(id));
   if (!p) return;
@@ -192,10 +242,14 @@ function showTimeline(id) {
   alert(lines.join("\n"));
 }
 
+/* ---------- Helpers ---------- */
+
 function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
-  const endIso = p.waiting_client_at || null;
+
+  // Freeze master timer once waiting OR completed (history should show final time)
+  const endIso = p.waiting_client_at || p.completed_at || null;
   return computeSeconds(startIso, endIso, now);
 }
 
