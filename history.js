@@ -51,6 +51,7 @@ function wireControls() {
       }
     });
   }
+
   if (dateEl) {
     dateEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -179,7 +180,6 @@ function renderCompletedRow(p) {
 function renderOpenRow(p) {
   const deliveredBy = p.keys_holder || "—";
 
-  // V0.912: frozen time even for open snapshots (if waiting/completed exists)
   const masterSeconds = computeMasterSeconds(p, new Date());
   const masterLabel = formatDuration(masterSeconds);
 
@@ -232,7 +232,6 @@ function showTimeline(id) {
   if (p.keys_with_valet_at && p.keys_holder) lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
   if (p.keys_at_machine_at) lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
 
-  // keep this raw label (matches your DB values), but you can swap to humanWashStatus later
   if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
     lines.push(`Wash status (${p.wash_status}): ` + formatTime(p.wash_status_at));
 
