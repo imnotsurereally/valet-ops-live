@@ -34,6 +34,15 @@
   </head>
 
   <body>
+    <noscript>
+      <div class="login-wrap">
+        <div class="login-title">Valet Ops Live</div>
+        <div class="login-error" style="display:block;">
+          This app requires JavaScript to sign in.
+        </div>
+      </div>
+    </noscript>
+
     <div class="login-wrap">
       <div class="login-title">Valet Ops Live</div>
       <div class="login-sub">Sign in (email + password)</div>
@@ -62,9 +71,7 @@
         </div>
 
         <div class="login-actions">
-          <button class="btn btn-primary" type="submit">
-            Sign in
-          </button>
+          <button class="btn btn-primary" type="submit">Sign in</button>
         </div>
 
         <div id="login-error" class="login-error"></div>
