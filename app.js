@@ -1,5 +1,5 @@
-// app.js  (FULL FILE REPLACEMENT)
-// Requires: ./supabaseClient.js  +  ./auth.js (the version you pasted with requireAuth / wireSignOut)
+// app.js  (FULL FILE REPLACEMENT) — V0.912
+// Requires: ./supabaseClient.js  +  ./auth.js (requireAuth / wireSignOut)
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
@@ -135,14 +135,17 @@ function setupForm() {
       active_started_at: staged ? null : nowIso
     };
 
-    // ✅ SERVICE ADVISOR: always staged + notes always include "Service advisor request"
+    // ✅ V0.912: SERVICE ADVISOR
+    // - always staged
+    // - notes always start with: "Service advisor request"
+    // - allow advisor to add/edit the "original note" at creation time
     if (role === "serviceadvisor") {
       insertData.status = "STAGED";
       insertData.active_started_at = null;
 
       const baseLine = "Service advisor request";
       const extra = window.prompt(
-        "Optional note for dispatcher (will be saved under 'Service advisor request'):",
+        "Optional note for dispatcher (saved under 'Service advisor request'):",
         ""
       );
 
@@ -151,7 +154,9 @@ function setupForm() {
       insertData.notes_updated_at = nowIso;
     }
 
-    // ✅ LOAN CAR: always active pickup + note exactly "customer just arrived in loaner"
+    // ✅ V0.912: LOAN CAR
+    // - always active pickup
+    // - note exactly: "customer just arrived in loaner"
     if (role === "loancar") {
       insertData.status = "NEW";
       insertData.active_started_at = nowIso;
@@ -192,7 +197,7 @@ function onTableClick(e) {
   // ✅ HARD READ-ONLY: wallboard can never trigger actions
   if (role === "wallboard") return;
 
-  // Permission gate: service advisor + loan car can only add notes.
+  // V0.912: service advisor + loan car can only add notes (no status changes)
   if (role === "serviceadvisor" || role === "loancar") {
     const action = btn.getAttribute("data-action");
     if (action !== "edit-note") return;
@@ -318,9 +323,7 @@ async function handleAction(id, action) {
       if (p.active_started_at)
         lines.push("Entered Active Pickups: " + formatTime(p.active_started_at));
       if (p.keys_with_valet_at && p.keys_holder)
-        lines.push(
-          `Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at)
-        );
+        lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
       if (p.keys_at_machine_at)
         lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
       if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
@@ -329,16 +332,11 @@ async function handleAction(id, action) {
             formatTime(p.wash_status_at)
         );
       if (p.waiting_client_at)
-        lines.push(
-          "Waiting/staged for customer: " + formatTime(p.waiting_client_at)
-        );
-      if (p.completed_at)
-        lines.push("Completed: " + formatTime(p.completed_at));
+        lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
+      if (p.completed_at) lines.push("Completed: " + formatTime(p.completed_at));
 
       const masterSeconds = computeMasterSeconds(p, new Date());
-      lines.push(
-        "Master cycle (Active box in/out): " + formatDuration(masterSeconds)
-      );
+      lines.push("Master cycle (Active box in/out): " + formatDuration(masterSeconds));
 
       if (p.notes) {
         lines.push("");
@@ -960,7 +958,8 @@ function pageKeyFromPath() {
     "wallboard.html": "wallboard",
     "history.html": "history",
     "login.html": "login",
-    "index.html": "dispatcher"
+    // V0.912: index/home is not an employee destination. Still map it safely.
+    "index.html": "home"
   };
 
   return map[file] || null;
