@@ -10,13 +10,25 @@
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
+    <!-- Auth gate + login wiring -->
     <script type="module">
-      // 🚨 cache-bust the import so GH Pages can’t serve stale auth.js
+      /*
+        V0.912 LOGIN RULES
+        - If NOT logged in → show login form
+        - If logged in → redirect immediately to allowed screen
+        - Do NOT wire login form if redirect happens
+      */
+
+      // Cache-bust to avoid GitHub Pages stale auth.js
       import { requireAuth, wireLoginForm } from "./auth.js?v=20251224a";
 
       document.addEventListener("DOMContentLoaded", async () => {
-        await requireAuth({ page: "login" });
-        wireLoginForm();
+        const auth = await requireAuth({ page: "login" });
+
+        // Only wire the form if we stayed on the login page
+        if (auth?.ok) {
+          wireLoginForm();
+        }
       });
     </script>
   </head>
@@ -29,16 +41,30 @@
       <form id="login-form">
         <div class="input-group">
           <label for="login-email">Email</label>
-          <input id="login-email" class="input-text" type="email" required />
+          <input
+            id="login-email"
+            class="input-text"
+            type="email"
+            autocomplete="username"
+            required
+          />
         </div>
 
         <div class="input-group" style="margin-top: 0.6rem;">
           <label for="login-password">Password</label>
-          <input id="login-password" class="input-text" type="password" required />
+          <input
+            id="login-password"
+            class="input-text"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
         </div>
 
         <div class="login-actions">
-          <button class="btn btn-primary" type="submit">Sign in</button>
+          <button class="btn btn-primary" type="submit">
+            Sign in
+          </button>
         </div>
 
         <div id="login-error" class="login-error"></div>
