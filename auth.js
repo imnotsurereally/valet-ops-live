@@ -54,8 +54,14 @@ function hardRedirect(toFile) {
   window.location.replace(base + toFile);
 }
 
-function setBodyRoleClass(role) {
-  const classes = [
+/**
+ * ✅ Important:
+ * We keep BOTH:
+ * - role-{effectiveRole}  (who the user is)
+ * - role-{currentPage}    (what page this is, like role-history)
+ */
+function setBodyRoleClasses(effectiveRole, currentPage) {
+  const known = [
     "role-dispatcher",
     "role-keymachine",
     "role-carwash",
@@ -64,10 +70,15 @@ function setBodyRoleClass(role) {
     "role-loancar",
     "role-owner",
     "role-manager",
-    "role-history"
+    "role-history",
+    "role-home",
+    "role-login"
   ];
-  classes.forEach((c) => document.body.classList.remove(c));
-  if (role) document.body.classList.add(`role-${role}`);
+
+  known.forEach((c) => document.body.classList.remove(c));
+
+  if (effectiveRole) document.body.classList.add(`role-${effectiveRole}`);
+  if (currentPage) document.body.classList.add(`role-${currentPage}`);
 }
 
 function routeForRole(role) {
@@ -106,7 +117,7 @@ function isEmployeeAllowedOnPage(effectiveRole, currentPage) {
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
 
-  // Supabase v1 session check
+  // ✅ Supabase v1 session check
   const session = supabase.auth.session();
 
   // LOGIN PAGE:
@@ -157,8 +168,8 @@ export async function requireAuth({ page } = {}) {
 
   const effectiveRole = normalizeRole(profile);
 
-  // Apply CSS role class to body (for your .dispatcher-only etc.)
-  setBodyRoleClass(effectiveRole);
+  // ✅ Apply BOTH user role + page role classes
+  setBodyRoleClasses(effectiveRole, currentPage);
 
   // Owner/Manager: allow everything
   if (effectiveRole === "owner" || effectiveRole === "manager") {
@@ -210,7 +221,7 @@ export function wireLoginForm() {
       return;
     }
 
-    // Supabase v1 sign-in
+    // ✅ Supabase v1 sign-in
     const { user, session, error } = await supabase.auth.signIn({
       email,
       password
