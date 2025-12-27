@@ -13,10 +13,11 @@ const ROUTES = {
   login: "login.html"
 };
 
-// Pages that should always be accessible once logged in (router pages / non-operational)
-const ALWAYS_ALLOWED = new Set(["home"]);
+// 🚫 V0.912: employees should NOT have "home/index" access
+const EMPLOYEE_ALLOWED_EXTRA = {
+  dispatcher: new Set(["history"]) // dispatcher employee can use history
+};
 
-// Owner/Manager can access everything. Employees are restricted.
 function normalizeRole(profile) {
   const raw = (profile?.role || "").toLowerCase().trim();
   const op = (profile?.operational_role || "").toLowerCase().trim();
@@ -62,7 +63,8 @@ function setBodyRoleClass(role) {
     "role-serviceadvisor",
     "role-loancar",
     "role-owner",
-    "role-manager"
+    "role-manager",
+    "role-history"
   ];
   classes.forEach((c) => document.body.classList.remove(c));
   if (role) document.body.classList.add(`role-${role}`);
@@ -72,7 +74,7 @@ function routeForRole(role) {
   // owner/manager land on home/index (router) — they can go anywhere after
   if (role === "owner" || role === "manager") return ROUTES.home;
 
-  // employees land on their operational page
+  // employees land on their operational page (single-screen terminals)
   if (ROUTES[role]) return ROUTES[role];
 
   // fallback
@@ -80,28 +82,31 @@ function routeForRole(role) {
 }
 
 /**
- * Allowed pages matrix (V1)
- * - owner/manager: everything
- * - dispatcher employee: dispatcher + history (+ home)
- * - other employees: only their one screen (+ home)
+ * V0.912 Allowed pages matrix
+ * - owner/manager: everything (including index/home)
+ * - dispatcher employee: dispatcher + history (NOT home)
+ * - other employees: only their one screen (NOT home)
  */
 function isEmployeeAllowedOnPage(effectiveRole, currentPage) {
   if (!currentPage) return false;
-  if (ALWAYS_ALLOWED.has(currentPage)) return true;
 
-  // Dispatcher employee gets History too
-  if (effectiveRole === "dispatcher") {
-    return currentPage === "dispatcher" || currentPage === "history";
-  }
+  // 🚫 Employees can never access home/index
+  if (currentPage === "home") return false;
 
-  // Everyone else: only their own page
-  return currentPage === effectiveRole;
+  // Base rule: employees can access only their own operational page
+  if (currentPage === effectiveRole) return true;
+
+  // Exceptions: dispatcher gets history
+  const extra = EMPLOYEE_ALLOWED_EXTRA[effectiveRole];
+  if (extra && extra.has(currentPage)) return true;
+
+  return false;
 }
 
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
 
-  // ✅ Supabase v1 session check
+  // Supabase v1 session check
   const session = supabase.auth.session();
 
   // LOGIN PAGE:
@@ -160,12 +165,10 @@ export async function requireAuth({ page } = {}) {
     return { ok: true, session, profile, effectiveRole };
   }
 
-  // Employee access rules
+  // Employee access rules (V0.912)
   const allowed = isEmployeeAllowedOnPage(effectiveRole, currentPage);
 
   if (!allowed) {
-    // If they hit the wrong page, send them to their landing screen.
-    // Dispatcher employees still land on dispatcher, not history.
     hardRedirect(routeForRole(effectiveRole));
     return { ok: false, reason: "wrong-page" };
   }
@@ -207,7 +210,7 @@ export function wireLoginForm() {
       return;
     }
 
-    // ✅ Supabase v1 sign-in
+    // Supabase v1 sign-in
     const { user, session, error } = await supabase.auth.signIn({
       email,
       password
