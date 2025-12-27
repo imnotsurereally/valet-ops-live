@@ -9,8 +9,17 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- App logic -->
-    <script type="module" src="app.js"></script>
+
+    <!-- Auth gate for HOME (do NOT load app.js here) -->
+    <script type="module">
+      import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const auth = await requireAuth({ page: "home" });
+        if (!auth?.ok) return;
+        wireSignOut();
+      });
+    </script>
 
     <!-- Role-based visibility rules -->
     <style>
@@ -38,6 +47,11 @@
 
       /* CAR WASH */
       body.role-carwash .link-carwash {
+        display: inline-flex;
+      }
+
+      /* WALLBOARD */
+      body.role-wallboard .link-wallboard {
         display: inline-flex;
       }
 
