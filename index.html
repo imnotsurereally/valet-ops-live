@@ -10,13 +10,13 @@
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <!-- Auth gate for HOME (do NOT load app.js here) -->
+    <!-- ✅ V0.912: HOME is owner/manager-only. Employees get redirected to their screen. -->
     <script type="module">
       import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
 
       document.addEventListener("DOMContentLoaded", async () => {
         const auth = await requireAuth({ page: "home" });
-        if (!auth?.ok) return;
+        if (!auth?.ok) return; // requireAuth will redirect if employee / not allowed
         wireSignOut();
       });
     </script>
@@ -34,33 +34,33 @@
         display: inline-flex;
       }
 
-      /* DISPATCHER EMPLOYEE */
+      /* DISPATCHER EMPLOYEE (still hidden by V0.912 redirect, but kept for later) */
       body.role-dispatcher .link-dispatcher,
       body.role-dispatcher .link-history {
         display: inline-flex;
       }
 
-      /* KEY MACHINE */
+      /* KEY MACHINE (still hidden by V0.912 redirect, but kept for later) */
       body.role-keymachine .link-keymachine {
         display: inline-flex;
       }
 
-      /* CAR WASH */
+      /* CAR WASH (still hidden by V0.912 redirect, but kept for later) */
       body.role-carwash .link-carwash {
         display: inline-flex;
       }
 
-      /* WALLBOARD */
+      /* WALLBOARD (still hidden by V0.912 redirect, but kept for later) */
       body.role-wallboard .link-wallboard {
         display: inline-flex;
       }
 
-      /* SERVICE ADVISOR */
+      /* SERVICE ADVISOR (still hidden by V0.912 redirect, but kept for later) */
       body.role-serviceadvisor .link-serviceadvisor {
         display: inline-flex;
       }
 
-      /* LOAN CAR */
+      /* LOAN CAR (still hidden by V0.912 redirect, but kept for later) */
       body.role-loancar .link-loancar {
         display: inline-flex;
       }
