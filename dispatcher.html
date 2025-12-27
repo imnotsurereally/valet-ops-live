@@ -9,9 +9,11 @@
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
-    <script type="module" src="app.js"></script>
+
+    <!-- App logic (cache-bust so GH Pages doesn’t serve stale app.js) -->
+    <script type="module" src="app.js?v=20251224a"></script>
   </head>
+
   <body class="role-dispatcher">
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
@@ -28,7 +30,7 @@
         </div>
 
         <div class="header-right">
-          <a class="btn small" href="history.html">History</a>
+          <a class="btn small dispatcher-only" href="history.html">History</a>
 
           <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
 
