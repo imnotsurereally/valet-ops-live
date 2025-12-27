@@ -1,14 +1,15 @@
-// history.js  (FULL FILE REPLACEMENT)
-// Requires: ./supabaseClient.js + ./auth.js
+// history.js  (FULL FILE REPLACEMENT) — V0.912
+// Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut)
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js";
+import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
 
 let storeId = null;
 let pickups = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   (async () => {
+    // AUTH GATE (dispatcher-only per auth.js rules)
     const auth = await requireAuth({ page: "history" });
     if (!auth?.ok) return;
 
@@ -148,6 +149,8 @@ function renderHistory({ q }) {
 
 function renderCompletedRow(p) {
   const deliveredBy = p.keys_holder || "—";
+
+  // V0.912: history should show final/frozen master time (waiting or completed)
   const masterSeconds = computeMasterSeconds(p, new Date());
   const masterLabel = formatDuration(masterSeconds);
 
@@ -175,6 +178,8 @@ function renderCompletedRow(p) {
 
 function renderOpenRow(p) {
   const deliveredBy = p.keys_holder || "—";
+
+  // V0.912: frozen time even for open snapshots (if waiting/completed exists)
   const masterSeconds = computeMasterSeconds(p, new Date());
   const masterLabel = formatDuration(masterSeconds);
 
@@ -226,7 +231,11 @@ function showTimeline(id) {
   if (p.active_started_at) lines.push("Entered Active: " + formatTime(p.active_started_at));
   if (p.keys_with_valet_at && p.keys_holder) lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
   if (p.keys_at_machine_at) lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
-  if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE") lines.push(`Wash status (${p.wash_status}): ` + formatTime(p.wash_status_at));
+
+  // keep this raw label (matches your DB values), but you can swap to humanWashStatus later
+  if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
+    lines.push(`Wash status (${p.wash_status}): ` + formatTime(p.wash_status_at));
+
   if (p.waiting_client_at) lines.push("Waiting/staged: " + formatTime(p.waiting_client_at));
   if (p.completed_at) lines.push("Completed: " + formatTime(p.completed_at));
 
@@ -248,7 +257,7 @@ function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
 
-  // Freeze master timer once waiting OR completed (history should show final time)
+  // V0.912: freeze master timer once waiting OR completed
   const endIso = p.waiting_client_at || p.completed_at || null;
   return computeSeconds(startIso, endIso, now);
 }
