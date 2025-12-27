@@ -125,9 +125,7 @@ function setupForm() {
 
     const nowIso = new Date().toISOString();
 
-    // Role-based routing for V1 screens
-    // - serviceadvisor: goes to STAGED
-    // - loancar: goes to NEW + note
+    // Base insert
     let insertData = {
       store_id: storeId,
       tag_number: tag,
@@ -137,18 +135,27 @@ function setupForm() {
       active_started_at: staged ? null : nowIso
     };
 
+    // ✅ SERVICE ADVISOR: always staged + notes always include "Service advisor request"
     if (role === "serviceadvisor") {
       insertData.status = "STAGED";
       insertData.active_started_at = null;
+
+      const baseLine = "Service advisor request";
+      const extra = window.prompt(
+        "Optional note for dispatcher (will be saved under 'Service advisor request'):",
+        ""
+      );
+
+      const extraTrimmed = (extra || "").trim();
+      insertData.notes = extraTrimmed ? `${baseLine}\n${extraTrimmed}` : baseLine;
+      insertData.notes_updated_at = nowIso;
     }
 
+    // ✅ LOAN CAR: always active pickup + note exactly "customer just arrived in loaner"
     if (role === "loancar") {
       insertData.status = "NEW";
       insertData.active_started_at = nowIso;
-      insertData.notes = `[${new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      })}] customer just arrived in loaner`;
+      insertData.notes = "customer just arrived in loaner";
       insertData.notes_updated_at = nowIso;
     }
 
