@@ -7,29 +7,47 @@
 
     <link rel="stylesheet" href="style.css?v=20251229a" />
 
-    <!-- ✅ CLICK TEST (does NOT rely on app.js) -->
+    <!-- ✅ DIAGNOSTIC BADGES (no dependency on app.js) -->
     <style>
-      #click-test {
+      #diag-wrap {
         position: fixed;
         top: 8px;
         left: 8px;
         z-index: 999999;
+        display: flex;
+        gap: 8px;
+        pointer-events: none; /* badges never block clicks */
+      }
+      .diag-badge {
         padding: 6px 10px;
         border-radius: 10px;
         font: 12px/1.2 system-ui, -apple-system, Segoe UI, sans-serif;
         border: 1px solid #60a5fa;
         background: rgba(11, 28, 58, 0.95);
         color: #dbeafe;
-        pointer-events: none; /* badge itself doesn't block clicks */
+        white-space: nowrap;
+        max-width: 70vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      #click-test b {
-        font-weight: 700;
+      .diag-badge b {
+        font-weight: 800;
         margin-left: 6px;
+      }
+      .ok {
+        border-color: #22c55e;
+        background: rgba(6, 32, 16, 0.95);
+        color: #bbf7d0;
+      }
+      .bad {
+        border-color: #ef4444;
+        background: rgba(40, 8, 8, 0.95);
+        color: #fecaca;
       }
     </style>
 
     <script>
-      // ✅ If this count never increments, clicks are not reaching the document at all.
+      // ✅ CLICK TEST: if this increments, clicks reach the document.
       window.__CLICK_COUNT__ = 0;
       document.addEventListener(
         "click",
@@ -45,13 +63,51 @@
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <!-- App logic -->
-    <script type="module" src="app.js?v=20251224a"></script>
+    <!-- ✅ APP.JS LOAD TEST (this is the key) -->
+    <script type="module">
+      const statusEl = document.getElementById("appjs-status");
+      const msgEl = document.getElementById("appjs-msg");
+
+      try {
+        // This will execute app.js. If it throws/import fails, we catch and display the reason.
+        await import("./app.js?v=20251224a");
+
+        statusEl.textContent = "APP.JS: LOADED ✅";
+        statusEl.classList.add("ok");
+      } catch (err) {
+        statusEl.textContent = "APP.JS: FAILED ❌";
+        statusEl.classList.add("bad");
+
+        // Show the most useful error string we can.
+        const text =
+          (err && (err.message || err.toString())) || "Unknown module error";
+        msgEl.textContent = text;
+        msgEl.classList.add("bad");
+
+        // Also log for console users
+        console.error("app.js import failed:", err);
+      }
+    </script>
   </head>
 
   <body class="role-dispatcher">
-    <!-- CLICK TEST BADGE -->
-    <div id="click-test">CLICK TEST <b id="click-test-count">0</b></div>
+    <!-- DIAGNOSTIC BADGES -->
+    <div id="diag-wrap">
+      <div class="diag-badge">CLICK TEST <b id="click-test-count">0</b></div>
+      <div class="diag-badge" id="appjs-status">APP.JS: LOADING…</div>
+      <div class="diag-badge" id="appjs-msg" style="display: none"></div>
+    </div>
+
+    <script>
+      // show error badge only if we set text
+      const obs = new MutationObserver(() => {
+        const msg = document.getElementById("appjs-msg");
+        if (msg && msg.textContent && msg.textContent.trim().length) {
+          msg.style.display = "block";
+        }
+      });
+      obs.observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+    </script>
 
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
@@ -192,7 +248,7 @@
             </div>
           </section>
 
-          <section class="section dispatcher-only" id="completed-section">
+          <section class="section section-completed dispatcher-only" id="completed-section">
             <div class="section-header">
               <div>
                 <div class="section-title">
@@ -203,9 +259,7 @@
                   Final time, notes, and full timeline history.
                 </div>
               </div>
-              <button type="button" class="btn small" id="toggle-completed">
-                Hide
-              </button>
+              <button type="button" class="btn small" id="toggle-completed">Hide</button>
             </div>
 
             <div class="section-completed-table">
@@ -224,9 +278,7 @@
                     </tr>
                   </thead>
                   <tbody id="completed-tbody">
-                    <tr>
-                      <td colspan="8" class="empty">No completed tickets yet.</td>
-                    </tr>
+                    <tr><td colspan="8" class="empty">No completed tickets yet.</td></tr>
                   </tbody>
                 </table>
               </div>
