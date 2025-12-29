@@ -317,6 +317,8 @@ a {
   border-width: 4px;
   border-color: #e5e7eb;
 }
+
+/* IMPORTANT: Keep the animated border behind the table */
 .section-active .table-wrapper::before {
   content: "";
   position: absolute;
@@ -337,6 +339,12 @@ a {
   pointer-events: none;
   z-index: 0;
 }
+
+.section-active .table-wrapper table {
+  position: relative;
+  z-index: 1;
+}
+
 @keyframes borderFlow {
   0% { background-position: 0% 0%; }
   50% { background-position: 100% 100%; }
@@ -390,11 +398,6 @@ tr:nth-child(even) td {
 }
 
 /* ========== TAG / CUSTOMER (FIX: NO MORE GIANT CIRCLES) ========== */
-/*
-  These classes are applied directly on <td>.
-  Styling a <td> like an inline pill breaks table layout and can render as giant circles.
-  So: keep them as normal table cells, just give them readable emphasis.
-*/
 td.cell-tag,
 td.cell-customer {
   display: table-cell;
@@ -405,8 +408,6 @@ td.cell-customer {
   color: #dbeafe;
   white-space: nowrap;
 }
-
-/* If you later wrap text in <span class="pill-blue">, it will look like the pill you want. */
 
 /* Status badge */
 .status-badge {
@@ -468,9 +469,20 @@ td.cell-customer {
 }
 
 /* ========== ROLE VISIBILITY ========== */
-body.role-dispatcher .dispatcher-only { display: initial; }
+/*
+  CRITICAL FIX:
+  Do NOT force .dispatcher-only to display: initial on dispatcher.
+  That turns block elements into inline, breaks layout, and can block clicks.
+
+  Dispatcher: show by default (no special rule).
+  Other roles: hide dispatcher-only explicitly.
+*/
+
+/* Keep table column behavior correct when .dispatcher-only is used on th/td */
 body.role-dispatcher th.dispatcher-only,
-body.role-dispatcher td.dispatcher-only { display: table-cell; }
+body.role-dispatcher td.dispatcher-only {
+  display: table-cell;
+}
 
 body.role-keymachine .dispatcher-only,
 body.role-carwash .dispatcher-only,
