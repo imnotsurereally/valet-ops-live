@@ -5,110 +5,16 @@
     <title>Valet Ops Live – Dispatcher</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css?v=20251229a" />
-
-    <!-- ✅ DIAGNOSTIC BADGES (no dependency on app.js) -->
-    <style>
-      #diag-wrap {
-        position: fixed;
-        top: 8px;
-        left: 8px;
-        z-index: 999999;
-        display: flex;
-        gap: 8px;
-        pointer-events: none; /* badges never block clicks */
-      }
-      .diag-badge {
-        padding: 6px 10px;
-        border-radius: 10px;
-        font: 12px/1.2 system-ui, -apple-system, Segoe UI, sans-serif;
-        border: 1px solid #60a5fa;
-        background: rgba(11, 28, 58, 0.95);
-        color: #dbeafe;
-        white-space: nowrap;
-        max-width: 70vw;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .diag-badge b {
-        font-weight: 800;
-        margin-left: 6px;
-      }
-      .ok {
-        border-color: #22c55e;
-        background: rgba(6, 32, 16, 0.95);
-        color: #bbf7d0;
-      }
-      .bad {
-        border-color: #ef4444;
-        background: rgba(40, 8, 8, 0.95);
-        color: #fecaca;
-      }
-    </style>
-
-    <script>
-      // ✅ CLICK TEST: if this increments, clicks reach the document.
-      window.__CLICK_COUNT__ = 0;
-      document.addEventListener(
-        "click",
-        function () {
-          window.__CLICK_COUNT__++;
-          var el = document.getElementById("click-test-count");
-          if (el) el.textContent = String(window.__CLICK_COUNT__);
-        },
-        true
-      );
-    </script>
+    <link rel="stylesheet" href="style.css" />
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <!-- ✅ APP.JS LOAD TEST (this is the key) -->
-    <script type="module">
-      const statusEl = document.getElementById("appjs-status");
-      const msgEl = document.getElementById("appjs-msg");
-
-      try {
-        // This will execute app.js. If it throws/import fails, we catch and display the reason.
-        await import("./app.js?v=20251224a");
-
-        statusEl.textContent = "APP.JS: LOADED ✅";
-        statusEl.classList.add("ok");
-      } catch (err) {
-        statusEl.textContent = "APP.JS: FAILED ❌";
-        statusEl.classList.add("bad");
-
-        // Show the most useful error string we can.
-        const text =
-          (err && (err.message || err.toString())) || "Unknown module error";
-        msgEl.textContent = text;
-        msgEl.classList.add("bad");
-
-        // Also log for console users
-        console.error("app.js import failed:", err);
-      }
-    </script>
+    <!-- App logic (cache-bust so GH Pages doesn’t serve stale app.js) -->
+    <script type="module" src="app.js?v=20251224a"></script>
   </head>
 
   <body class="role-dispatcher">
-    <!-- DIAGNOSTIC BADGES -->
-    <div id="diag-wrap">
-      <div class="diag-badge">CLICK TEST <b id="click-test-count">0</b></div>
-      <div class="diag-badge" id="appjs-status">APP.JS: LOADING…</div>
-      <div class="diag-badge" id="appjs-msg" style="display: none"></div>
-    </div>
-
-    <script>
-      // show error badge only if we set text
-      const obs = new MutationObserver(() => {
-        const msg = document.getElementById("appjs-msg");
-        if (msg && msg.textContent && msg.textContent.trim().length) {
-          msg.style.display = "block";
-        }
-      });
-      obs.observe(document.documentElement, { subtree: true, childList: true, characterData: true });
-    </script>
-
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
     <div class="app-shell">
@@ -128,6 +34,7 @@
 
           <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
 
+          <!-- Sign out (wired by app.js -> wireSignOut()) -->
           <button id="signout-btn" class="btn small">Sign out</button>
 
           <div class="role-pill">Dispatcher</div>
@@ -135,6 +42,7 @@
       </header>
 
       <main class="app-main layout-grid">
+        <!-- Left column: staged / non-urgent -->
         <div class="layout-left dispatcher-only">
           <section class="section section-staged">
             <div class="section-header">
@@ -167,7 +75,9 @@
           </section>
         </div>
 
+        <!-- Center column: form + active + waiting + completed -->
         <div class="layout-center">
+          <!-- New pickup form -->
           <section class="section dispatcher-only">
             <div class="section-header">
               <div>
@@ -214,6 +124,7 @@
             </form>
           </section>
 
+          <!-- Active pickups -->
           <section class="section section-active">
             <div class="section-header">
               <div>
@@ -248,6 +159,41 @@
             </div>
           </section>
 
+          <!-- Waiting / staged for customer -->
+          <section class="section dispatcher-only">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Waiting/staged for customer
+                  <span class="section-count" id="count-waiting">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Keys secure, car ready – now waiting on pick up.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Delivered by</th>
+                    <th>Staged Time</th>
+                    <th>Master Time</th>
+                    <th>Notes</th>
+                    <th>Customer Picked Up</th>
+                  </tr>
+                </thead>
+                <tbody id="waiting-tbody">
+                  <tr><td colspan="7" class="empty">None currently waiting.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Completed -->
           <section class="section section-completed dispatcher-only" id="completed-section">
             <div class="section-header">
               <div>
@@ -286,6 +232,7 @@
           </section>
         </div>
 
+        <!-- Right column: metrics -->
         <aside class="layout-right dispatcher-only">
           <section class="section section-metrics">
             <div class="section-header">
