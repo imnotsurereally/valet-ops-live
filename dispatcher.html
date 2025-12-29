@@ -10,7 +10,10 @@
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <!-- App logic (cache-bust so GH Pages doesn’t serve stale app.js) -->
+    <!-- ✅ Debug Harness (NO-OP unless enabled with ?debug=1) -->
+    <script type="module" src="debugHarness.js?v=20251228a"></script>
+
+    <!-- App logic (cache-bust) -->
     <script type="module" src="app.js?v=20251224a"></script>
   </head>
 
@@ -24,9 +27,14 @@
           alt="Optima Dealer Services"
           class="logo"
         />
+
         <div class="titles">
           <div class="brand">Optima Dealer Services</div>
           <div class="subtitle">Dispatcher – Live Valet Operations</div>
+          <!-- ✅ Always-visible build/version stamp -->
+          <div id="build-stamp" style="font-size:0.7rem;color:#9ca3af;margin-top:0.15rem;">
+            Build: (loading…)
+          </div>
         </div>
 
         <div class="header-right">
@@ -34,7 +42,6 @@
 
           <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
 
-          <!-- Sign out (wired by app.js -> wireSignOut()) -->
           <button id="signout-btn" class="btn small">Sign out</button>
 
           <div class="role-pill">Dispatcher</div>
@@ -75,7 +82,7 @@
           </section>
         </div>
 
-        <!-- Center column: form + active + waiting + completed -->
+        <!-- Center column -->
         <div class="layout-center">
           <!-- New pickup form -->
           <section class="section dispatcher-only">
