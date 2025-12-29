@@ -1,9 +1,5 @@
-// app.js (FULL FILE REPLACEMENT) — V0.913
+// app.js  (FULL FILE REPLACEMENT) — V0.912
 // Requires: ./supabaseClient.js  +  ./auth.js (requireAuth / wireSignOut)
-//
-// Purpose of this version:
-// ✅ Fix "nothing is clickable" bugs by using a document-level click handler that
-//    can click-through invisible overlays.
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
@@ -19,11 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     // AUTH GATE (hard lock)
     const auth = await requireAuth({ page: pageKeyFromPath() });
-    if (!auth?.ok) return;
+    if (!auth?.ok) return; // redirected or blocked
 
     storeId = auth?.profile?.store_id || null;
 
-    // Determine screen role from body class
+    // Set role (screen role) from body class
     if (document.body.classList.contains("role-keymachine")) role = "keymachine";
     else if (document.body.classList.contains("role-carwash")) role = "carwash";
     else if (document.body.classList.contains("role-wallboard")) role = "wallboard";
@@ -31,43 +27,22 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (document.body.classList.contains("role-loancar")) role = "loancar";
     else role = "dispatcher";
 
+    // Optional sign-out support if a button exists (id="signout-btn")
     wireSignOut();
 
     setupForm();
+    setupTableActions();
     setupCompletedToggle();
     setupPqiToggle();
     loadUIState();
 
-    // ✅ This is the main fix:
-    // Instead of attaching click listeners only to tbody,
-    // capture all clicks at the document level and resolve the real button under overlays.
-    setupGlobalClickThroughActions();
-
     await loadPickups();
     subscribeRealtime();
 
-    // Timers tick every 15s
+    // Timers tick in 15s intervals
     setInterval(() => renderTables(true), 15 * 1000);
   })();
 });
-
-/* ---------- ROUTING / PAGE KEY ---------- */
-
-function pageKeyFromPath() {
-  const file = ((window.location.pathname || "").split("/").pop() || "").toLowerCase();
-  const map = {
-    "index.html": "home",
-    "dispatcher.html": "dispatcher",
-    "keymachine.html": "keymachine",
-    "carwash.html": "carwash",
-    "serviceadvisor.html": "serviceadvisor",
-    "loancar.html": "loancar",
-    "wallboard.html": "wallboard",
-    "history.html": "history",
-    "login.html": "login"
-  };
-  return map[file] || null;
-}
 
 /* ---------- UI STATE (completed collapse + PQI) ---------- */
 
@@ -95,8 +70,11 @@ function loadUIState() {
 
 function saveUIState() {
   const section = document.getElementById("completed-section");
-  const completedCollapsed = !!(section && section.classList.contains("completed-collapsed"));
+  const completedCollapsed = !!(
+    section && section.classList.contains("completed-collapsed")
+  );
   const state = { completedCollapsed, pqiEnabled };
+
   try {
     localStorage.setItem("valetOpsState", JSON.stringify(state));
   } catch {}
@@ -135,7 +113,6 @@ function setupForm() {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const tagInput = document.getElementById("tag-number");
     const nameInput = document.getElementById("customer-name");
     const stageCheckbox = document.getElementById("stage-only");
@@ -148,6 +125,7 @@ function setupForm() {
 
     const nowIso = new Date().toISOString();
 
+    // Base insert
     let insertData = {
       store_id: storeId,
       tag_number: tag,
@@ -157,7 +135,10 @@ function setupForm() {
       active_started_at: staged ? null : nowIso
     };
 
-    // serviceadvisor rules
+    // ✅ V0.912: SERVICE ADVISOR
+    // - always staged
+    // - notes always start with: "Service advisor request"
+    // - allow advisor to add/edit the "original note" at creation time
     if (role === "serviceadvisor") {
       insertData.status = "STAGED";
       insertData.active_started_at = null;
@@ -167,12 +148,15 @@ function setupForm() {
         "Optional note for dispatcher (saved under 'Service advisor request'):",
         ""
       );
+
       const extraTrimmed = (extra || "").trim();
       insertData.notes = extraTrimmed ? `${baseLine}\n${extraTrimmed}` : baseLine;
       insertData.notes_updated_at = nowIso;
     }
 
-    // loancar rules
+    // ✅ V0.912: LOAN CAR
+    // - always active pickup
+    // - note exactly: "customer just arrived in loaner"
     if (role === "loancar") {
       insertData.status = "NEW";
       insertData.active_started_at = nowIso;
@@ -194,6 +178,197 @@ function setupForm() {
   });
 }
 
+/* ---------- TABLE ACTIONS ---------- */
+
+function setupTableActions() {
+  ["active-tbody", "staged-tbody", "waiting-tbody", "completed-tbody"].forEach(
+    (id) => {
+      const tbody = document.getElementById(id);
+      if (!tbody) return;
+      tbody.addEventListener("click", onTableClick);
+    }
+  );
+}
+
+function onTableClick(e) {
+  const btn = e.target.closest("[data-action]");
+  if (!btn) return;
+
+  // ✅ HARD READ-ONLY: wallboard can never trigger actions
+  if (role === "wallboard") return;
+
+  // V0.912: service advisor + loan car can only add notes (no status changes)
+  if (role === "serviceadvisor" || role === "loancar") {
+    const action = btn.getAttribute("data-action");
+    if (action !== "edit-note") return;
+  }
+
+  const id = btn.getAttribute("data-id");
+  const action = btn.getAttribute("data-action");
+  if (!id || !action) return;
+  handleAction(id, action);
+}
+
+async function handleAction(id, action) {
+  // ✅ DOUBLE LOCK: even if a click slips through, wallboard can never mutate data
+  if (role === "wallboard") return;
+
+  const now = new Date().toISOString();
+  const updates = {};
+
+  switch (action) {
+    /* --- move staged -> active: start master time here --- */
+    case "activate-from-staged":
+      updates.status = "NEW";
+      updates.active_started_at = now;
+      break;
+
+    /* --- status/location & key machine --- */
+    case "keys-machine":
+      updates.status = "KEYS_IN_MACHINE";
+      updates.keys_holder = "KEY_MACHINE";
+      updates.keys_at_machine_at = now;
+      break;
+
+    case "car-wash-area":
+      updates.wash_status = "IN_WASH_AREA";
+      updates.wash_status_at = now;
+      break;
+
+    case "car-red-line":
+      updates.wash_status = "ON_RED_LINE";
+      updates.wash_status_at = now;
+      break;
+
+    case "wash-rewash":
+      updates.wash_status = "REWASH";
+      updates.wash_status_at = now;
+      break;
+
+    case "wash-needs-rewash":
+      updates.wash_status = "NEEDS_REWASH";
+      updates.wash_status_at = now;
+      break;
+
+    case "wash-dusty":
+      updates.wash_status = "DUSTY";
+      updates.wash_status_at = now;
+      break;
+
+    /* --- valets --- */
+    case "with-fernando":
+      setValetUpdates(updates, "Fernando", now);
+      break;
+    case "with-juan":
+      setValetUpdates(updates, "Juan", now);
+      break;
+    case "with-miguel":
+      setValetUpdates(updates, "Miguel", now);
+      break;
+    case "with-maria":
+      setValetUpdates(updates, "Maria", now);
+      break;
+    case "with-helper":
+      setValetUpdates(updates, "Helper", now);
+      break;
+
+    /* --- move to waiting/staged for customer: freeze master timer --- */
+    case "waiting-customer":
+      updates.status = "WAITING_FOR_CUSTOMER";
+      updates.waiting_client_at = now;
+      break;
+
+    /* --- customer picked up -> complete --- */
+    case "customer-picked-up":
+      updates.status = "COMPLETE";
+      updates.completed_at = now;
+      break;
+
+    /* --- notes: append history, do not erase --- */
+    case "edit-note": {
+      const current = pickups.find((p) => String(p.id) === String(id));
+      const existing = current?.notes || "";
+      const promptText = existing
+        ? "Add new note (previous notes stay on record):\n\n" +
+          existing +
+          "\n\nNew note:"
+        : "Add note:";
+      const newNote = window.prompt(promptText, "");
+      if (newNote === null) return;
+      const trimmed = newNote.trim();
+      if (!trimmed) return;
+
+      const stamp = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const line = `[${stamp}] ${trimmed}`;
+      const combined = existing ? existing + "\n" + line : line;
+
+      updates.notes = combined;
+      updates.notes_updated_at = now;
+      break;
+    }
+
+    /* --- timeline view --- */
+    case "view-timeline": {
+      const p = pickups.find((pk) => String(pk.id) === String(id));
+      if (!p) return;
+      const lines = [];
+      lines.push(`Ticket ${p.tag_number} – ${p.customer_name}`);
+      lines.push("--------------------------------");
+
+      if (p.created_at) lines.push("Created: " + formatTime(p.created_at));
+      if (p.active_started_at)
+        lines.push("Entered Active Pickups: " + formatTime(p.active_started_at));
+      if (p.keys_with_valet_at && p.keys_holder)
+        lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
+      if (p.keys_at_machine_at)
+        lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
+      if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
+        lines.push(
+          `Wash status (${humanWashStatus(p.wash_status)}): ` +
+            formatTime(p.wash_status_at)
+        );
+      if (p.waiting_client_at)
+        lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
+      if (p.completed_at) lines.push("Completed: " + formatTime(p.completed_at));
+
+      const masterSeconds = computeMasterSeconds(p, new Date());
+      lines.push("Master cycle (Active box in/out): " + formatDuration(masterSeconds));
+
+      if (p.notes) {
+        lines.push("");
+        lines.push("Notes history:");
+        p.notes.split("\n").forEach((n) => lines.push("• " + n));
+      }
+
+      alert(lines.join("\n"));
+      return;
+    }
+
+    default:
+      return;
+  }
+
+  if (Object.keys(updates).length === 0) return;
+
+  // Store scoped update (RLS enforces too)
+  const { error } = await supabase.from("pickups").update(updates).eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("Error saving update. Check console.");
+  }
+}
+
+function setValetUpdates(updates, name, nowIso) {
+  updates.status = "KEYS_WITH_VALET";
+  updates.keys_holder = name;
+  updates.keys_with_valet_at = nowIso;
+}
+
 /* ---------- COMPLETED COLLAPSE ---------- */
 
 function setupCompletedToggle() {
@@ -208,97 +383,13 @@ function setupCompletedToggle() {
   });
 }
 
-/* ---------- CLICK-THROUGH ACTION HANDLER (MAIN FIX) ---------- */
-
-function setupGlobalClickThroughActions() {
-  // Capture clicks early so overlays don't break the app.
-  document.addEventListener(
-    "click",
-    (e) => {
-      // wallboard is hard read-only
-      if (role === "wallboard") return;
-
-      // Try normal path first
-      const directBtn = closestActionButton(e.target);
-      if (directBtn) {
-        triggerActionButton(directBtn);
-        return;
-      }
-
-      // If nothing found, try click-through probing under the cursor
-      const btnUnder = findActionButtonUnderPoint(e.clientX, e.clientY);
-      if (btnUnder) {
-        triggerActionButton(btnUnder);
-      }
-    },
-    true // capture phase
-  );
-}
-
-function closestActionButton(node) {
-  if (!node) return null;
-  if (typeof node.closest !== "function") return null;
-  return node.closest("[data-action][data-id], #toggle-completed");
-}
-
-function triggerActionButton(btn) {
-  // Completed toggle is not a data-action button
-  if (btn.id === "toggle-completed") {
-    btn.click();
-    return;
-  }
-
-  const action = btn.getAttribute("data-action");
-  const id = btn.getAttribute("data-id");
-  if (!action || !id) return;
-
-  // serviceadvisor + loancar can only add notes
-  if (role === "serviceadvisor" || role === "loancar") {
-    if (action !== "edit-note") return;
-  }
-
-  handleAction(id, action);
-}
-
-// This defeats invisible overlays by temporarily disabling pointer events
-// on whatever element is on top until we discover the underlying action button.
-function findActionButtonUnderPoint(x, y) {
-  const disabled = [];
-  let found = null;
-
-  for (let i = 0; i < 10; i++) {
-    const el = document.elementFromPoint(x, y);
-    if (!el) break;
-
-    // If we hit an action button (or inside it), great
-    const btn = closestActionButton(el);
-    if (btn && (btn.id === "toggle-completed" || (btn.getAttribute("data-action") && btn.getAttribute("data-id")))) {
-      found = btn;
-      break;
-    }
-
-    // If we are not hitting anything actionable, disable this top element and keep looking
-    // (this is restored immediately after loop)
-    disabled.push(el);
-    try {
-      el.style.pointerEvents = "none";
-    } catch {}
-  }
-
-  // restore
-  disabled.forEach((el) => {
-    try {
-      el.style.pointerEvents = "";
-    } catch {}
-  });
-
-  return found;
-}
-
 /* ---------- DATA + REALTIME ---------- */
 
 async function loadPickups() {
-  let q = supabase.from("pickups").select("*").order("created_at", { ascending: false });
+  let q = supabase.from("pickups").select("*").order("created_at", {
+    ascending: false
+  });
+
   if (storeId) q = q.eq("store_id", storeId);
 
   const { data, error } = await q;
@@ -315,7 +406,9 @@ async function loadPickups() {
 function subscribeRealtime() {
   supabase
     .from("pickups")
-    .on("*", () => loadPickups())
+    .on("*", () => {
+      loadPickups();
+    })
     .subscribe();
 }
 
@@ -326,12 +419,15 @@ function renderTables(isTimerTick) {
 
   const staged = pickups.filter((p) => p.status === "STAGED");
   const active = pickups.filter(
-    (p) => p.status !== "STAGED" && p.status !== "WAITING_FOR_CUSTOMER" && p.status !== "COMPLETE"
+    (p) =>
+      p.status !== "STAGED" &&
+      p.status !== "WAITING_FOR_CUSTOMER" &&
+      p.status !== "COMPLETE"
   );
   const waiting = pickups.filter((p) => p.status === "WAITING_FOR_CUSTOMER");
   const completed = pickups.filter((p) => p.status === "COMPLETE").slice(0, 50);
 
-  // oldest first in active
+  // Oldest first in active box
   active.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
   setCount("count-staged", staged.length);
@@ -416,8 +512,10 @@ function renderActiveRow(p, now) {
   const masterLabel = formatDuration(masterSeconds);
 
   const valetSeconds = computeValetSeconds(p, now);
-  const valetClass = valetSeconds != null ? timerClass(computeSeverity(valetSeconds)) : "";
-  const valetLabelTime = valetSeconds != null ? formatDuration(valetSeconds) : "–";
+  const valetClass =
+    valetSeconds != null ? timerClass(computeSeverity(valetSeconds)) : "";
+  const valetLabelTime =
+    valetSeconds != null ? formatDuration(valetSeconds) : "–";
 
   const currentWash = p.wash_status || "NONE";
   const currentValet = p.keys_holder || "";
@@ -529,8 +627,10 @@ function renderActiveRowWallboard(p, now) {
   const masterLabel = formatDuration(masterSeconds);
 
   const valetSeconds = computeValetSeconds(p, now);
-  const valetClass = valetSeconds != null ? timerClass(computeSeverity(valetSeconds)) : "";
-  const valetLabelTime = valetSeconds != null ? formatDuration(valetSeconds) : "–";
+  const valetClass =
+    valetSeconds != null ? timerClass(computeSeverity(valetSeconds)) : "";
+  const valetLabelTime =
+    valetSeconds != null ? formatDuration(valetSeconds) : "–";
 
   const statusLabel = humanStatus(p);
   const deliveredBy = p.keys_holder ? `Keys with ${p.keys_holder}` : "—";
@@ -550,7 +650,11 @@ function renderActiveRowWallboard(p, now) {
 function renderWaitingRow(p, now) {
   if (role === "wallboard") {
     const deliveredBy = p.keys_holder || "—";
-    const waitingSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
+    const waitingSeconds = computeSeconds(
+      p.waiting_client_at,
+      p.completed_at,
+      now
+    );
     const waitingClass = timerClass(computeSeverity(waitingSeconds));
     const waitingLabel = formatDuration(waitingSeconds);
 
@@ -617,7 +721,11 @@ function renderCompletedRow(p, now) {
       <td>${formatTime(p.completed_at)}</td>
       <td>
         ${lastNote ? escapeHtml(lastNote) : ""}
-        ${prevNotes.length ? "<br>" + prevNotes.map((n) => escapeHtml(n)).join("<br>") : ""}
+        ${
+          prevNotes.length
+            ? "<br>" + prevNotes.map((n) => escapeHtml(n)).join("<br>")
+            : ""
+        }
       </td>
       <td>
         <button class="btn small" data-action="view-timeline" data-id="${p.id}">
@@ -626,148 +734,6 @@ function renderCompletedRow(p, now) {
       </td>
     </tr>
   `;
-}
-
-/* ---------- ACTIONS ---------- */
-
-async function handleAction(id, action) {
-  if (role === "wallboard") return;
-
-  const now = new Date().toISOString();
-  const updates = {};
-
-  switch (action) {
-    case "activate-from-staged":
-      updates.status = "NEW";
-      updates.active_started_at = now;
-      break;
-
-    case "keys-machine":
-      updates.status = "KEYS_IN_MACHINE";
-      updates.keys_holder = "KEY_MACHINE";
-      updates.keys_at_machine_at = now;
-      break;
-
-    case "car-wash-area":
-      updates.wash_status = "IN_WASH_AREA";
-      updates.wash_status_at = now;
-      break;
-
-    case "car-red-line":
-      updates.wash_status = "ON_RED_LINE";
-      updates.wash_status_at = now;
-      break;
-
-    case "wash-rewash":
-      updates.wash_status = "REWASH";
-      updates.wash_status_at = now;
-      break;
-
-    case "wash-needs-rewash":
-      updates.wash_status = "NEEDS_REWASH";
-      updates.wash_status_at = now;
-      break;
-
-    case "wash-dusty":
-      updates.wash_status = "DUSTY";
-      updates.wash_status_at = now;
-      break;
-
-    case "with-fernando":
-      setValetUpdates(updates, "Fernando", now);
-      break;
-    case "with-juan":
-      setValetUpdates(updates, "Juan", now);
-      break;
-    case "with-miguel":
-      setValetUpdates(updates, "Miguel", now);
-      break;
-    case "with-maria":
-      setValetUpdates(updates, "Maria", now);
-      break;
-    case "with-helper":
-      setValetUpdates(updates, "Helper", now);
-      break;
-
-    case "waiting-customer":
-      updates.status = "WAITING_FOR_CUSTOMER";
-      updates.waiting_client_at = now;
-      break;
-
-    case "customer-picked-up":
-      updates.status = "COMPLETE";
-      updates.completed_at = now;
-      break;
-
-    case "edit-note": {
-      const current = pickups.find((p) => String(p.id) === String(id));
-      const existing = current?.notes || "";
-      const promptText = existing
-        ? "Add new note (previous notes stay on record):\n\n" + existing + "\n\nNew note:"
-        : "Add note:";
-      const newNote = window.prompt(promptText, "");
-      if (newNote === null) return;
-      const trimmed = newNote.trim();
-      if (!trimmed) return;
-
-      const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      const line = `[${stamp}] ${trimmed}`;
-      const combined = existing ? existing + "\n" + line : line;
-
-      updates.notes = combined;
-      updates.notes_updated_at = now;
-      break;
-    }
-
-    case "view-timeline": {
-      const p = pickups.find((pk) => String(pk.id) === String(id));
-      if (!p) return;
-
-      const lines = [];
-      lines.push(`Ticket ${p.tag_number} – ${p.customer_name}`);
-      lines.push("--------------------------------");
-
-      if (p.created_at) lines.push("Created: " + formatTime(p.created_at));
-      if (p.active_started_at) lines.push("Entered Active Pickups: " + formatTime(p.active_started_at));
-      if (p.keys_with_valet_at && p.keys_holder)
-        lines.push(`Keys with ${p.keys_holder}: ` + formatTime(p.keys_with_valet_at));
-      if (p.keys_at_machine_at) lines.push("Keys in key machine: " + formatTime(p.keys_at_machine_at));
-      if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
-        lines.push(`Wash status (${humanWashStatus(p.wash_status)}): ` + formatTime(p.wash_status_at));
-      if (p.waiting_client_at) lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
-      if (p.completed_at) lines.push("Completed: " + formatTime(p.completed_at));
-
-      const masterSeconds = computeMasterSeconds(p, new Date());
-      lines.push("Master cycle (Active box in/out): " + formatDuration(masterSeconds));
-
-      if (p.notes) {
-        lines.push("");
-        lines.push("Notes history:");
-        p.notes.split("\n").forEach((n) => lines.push("• " + n));
-      }
-
-      alert(lines.join("\n"));
-      return;
-    }
-
-    default:
-      return;
-  }
-
-  if (Object.keys(updates).length === 0) return;
-
-  const { error } = await supabase.from("pickups").update(updates).eq("id", id);
-
-  if (error) {
-    console.error(error);
-    alert("Error saving update. Check console.");
-  }
-}
-
-function setValetUpdates(updates, name, nowIso) {
-  updates.status = "KEYS_WITH_VALET";
-  updates.keys_holder = name;
-  updates.keys_with_valet_at = nowIso;
 }
 
 /* ---------- METRICS ---------- */
@@ -780,7 +746,15 @@ function renderMetrics(active, waiting, completed, now) {
   const redlineCountEl = document.getElementById("metrics-redline-count");
   const valetsEl = document.getElementById("metrics-valets");
 
-  if (!completedTodayEl || !avgCycleEl || !activeCountEl || !waitingCountEl || !redlineCountEl || !valetsEl) return;
+  if (
+    !completedTodayEl ||
+    !avgCycleEl ||
+    !activeCountEl ||
+    !waitingCountEl ||
+    !redlineCountEl ||
+    !valetsEl
+  )
+    return;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -821,7 +795,9 @@ function renderMetrics(active, waiting, completed, now) {
 
   pickups.forEach((p) => {
     if (!p.keys_holder) return;
-    if (valetCounts[p.keys_holder] === undefined) valetCounts[p.keys_holder] = 0;
+    if (valetCounts[p.keys_holder] === undefined) {
+      valetCounts[p.keys_holder] = 0;
+    }
     valetCounts[p.keys_holder] += 1;
   });
 
@@ -889,65 +865,102 @@ function humanWashStatus(wash_status) {
       return "Needs rewash";
     case "DUSTY":
       return "Dusty";
+    case "NONE":
     default:
-      return "—";
+      return "Not set";
   }
+}
+
+function computeMasterSeconds(p, now) {
+  const startIso = p.active_started_at || p.created_at;
+  if (!startIso) return 0;
+  const endIso = p.waiting_client_at || null;
+  return computeSeconds(startIso, endIso, now);
+}
+
+function computeValetSeconds(p, now) {
+  if (!p.keys_with_valet_at) return null;
+  const startIso = p.keys_with_valet_at;
+  const endIso =
+    p.keys_at_machine_at || p.waiting_client_at || p.completed_at || null;
+  return computeSeconds(startIso, endIso, now);
 }
 
 function computeSeconds(startIso, endIso, now) {
   if (!startIso) return 0;
   const start = new Date(startIso);
-  const end = endIso ? new Date(endIso) : now;
-  return Math.max(0, (end - start) / 1000);
-}
-
-function computeMasterSeconds(p, now) {
-  // Master time: from entering Active Pickups until moved to waiting OR complete
-  // If active_started_at missing, fall back to created_at
-  const start = p.active_started_at || p.created_at;
-  const end = p.waiting_client_at || p.completed_at || null;
-  return computeSeconds(start, end, now);
-}
-
-function computeValetSeconds(p, now) {
-  // Valet timer = from keys_with_valet_at if present else null
-  if (!p.keys_with_valet_at) return null;
-  return computeSeconds(p.keys_with_valet_at, null, now);
+  let end = endIso ? new Date(endIso) : now;
+  if (end < start) end = now;
+  const diffMs = end - start;
+  if (Number.isNaN(diffMs) || diffMs < 0) return 0;
+  return diffMs / 1000;
 }
 
 function computeSeverity(seconds) {
-  // Simple buckets (tweak as needed)
-  if (seconds >= 45 * 60) return "red";
-  if (seconds >= 30 * 60) return "orange";
-  if (seconds >= 15 * 60) return "yellow";
+  const minutes = seconds / 60;
+  if (minutes >= 25) return "red";
+  if (minutes >= 20) return "orange";
+  if (minutes >= 10) return "yellow";
   return "green";
 }
 
-function timerClass(sev) {
-  return `timer-${sev}`;
+function timerClass(severity) {
+  switch (severity) {
+    case "yellow":
+      return "timer-yellow";
+    case "orange":
+      return "timer-orange";
+    case "red":
+      return "timer-red";
+    case "green":
+    default:
+      return "timer-green";
+  }
 }
 
 function formatDuration(seconds) {
-  const s = Math.max(0, Math.floor(seconds));
-  const m = Math.floor(s / 60);
-  const r = s % 60;
-  const mm = String(m).padStart(2, "0");
-  const rr = String(r).padStart(2, "0");
-  return `${mm}:${rr}`;
+  if (!seconds || seconds < 0) seconds = 0;
+  const snapped = Math.round(seconds / 15) * 15;
+  const mins = Math.floor(snapped / 60);
+  const secs = snapped % 60;
+  return `${mins}m ${secs.toString().padStart(2, "0")}s`;
 }
 
 function formatTime(iso) {
-  if (!iso) return "—";
+  if (!iso) return "";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return (
+    d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
+    " " +
+    d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+  );
 }
 
 function escapeHtml(str) {
-  return String(str || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function pageKeyFromPath() {
+  const path = (window.location.pathname || "").split("/").pop() || "";
+  const file = path.toLowerCase();
+
+  const map = {
+    "dispatcher.html": "dispatcher",
+    "keymachine.html": "keymachine",
+    "carwash.html": "carwash",
+    "serviceadvisor.html": "serviceadvisor",
+    "loancar.html": "loancar",
+    "wallboard.html": "wallboard",
+    "history.html": "history",
+    "login.html": "login",
+    // V0.912: index/home is not an employee destination. Still map it safely.
+    "index.html": "home"
+  };
+
+  return map[file] || null;
 }
