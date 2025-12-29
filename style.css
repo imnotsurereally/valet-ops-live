@@ -170,8 +170,8 @@ a {
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  pointer-events: auto; /* ensure clickable */
 }
+
 .btn:hover {
   background: #f5f5f5;
   color: #050608;
@@ -311,33 +311,35 @@ a {
   border: 1px solid #181820;
   overflow-y: auto;
   position: relative;
-  z-index: 0;
+  isolation: isolate; /* prevents any overlay/pseudo from leaking into click layering */
 }
 
-/* ✅ CLICK-DEAD HOTFIX (the real fix):
-   If ANY pseudo-element/overlay exists (from old CSS or experiments),
-   it must NEVER intercept clicks. */
+/* HARD SAFETY: any wrapper pseudo-element must never intercept clicks */
 .table-wrapper::before,
 .table-wrapper::after {
   pointer-events: none !important;
 }
 
-/* Force all interactive content inside tables to be clickable */
-.table-wrapper,
-.table-wrapper * {
-  pointer-events: auto;
-}
-
-/* Optional: thicker border around Active pickups wrapper */
+/* Active Pickups highlight — SAFE VERSION (no overlay pseudo-element) */
 .section-active .table-wrapper {
   border-width: 2px;
   border-color: #e5e7eb;
+  animation: activeGlow 3.2s linear infinite;
 }
 
-/* Ensure the actual table sits above any wrapper effects */
-.table-wrapper table {
-  position: relative;
-  z-index: 2;
+@keyframes activeGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 231, 235, 0.55),
+      0 0 18px 2px rgba(148, 163, 184, 0.10);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(229, 231, 235, 0.85),
+      0 0 26px 5px rgba(148, 163, 184, 0.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 231, 235, 0.55),
+      0 0 18px 2px rgba(148, 163, 184, 0.10);
+  }
 }
 
 .table-wrapper.small {
