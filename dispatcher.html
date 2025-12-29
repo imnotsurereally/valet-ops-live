@@ -7,14 +7,52 @@
 
     <link rel="stylesheet" href="style.css?v=20251229a" />
 
+    <!-- ✅ CLICK TEST (does NOT rely on app.js) -->
+    <style>
+      #click-test {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        z-index: 999999;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font: 12px/1.2 system-ui, -apple-system, Segoe UI, sans-serif;
+        border: 1px solid #60a5fa;
+        background: rgba(11, 28, 58, 0.95);
+        color: #dbeafe;
+        pointer-events: none; /* badge itself doesn't block clicks */
+      }
+      #click-test b {
+        font-weight: 700;
+        margin-left: 6px;
+      }
+    </style>
+
+    <script>
+      // ✅ If this count never increments, clicks are not reaching the document at all.
+      window.__CLICK_COUNT__ = 0;
+      document.addEventListener(
+        "click",
+        function () {
+          window.__CLICK_COUNT__++;
+          var el = document.getElementById("click-test-count");
+          if (el) el.textContent = String(window.__CLICK_COUNT__);
+        },
+        true
+      );
+    </script>
+
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <!-- App logic (cache-bust so GH Pages doesn’t serve stale app.js) -->
+    <!-- App logic -->
     <script type="module" src="app.js?v=20251224a"></script>
   </head>
 
   <body class="role-dispatcher">
+    <!-- CLICK TEST BADGE -->
+    <div id="click-test">CLICK TEST <b id="click-test-count">0</b></div>
+
     <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
     <div class="app-shell">
@@ -34,7 +72,6 @@
 
           <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
 
-          <!-- Sign out (wired by app.js -> wireSignOut()) -->
           <button id="signout-btn" class="btn small">Sign out</button>
 
           <div class="role-pill">Dispatcher</div>
@@ -42,7 +79,6 @@
       </header>
 
       <main class="app-main layout-grid">
-        <!-- Left column: staged / non-urgent -->
         <div class="layout-left dispatcher-only">
           <section class="section section-staged">
             <div class="section-header">
@@ -75,9 +111,7 @@
           </section>
         </div>
 
-        <!-- Center column: form + active + waiting + completed -->
         <div class="layout-center">
-          <!-- New pickup form -->
           <section class="section dispatcher-only">
             <div class="section-header">
               <div>
@@ -124,7 +158,6 @@
             </form>
           </section>
 
-          <!-- Active pickups -->
           <section class="section section-active">
             <div class="section-header">
               <div>
@@ -159,42 +192,7 @@
             </div>
           </section>
 
-          <!-- Waiting / staged for customer -->
-          <section class="section dispatcher-only">
-            <div class="section-header">
-              <div>
-                <div class="section-title">
-                  Waiting/staged for customer
-                  <span class="section-count" id="count-waiting">0</span>
-                </div>
-                <div class="section-subtitle">
-                  Keys secure, car ready – now waiting on pick up.
-                </div>
-              </div>
-            </div>
-
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tag #</th>
-                    <th>Customer</th>
-                    <th>Delivered by</th>
-                    <th>Staged Time</th>
-                    <th>Master Time</th>
-                    <th>Notes</th>
-                    <th>Customer Picked Up</th>
-                  </tr>
-                </thead>
-                <tbody id="waiting-tbody">
-                  <tr><td colspan="7" class="empty">None currently waiting.</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <!-- Completed -->
-          <section class="section section-completed dispatcher-only" id="completed-section">
+          <section class="section dispatcher-only" id="completed-section">
             <div class="section-header">
               <div>
                 <div class="section-title">
@@ -205,7 +203,9 @@
                   Final time, notes, and full timeline history.
                 </div>
               </div>
-              <button type="button" class="btn small" id="toggle-completed">Hide</button>
+              <button type="button" class="btn small" id="toggle-completed">
+                Hide
+              </button>
             </div>
 
             <div class="section-completed-table">
@@ -224,7 +224,9 @@
                     </tr>
                   </thead>
                   <tbody id="completed-tbody">
-                    <tr><td colspan="8" class="empty">No completed tickets yet.</td></tr>
+                    <tr>
+                      <td colspan="8" class="empty">No completed tickets yet.</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -232,7 +234,6 @@
           </section>
         </div>
 
-        <!-- Right column: metrics -->
         <aside class="layout-right dispatcher-only">
           <section class="section section-metrics">
             <div class="section-header">
