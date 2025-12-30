@@ -11,3 +11,12 @@ export const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON
   persistSession: true,
   detectSessionInUrl: true
 });
+(async () => {
+  try {
+    const { data, error } = await window.supabase.auth.getSession();
+    console.log("SESSION:", data?.session);
+    console.log("SESSION_ERROR:", error);
+  } catch (e) {
+    console.error("SESSION_EXCEPTION:", e);
+  }
+})();
