@@ -49,87 +49,86 @@
       </header>
 
       <main class="app-main layout-grid">
-        <!-- Left column: staged / non-urgent -->
-        <div class="layout-left dispatcher-only">
-          <section class="section section-staged">
-            <div class="section-header">
-              <div>
-                <div class="section-title">
-                  stage request
-                  <span class="section-count" id="count-staged">0</span>
-                </div>
-                <div class="section-subtitle">
-                  Cars expected later – not under time pressure yet.
-                </div>
-              </div>
-            </div>
-
-            <div class="table-wrapper small">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tag #</th>
-                    <th>Customer</th>
-                    <th>Staged At</th>
-                    <th>Activate</th>
-                  </tr>
-                </thead>
-                <tbody id="staged-tbody">
-                  <tr><td colspan="4" class="empty">No staged tickets.</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-
         <!-- Center column -->
         <div class="layout-center">
-          <!-- New pickup form -->
-          <section class="section dispatcher-only">
-            <div class="section-header">
-              <div>
-                <div class="section-title">New Pickup</div>
-                <div class="section-subtitle">
-                  Dispatcher #1: only place where Tag # and Customer Name are typed.
+          <div class="dispatcher-top-row" style="display: flex; gap: 1rem; align-items: flex-start;">
+            <section class="section section-staged" style="flex: 1;">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">
+                    Stage Request
+                    <span class="section-count" id="count-staged">0</span>
+                  </div>
+                  <div class="section-subtitle">
+                    Cars expected later – not under time pressure yet.
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <form id="new-pickup-form" class="new-pickup-form">
-              <div class="input-group">
-                <label for="tag-number">Tag #</label>
-                <input
-                  id="tag-number"
-                  name="tag-number"
-                  class="input-text"
-                  placeholder="e.g. 1432"
-                  required
-                />
+              <div class="table-wrapper small">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tag #</th>
+                      <th>Customer</th>
+                      <th>Staged At</th>
+                      <th>Activate</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staged-tbody">
+                    <tr><td colspan="4" class="empty">No staged tickets.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- New pickup form -->
+            <section class="section dispatcher-only" style="flex: 1;">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">New Pickup</div>
+                  <div class="section-subtitle">
+                    Dispatcher #1: only place where Tag # and Customer Name are typed.
+                  </div>
+                </div>
               </div>
 
-              <div class="input-group">
-                <label for="customer-name">Customer name</label>
-                <input
-                  id="customer-name"
-                  name="customer-name"
-                  class="input-text"
-                  placeholder="e.g. Maria Lopez"
-                  required
-                />
-              </div>
+              <form id="new-pickup-form" class="new-pickup-form">
+                <div class="input-group">
+                  <label for="tag-number">Tag #</label>
+                  <input
+                    id="tag-number"
+                    name="tag-number"
+                    class="input-text"
+                    placeholder="e.g. 1432"
+                    required
+                  />
+                </div>
 
-              <div class="input-group checkbox-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" id="stage-only" />
-                  Stage only (not active yet)
-                </label>
-              </div>
+                <div class="input-group">
+                  <label for="customer-name">Customer name</label>
+                  <input
+                    id="customer-name"
+                    name="customer-name"
+                    class="input-text"
+                    placeholder="e.g. Maria Lopez"
+                    required
+                  />
+                </div>
 
-              <div class="input-group" style="align-self: flex-end">
-                <button type="submit" class="btn btn-primary">Create</button>
-              </div>
-            </form>
-          </section>
+                <div class="input-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="stage-only" />
+                    Stage only (not active yet)
+                  </label>
+                </div>
+
+                <div class="input-group" style="align-self: flex-end">
+                  <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+              </form>
+            </section>
+          </div>
 
           <!-- Active pickups -->
           <section class="section section-active">
@@ -241,41 +240,6 @@
 
         <!-- Right column: metrics -->
         <aside class="layout-right dispatcher-only">
-          <section class="section section-metrics">
-            <div class="section-header">
-              <div>
-                <div class="section-title">Today’s Stats</div>
-              </div>
-            </div>
-
-            <div class="metrics-grid">
-              <div class="metric-card">
-                <div class="metric-label">Completed Today</div>
-                <div class="metric-value" id="metrics-completed-today">0</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Avg Cycle Time</div>
-                <div class="metric-value" id="metrics-avg-cycle">–</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Active Tickets</div>
-                <div class="metric-value" id="metrics-active-count">0</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Waiting/Staged</div>
-                <div class="metric-value" id="metrics-waiting-count">0</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Red Line – Cars ON</div>
-                <div class="metric-value" id="metrics-redline-count">0</div>
-              </div>
-            </div>
-
-            <div class="section-subtitle" style="margin-top: 0.7rem">
-              Valet Activity Today
-            </div>
-            <ul class="valet-list" id="metrics-valets"></ul>
-          </section>
         </aside>
       </main>
     </div>
