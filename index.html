@@ -58,6 +58,13 @@
     body.role-loancar .link-loancar {
       display: inline-flex;
     }
+
+    body.role-owner .link-sales-manager,
+    body.role-manager .link-sales-manager,
+    body.role-owner .link-sales-driver,
+    body.role-manager .link-sales-driver {
+      display: inline-flex;
+    }
   </style>
 
   <!-- ✅ Auth gate: HOME is owner/manager-only. Employees get redirected to their screen. -->
@@ -102,33 +109,51 @@
         </div>
 
         <div class="screen-links">
-          <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
-            Dispatcher Screen
-          </a>
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color: #e0e0e0; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Service</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+              <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
+                Dispatcher Screen
+              </a>
 
-          <a class="btn link-keymachine" href="keymachine.html">
-            Key Machine Screen
-          </a>
+              <a class="btn link-keymachine" href="keymachine.html">
+                Key Machine Screen
+              </a>
 
-          <a class="btn link-carwash" href="carwash.html">
-            Car Wash Screen
-          </a>
+              <a class="btn link-carwash" href="carwash.html">
+                Car Wash Screen
+              </a>
 
-          <a class="btn link-wallboard" href="wallboard.html">
-            TV Wallboard
-          </a>
+              <a class="btn link-wallboard" href="wallboard.html">
+                TV Wallboard
+              </a>
 
-          <a class="btn link-serviceadvisor" href="serviceadvisor.html">
-            Service Advisor
-          </a>
+              <a class="btn link-serviceadvisor" href="serviceadvisor.html">
+                Service Advisor
+              </a>
 
-          <a class="btn link-loancar" href="loancar.html">
-            Loan Car
-          </a>
+              <a class="btn link-loancar" href="loancar.html">
+                Loan Car
+              </a>
 
-          <a class="btn link-history" href="history.html">
-            History
-          </a>
+              <a class="btn link-history" href="history.html">
+                History
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="color: #e0e0e0; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Sales</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+              <a class="btn link-sales-manager" href="sales_manager.html">
+                Sales Manager
+              </a>
+
+              <a class="btn link-sales-driver" href="sales_driver.html">
+                Sales Driver
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </main>

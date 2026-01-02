@@ -9,6 +9,9 @@ const ROUTES = {
   loancar: "loancar.html",
   wallboard: "wallboard.html",
   history: "history.html",
+  sales_manager: "sales_manager.html",
+  sales_driver: "sales_driver.html",
+  driver: "sales_driver.html", // operational_role "driver" maps to sales_driver.html
   home: "index.html",
   login: "login.html"
 };
@@ -92,7 +95,9 @@ function routeForRole(role) {
   // employees land on their operational page (single-screen terminals)
   if (ROUTES[role]) return ROUTES[role];
 
-  // fallback
+  // Unknown role: if authenticated, owner/gm can go to index, otherwise error
+  // This should not happen in normal flow, but handle gracefully
+  console.warn("Unknown role for routing:", role);
   return ROUTES.login;
 }
 
@@ -138,7 +143,7 @@ export async function requireAuth({ page } = {}) {
 
     if (error || !profile) {
       console.error("Profile load failed:", error);
-      await supabase.auth.signOut().catch(() => {});
+      await supabase.auth.signOut().catch(() => { });
       return { ok: true, page: "login" };
     }
 
@@ -165,7 +170,7 @@ export async function requireAuth({ page } = {}) {
 
   if (error || !profile) {
     console.error("Profile load failed:", error);
-    await supabase.auth.signOut().catch(() => {});
+    await supabase.auth.signOut().catch(() => { });
     hardRedirect(ROUTES.login);
     return { ok: false, reason: "no-profile" };
   }
@@ -262,7 +267,7 @@ export function wireSignOut() {
   if (!btn) return;
 
   btn.addEventListener("click", async () => {
-    await supabase.auth.signOut().catch(() => {});
+    await supabase.auth.signOut().catch(() => { });
     hardRedirect(ROUTES.login);
   });
 }
