@@ -11,6 +11,50 @@ let pqiEnabled = false;
 let uiStateLoaded = false;
 let storeId = null;
 
+/* ---------- AUDIT LOGGING ---------- */
+
+async function logPickupEvent({ pickupId, storeId, action, payload }) {
+  // Return silently if storeId or pickupId missing
+  if (!storeId || !pickupId) return;
+
+  try {
+    // Get current user
+    const { data: userData } = await supabase.auth.getUser();
+    const actorUserId = userData?.user?.id ?? null;
+    const actorRole = pageKeyFromPath?.() ?? null;
+
+    // Insert audit event
+    const { error } = await supabase
+      .from("pickup_events")
+      .insert([
+        {
+          pickup_id: pickupId,
+          store_id: storeId,
+          actor_user_id: actorUserId,
+          actor_role: actorRole,
+          action,
+          payload
+        }
+      ]);
+
+    if (error) {
+      console.warn("event_log_failed", { action, pickupId, error });
+    }
+  } catch (err) {
+    // Silently fail - logging should never block the main write
+    console.warn("event_log_failed", { action, pickupId, error: err });
+  }
+}
+
+// Ops reliability state
+let lastRefreshTime = null;
+let lastWriteStatus = "—";
+let realtimeStatus = "disconnected";
+let loadPickupsInFlight = false;
+let loadPickupsQueued = false;
+let realtimeDebounceTimer = null;
+let realtimeSubscription = null;
+
 document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     // AUTH GATE (hard lock)
@@ -30,6 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Optional sign-out support if a button exists (id="signout-btn")
     wireSignOut();
 
+    // Ops reliability UI
+    ensureOpsUI();
+    setupDebugToggle();
+
     setupForm();
     setupTableActions();
     setupCompletedToggle();
@@ -41,6 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Timers tick in 15s intervals
     setInterval(() => renderTables(true), 15 * 1000);
+
+    // Update debug strip every 5 seconds (for "last refresh" time)
+    setInterval(() => updateDebugStrip(), 5 * 1000);
   })();
 });
 
@@ -53,7 +104,7 @@ function loadUIState() {
   let state = {};
   try {
     state = JSON.parse(localStorage.getItem("valetOpsState") || "{}");
-  } catch {}
+  } catch { }
 
   // Default to collapsed unless explicitly set to false
   const section = document.getElementById("completed-section");
@@ -85,7 +136,7 @@ function saveUIState() {
 
   try {
     localStorage.setItem("valetOpsState", JSON.stringify(state));
-  } catch {}
+  } catch { }
 }
 
 /* ---------- PQI toggle (global) ---------- */
@@ -110,6 +161,298 @@ function applyPqiToggleUI() {
   } else {
     btn.classList.add("off");
     btn.textContent = "PQI: Off";
+  }
+}
+
+/* ---------- OPS RELIABILITY SYSTEM ---------- */
+
+function ensureOpsUI() {
+  // Create global banner if it doesn't exist
+  if (!document.getElementById("globalBanner")) {
+    const banner = document.createElement("div");
+    banner.id = "globalBanner";
+    banner.className = "global-banner hidden";
+    const messageSpan = document.createElement("span");
+    messageSpan.className = "banner-message";
+    const dismissBtn = document.createElement("button");
+    dismissBtn.className = "banner-dismiss";
+    dismissBtn.textContent = "×";
+    dismissBtn.addEventListener("click", () => {
+      banner.classList.add("hidden");
+    });
+    banner.appendChild(messageSpan);
+    banner.appendChild(dismissBtn);
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+
+  // Create debug strip if it doesn't exist
+  if (!document.getElementById("debugStrip")) {
+    const strip = document.createElement("div");
+    strip.id = "debugStrip";
+    strip.className = "debug-strip hidden";
+    strip.innerHTML = `
+      <div class="debug-item">
+        <span class="debug-label">Store:</span>
+        <span class="debug-value" id="debug-store">—</span>
+      </div>
+      <div class="debug-item">
+        <span class="debug-label">Role:</span>
+        <span class="debug-value" id="debug-role">—</span>
+      </div>
+      <div class="debug-item">
+        <span class="debug-label">Realtime:</span>
+        <span class="debug-value" id="debug-realtime">—</span>
+      </div>
+      <div class="debug-item">
+        <span class="debug-label">Last refresh:</span>
+        <span class="debug-value" id="debug-refresh">—</span>
+      </div>
+      <div class="debug-item">
+        <span class="debug-label">Last write:</span>
+        <span class="debug-value" id="debug-write">—</span>
+      </div>
+    `;
+    document.body.insertBefore(strip, document.body.firstChild);
+  }
+
+  // Update debug strip after a brief delay to ensure storeId/role are set
+  setTimeout(() => updateDebugStrip(), 100);
+}
+
+function setupDebugToggle() {
+  // Check localStorage for debug strip visibility
+  let debugVisible = false;
+  try {
+    const state = JSON.parse(localStorage.getItem("valetOpsDebug") || "{}");
+    debugVisible = state.debugVisible === true;
+  } catch { }
+
+  const strip = document.getElementById("debugStrip");
+  if (strip) {
+    if (debugVisible) {
+      strip.classList.remove("hidden");
+    }
+  }
+
+  // Add keyboard shortcut (Ctrl+Shift+D)
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === "D") {
+      e.preventDefault();
+      toggleDebugStrip();
+    }
+  });
+
+  // Try to add toggle button to header-right if it exists
+  const headerRight = document.querySelector(".header-right");
+  if (headerRight && !document.getElementById("debug-toggle-btn")) {
+    const toggleBtn = document.createElement("button");
+    toggleBtn.id = "debug-toggle-btn";
+    toggleBtn.className = "debug-toggle";
+    toggleBtn.textContent = "Debug";
+    toggleBtn.onclick = toggleDebugStrip;
+    headerRight.insertBefore(toggleBtn, headerRight.firstChild);
+  }
+}
+
+function toggleDebugStrip() {
+  const strip = document.getElementById("debugStrip");
+  if (!strip) return;
+
+  const isVisible = !strip.classList.contains("hidden");
+  if (isVisible) {
+    strip.classList.add("hidden");
+  } else {
+    strip.classList.remove("hidden");
+    updateDebugStrip();
+  }
+
+  // Persist state
+  try {
+    localStorage.setItem("valetOpsDebug", JSON.stringify({ debugVisible: !isVisible }));
+  } catch { }
+}
+
+function updateDebugStrip() {
+  const strip = document.getElementById("debugStrip");
+  if (!strip || strip.classList.contains("hidden")) return;
+
+  // Store
+  const storeEl = document.getElementById("debug-store");
+  if (storeEl) storeEl.textContent = storeId || "none";
+
+  // Role
+  const roleEl = document.getElementById("debug-role");
+  if (roleEl) roleEl.textContent = pageKeyFromPath() || role;
+
+  // Realtime
+  const realtimeEl = document.getElementById("debug-realtime");
+  if (realtimeEl) {
+    realtimeEl.textContent = realtimeStatus;
+    realtimeEl.className = "debug-value " + realtimeStatus;
+  }
+
+  // Last refresh
+  const refreshEl = document.getElementById("debug-refresh");
+  if (refreshEl && lastRefreshTime) {
+    const secondsAgo = Math.floor((Date.now() - lastRefreshTime) / 1000);
+    if (secondsAgo < 60) {
+      refreshEl.textContent = `${secondsAgo}s ago`;
+    } else if (secondsAgo < 3600) {
+      refreshEl.textContent = `${Math.floor(secondsAgo / 60)}m ago`;
+    } else {
+      refreshEl.textContent = `${Math.floor(secondsAgo / 3600)}h ago`;
+    }
+  }
+
+  // Last write
+  const writeEl = document.getElementById("debug-write");
+  if (writeEl) writeEl.textContent = lastWriteStatus;
+}
+
+function setDebugLastWrite(status) {
+  lastWriteStatus = status;
+  updateDebugStrip();
+}
+
+function showBanner(type, message, details = "") {
+  const banner = document.getElementById("globalBanner");
+  if (!banner) return;
+
+  banner.className = `global-banner is-${type}`;
+  const messageEl = banner.querySelector(".banner-message");
+  if (messageEl) {
+    messageEl.textContent = message + (details ? ` ${details}` : "");
+  }
+  banner.classList.remove("hidden");
+}
+
+function hideBanner() {
+  const banner = document.getElementById("globalBanner");
+  if (banner) banner.classList.add("hidden");
+}
+
+async function safeUpdatePickup(id, updates, meta = {}) {
+  const action = meta.action || "unknown";
+  const timestamp = new Date().toISOString();
+
+  try {
+    // Build query with store isolation
+    let query = supabase
+      .from("pickups")
+      .update(updates)
+      .eq("id", id);
+
+    if (storeId) {
+      query = query.eq("store_id", storeId);
+    }
+
+    // Force return affected rows
+    const { data, error } = await query.select("id");
+
+    if (error) {
+      // Error case
+      const details = error.message || "Check console for details";
+      showBanner("error", "Save failed", details);
+      setDebugLastWrite("ERROR");
+
+      // Structured console log
+      console.error("[OPS] Write failure", {
+        action,
+        id,
+        storeId,
+        role,
+        updateKeys: Object.keys(updates),
+        timestamp,
+        error: error.message
+      });
+
+      return { success: false, error };
+    }
+
+    // Check for no-op (0 rows affected)
+    if (!data || data.length === 0) {
+      const details = "Likely RLS/store context mismatch";
+      showBanner("warn", "Update blocked (0 rows)", details);
+      setDebugLastWrite("NO-OP");
+
+      // Structured console log
+      console.warn("[OPS] No-op write", {
+        action,
+        id,
+        storeId,
+        role,
+        updateKeys: Object.keys(updates),
+        timestamp,
+        reason: "0 rows affected"
+      });
+
+      return { success: false, noop: true };
+    }
+
+    // Success case
+    const rows = data.length;
+    hideBanner();
+    setDebugLastWrite(`OK rows=${rows}`);
+
+    // Brief OK banner (optional, auto-hide after 2s)
+    showBanner("ok", "Update saved");
+    setTimeout(() => {
+      const banner = document.getElementById("globalBanner");
+      if (banner && banner.classList.contains("is-ok")) {
+        hideBanner();
+      }
+    }, 2000);
+
+    // Audit logging (best-effort, non-blocking)
+    if (rows > 0) {
+      // Build payload with minimal details
+      const payload = {
+        updates: Object.keys(updates)
+      };
+
+      // Only include fields that were actually updated
+      if (updates.notes !== undefined) {
+        const noteText = updates.notes || "";
+        payload.notePreview = noteText.length > 100 ? noteText.substring(0, 100) + "..." : noteText;
+      }
+      if (updates.status !== undefined) {
+        payload.status = updates.status;
+      }
+      if (updates.wash_status !== undefined) {
+        payload.wash_status = updates.wash_status;
+      }
+      if (updates.keys_holder !== undefined) {
+        payload.keys_holder = updates.keys_holder;
+      }
+
+      // Fire and forget - don't await to avoid blocking
+      logPickupEvent({
+        pickupId: id,
+        storeId,
+        action,
+        payload
+      }).catch(() => {
+        // Already handled in logPickupEvent, but catch here too for safety
+      });
+    }
+
+    return { success: true, rows };
+  } catch (err) {
+    // Unexpected error
+    showBanner("error", "Save failed", "Unexpected error");
+    setDebugLastWrite("ERROR");
+
+    console.error("[OPS] Write exception", {
+      action,
+      id,
+      storeId,
+      role,
+      updateKeys: Object.keys(updates),
+      timestamp,
+      error: err.message
+    });
+
+    return { success: false, error: err };
   }
 }
 
@@ -298,8 +641,8 @@ async function handleAction(id, action) {
       const existing = current?.notes || "";
       const promptText = existing
         ? "Add new note (previous notes stay on record):\n\n" +
-          existing +
-          "\n\nNew note:"
+        existing +
+        "\n\nNew note:"
         : "Add note:";
       const newNote = window.prompt(promptText, "");
       if (newNote === null) return;
@@ -337,7 +680,7 @@ async function handleAction(id, action) {
       if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
         lines.push(
           `Wash status (${humanWashStatus(p.wash_status)}): ` +
-            formatTime(p.wash_status_at)
+          formatTime(p.wash_status_at)
         );
       if (p.waiting_client_at)
         lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
@@ -362,12 +705,12 @@ async function handleAction(id, action) {
 
   if (Object.keys(updates).length === 0) return;
 
-  // Store scoped update (RLS enforces too)
-  const { error } = await supabase.from("pickups").update(updates).eq("id", id);
+  // Use safe update wrapper (no-op detector + banner)
+  const result = await safeUpdatePickup(id, updates, { action });
 
-  if (error) {
-    console.error(error);
-    alert("Error saving update. Check console.");
+  // Stop on failure (error or no-op)
+  if (!result.success) {
+    return; // Banner already shown, no need for alert
   }
 }
 
@@ -394,30 +737,94 @@ function setupCompletedToggle() {
 /* ---------- DATA + REALTIME ---------- */
 
 async function loadPickups() {
-  let q = supabase.from("pickups").select("*").order("created_at", {
-    ascending: false
-  });
-
-  if (storeId) q = q.eq("store_id", storeId);
-
-  const { data, error } = await q;
-
-  if (error) {
-    console.error(error);
+  // Prevent overlapping calls
+  if (loadPickupsInFlight) {
+    loadPickupsQueued = true;
     return;
   }
 
-  pickups = data || [];
-  renderTables(false);
+  loadPickupsInFlight = true;
+  loadPickupsQueued = false;
+
+  try {
+    let q = supabase.from("pickups").select("*").order("created_at", {
+      ascending: false
+    });
+
+    if (storeId) q = q.eq("store_id", storeId);
+
+    const { data, error } = await q;
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    pickups = data || [];
+    renderTables(false);
+
+    // Track successful refresh
+    lastRefreshTime = Date.now();
+    updateDebugStrip();
+  } finally {
+    loadPickupsInFlight = false;
+
+    // If events arrived while in flight, queue another run
+    if (loadPickupsQueued) {
+      setTimeout(() => loadPickups(), 100);
+    }
+  }
 }
 
 function subscribeRealtime() {
-  supabase
-    .from("pickups")
-    .on("*", () => {
+  // Unsubscribe existing if any
+  if (realtimeSubscription) {
+    try {
+      realtimeSubscription.unsubscribe();
+    } catch (e) {
+      // Ignore unsubscribe errors
+    }
+  }
+
+  realtimeStatus = "connecting";
+  updateDebugStrip();
+
+  // Debounced refresh function
+  const debouncedRefresh = () => {
+    if (realtimeDebounceTimer) {
+      clearTimeout(realtimeDebounceTimer);
+    }
+    realtimeDebounceTimer = setTimeout(() => {
       loadPickups();
-    })
-    .subscribe();
+    }, 750); // 750ms debounce
+  };
+
+  // Subscribe (Supabase v1)
+  try {
+    realtimeSubscription = supabase
+      .from("pickups")
+      .on("*", () => {
+        // Mark as connected when we receive events
+        if (realtimeStatus !== "connected") {
+          realtimeStatus = "connected";
+          updateDebugStrip();
+        }
+        debouncedRefresh();
+      })
+      .subscribe();
+
+    // Assume connected after subscription attempt
+    setTimeout(() => {
+      if (realtimeStatus === "connecting") {
+        realtimeStatus = "connected";
+        updateDebugStrip();
+      }
+    }, 1000);
+  } catch (err) {
+    realtimeStatus = "disconnected";
+    updateDebugStrip();
+    console.error("[OPS] Realtime subscription error:", err);
+  }
 }
 
 /* ---------- RENDERING ---------- */
@@ -601,11 +1008,10 @@ function renderActiveRow(p, now) {
         <td>${notesHtml}</td>
         <td>
           <span class="timer ${masterClass}">${masterLabel}</span>
-          ${
-            pqiEnabled
-              ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
-              : ""
-          }
+          ${pqiEnabled
+        ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
+        : ""
+      }
         </td>
       </tr>
     `;
@@ -627,11 +1033,10 @@ function renderActiveRow(p, now) {
       <td>${notesHtml}</td>
       <td>
         <span class="timer ${masterClass}">${masterLabel}</span>
-        ${
-          pqiEnabled
-            ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
-            : ""
-        }
+        ${pqiEnabled
+      ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
+      : ""
+    }
       </td>
     </tr>
   `;
@@ -856,7 +1261,7 @@ function maybePlayAlerts(active, now) {
 
     if ((severity === "orange" || severity === "red") && prev !== severity) {
       audio.currentTime = 0;
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     }
   });
 }
