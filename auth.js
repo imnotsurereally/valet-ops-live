@@ -41,6 +41,8 @@ function pageKeyFromPath() {
     "loancar.html": "loancar",
     "wallboard.html": "wallboard",
     "history.html": "history",
+    "sales_manager.html": "sales_manager",
+    "sales_driver.html": "sales_driver",
     "login.html": "login"
   };
 
@@ -72,7 +74,9 @@ function setBodyRoleClasses(effectiveRole, currentPage) {
     "role-manager",
     "role-history",
     "role-home",
-    "role-login"
+    "role-login",
+    "role-sales-manager",
+    "role-sales-driver"
   ];
 
   known.forEach((c) => document.body.classList.remove(c));
