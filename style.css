@@ -23,6 +23,9 @@ a {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transform: scale(0.85);
+  transform-origin: top left;
+  width: 117.65%;
 }
 
 /* ========== HEADER ========== */
@@ -106,11 +109,10 @@ a {
   align-items: center;
 }
 
-/* 2-column layout */
+/* 1-column layout */
 .layout-grid {
   display: grid;
-  grid-template-columns: 1fr minmax(120px, 7%);
-  gap: 0.75rem;
+  grid-template-columns: 1fr;
   align-items: flex-start;
 }
 
@@ -182,8 +184,10 @@ a {
 }
 
 .btn.small {
-  padding: 0.2rem 0.55rem;
-  font-size: 0.72rem;
+  padding: 0.12rem 0.38rem;
+  font-size: 0.68rem;
+  border-radius: 999px;
+  line-height: 1.15;
 }
 
 /* Shared blue pill style for any "selected" button */
@@ -203,12 +207,19 @@ a {
 /* Generic pill */
 .pill-blue {
   display: inline-block;
-  padding: 0.12rem 0.4rem;
+  padding: 0.12rem 0.45rem;
   border-radius: 999px;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
   font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+}
+
+.cell-tag .pill-blue,
+.cell-customer .pill-blue {
+  display: inline-block;
 }
 
 /* Keys (valet names) group */
@@ -228,11 +239,24 @@ a {
   border-color: #9ca3af;
 }
 
+/* Valet grid (2 rows x 4 cols) */
+.valet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.2rem;
+  margin-top: 0.2rem;
+}
+.valet-grid .btn {
+  width: 100%;
+  justify-content: center;
+}
+
 /* Status/location options group */
 .wash-buttons {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.2rem;
+  margin-top: 0.2rem;
 }
 .wash-buttons .btn {
   border-radius: 999px;
@@ -414,10 +438,32 @@ td.cell-customer {
 
 /* ========== NOTES AREA ========== */
 .notes-preview {
-  font-size: 0.7rem;
+  display: inline-block;
+  max-width: 220px;
+  white-space: normal;
+  border-radius: 0.6rem;
+}
+
+.notes-list {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.note-line {
+  font-size: 0.68rem;
+  color: #cbd5e1;
+}
+
+.note-line.old {
+  opacity: 0.75;
+}
+
+.note-line.latest {
   display: inline-block;
   padding: 0.15rem 0.45rem;
-  border-radius: 999px;
+  border-radius: 0.6rem;
   border: 1px solid #60a5fa;
   background: #0b1c3a;
   color: #dbeafe;
@@ -450,6 +496,11 @@ td.cell-customer {
   0% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,0.9); }
   50% { border-color: #bfdbfe; background: #1d4ed8; box-shadow: 0 0 18px 7px rgba(59,130,246,0.95); }
   100% { border-color: #60a5fa; background: #0b1c3a; box-shadow: 0 0 0 0 rgba(59,130,246,0.9); }
+}
+
+/* ========== COMPLETED COLLAPSE ========== */
+#completed-section.completed-collapsed .section-completed-table {
+  display: none;
 }
 
 /* ========== EMPTY STATE ========== */
