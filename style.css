@@ -106,10 +106,10 @@ a {
   align-items: center;
 }
 
-/* 3-column layout */
+/* 2-column layout */
 .layout-grid {
   display: grid;
-  grid-template-columns: minmax(120px, 7%) minmax(0, 86%) minmax(120px, 7%);
+  grid-template-columns: 1fr minmax(120px, 7%);
   gap: 0.75rem;
   align-items: flex-start;
 }
