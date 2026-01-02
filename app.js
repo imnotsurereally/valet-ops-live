@@ -11,6 +11,41 @@ let pqiEnabled = false;
 let uiStateLoaded = false;
 let storeId = null;
 
+/* ---------- AUDIT LOGGING ---------- */
+
+async function logPickupEvent({ pickupId, storeId, action, payload }) {
+  // Return silently if storeId or pickupId missing
+  if (!storeId || !pickupId) return;
+
+  try {
+    // Get current user
+    const { data: userData } = await supabase.auth.getUser();
+    const actorUserId = userData?.user?.id ?? null;
+    const actorRole = pageKeyFromPath?.() ?? null;
+
+    // Insert audit event
+    const { error } = await supabase
+      .from("pickup_events")
+      .insert([
+        {
+          pickup_id: pickupId,
+          store_id: storeId,
+          actor_user_id: actorUserId,
+          actor_role: actorRole,
+          action,
+          payload
+        }
+      ]);
+
+    if (error) {
+      console.warn("event_log_failed", { action, pickupId, error });
+    }
+  } catch (err) {
+    // Silently fail - logging should never block the main write
+    console.warn("event_log_failed", { action, pickupId, error: err });
+  }
+}
+
 // Ops reliability state
 let lastRefreshTime = null;
 let lastWriteStatus = "—";
@@ -69,7 +104,7 @@ function loadUIState() {
   let state = {};
   try {
     state = JSON.parse(localStorage.getItem("valetOpsState") || "{}");
-  } catch {}
+  } catch { }
 
   // Default to collapsed unless explicitly set to false
   const section = document.getElementById("completed-section");
@@ -101,7 +136,7 @@ function saveUIState() {
 
   try {
     localStorage.setItem("valetOpsState", JSON.stringify(state));
-  } catch {}
+  } catch { }
 }
 
 /* ---------- PQI toggle (global) ---------- */
@@ -190,7 +225,7 @@ function setupDebugToggle() {
   try {
     const state = JSON.parse(localStorage.getItem("valetOpsDebug") || "{}");
     debugVisible = state.debugVisible === true;
-  } catch {}
+  } catch { }
 
   const strip = document.getElementById("debugStrip");
   if (strip) {
@@ -234,7 +269,7 @@ function toggleDebugStrip() {
   // Persist state
   try {
     localStorage.setItem("valetOpsDebug", JSON.stringify({ debugVisible: !isVisible }));
-  } catch {}
+  } catch { }
 }
 
 function updateDebugStrip() {
@@ -367,6 +402,39 @@ async function safeUpdatePickup(id, updates, meta = {}) {
         hideBanner();
       }
     }, 2000);
+
+    // Audit logging (best-effort, non-blocking)
+    if (rows > 0) {
+      // Build payload with minimal details
+      const payload = {
+        updates: Object.keys(updates)
+      };
+
+      // Only include fields that were actually updated
+      if (updates.notes !== undefined) {
+        const noteText = updates.notes || "";
+        payload.notePreview = noteText.length > 100 ? noteText.substring(0, 100) + "..." : noteText;
+      }
+      if (updates.status !== undefined) {
+        payload.status = updates.status;
+      }
+      if (updates.wash_status !== undefined) {
+        payload.wash_status = updates.wash_status;
+      }
+      if (updates.keys_holder !== undefined) {
+        payload.keys_holder = updates.keys_holder;
+      }
+
+      // Fire and forget - don't await to avoid blocking
+      logPickupEvent({
+        pickupId: id,
+        storeId,
+        action,
+        payload
+      }).catch(() => {
+        // Already handled in logPickupEvent, but catch here too for safety
+      });
+    }
 
     return { success: true, rows };
   } catch (err) {
@@ -573,8 +641,8 @@ async function handleAction(id, action) {
       const existing = current?.notes || "";
       const promptText = existing
         ? "Add new note (previous notes stay on record):\n\n" +
-          existing +
-          "\n\nNew note:"
+        existing +
+        "\n\nNew note:"
         : "Add note:";
       const newNote = window.prompt(promptText, "");
       if (newNote === null) return;
@@ -612,7 +680,7 @@ async function handleAction(id, action) {
       if (p.wash_status_at && p.wash_status && p.wash_status !== "NONE")
         lines.push(
           `Wash status (${humanWashStatus(p.wash_status)}): ` +
-            formatTime(p.wash_status_at)
+          formatTime(p.wash_status_at)
         );
       if (p.waiting_client_at)
         lines.push("Waiting/staged for customer: " + formatTime(p.waiting_client_at));
@@ -940,11 +1008,10 @@ function renderActiveRow(p, now) {
         <td>${notesHtml}</td>
         <td>
           <span class="timer ${masterClass}">${masterLabel}</span>
-          ${
-            pqiEnabled
-              ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
-              : ""
-          }
+          ${pqiEnabled
+        ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
+        : ""
+      }
         </td>
       </tr>
     `;
@@ -966,11 +1033,10 @@ function renderActiveRow(p, now) {
       <td>${notesHtml}</td>
       <td>
         <span class="timer ${masterClass}">${masterLabel}</span>
-        ${
-          pqiEnabled
-            ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
-            : ""
-        }
+        ${pqiEnabled
+      ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
+      : ""
+    }
       </td>
     </tr>
   `;
@@ -1195,7 +1261,7 @@ function maybePlayAlerts(active, now) {
 
     if ((severity === "orange" || severity === "red") && prev !== severity) {
       audio.currentTime = 0;
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     }
   });
 }
