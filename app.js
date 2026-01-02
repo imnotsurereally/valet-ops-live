@@ -55,11 +55,19 @@ function loadUIState() {
     state = JSON.parse(localStorage.getItem("valetOpsState") || "{}");
   } catch {}
 
-  if (state.completedCollapsed) {
-    const section = document.getElementById("completed-section");
-    const btn = document.getElementById("toggle-completed");
-    if (section) section.classList.add("completed-collapsed");
-    if (btn) btn.textContent = "Show";
+  // Default to collapsed unless explicitly set to false
+  const section = document.getElementById("completed-section");
+  const btn = document.getElementById("toggle-completed");
+  if (section && btn) {
+    if (state.completedCollapsed === false) {
+      // Explicitly show
+      section.classList.remove("completed-collapsed");
+      btn.textContent = "Hide";
+    } else {
+      // Default to collapsed
+      section.classList.add("completed-collapsed");
+      btn.textContent = "Show";
+    }
   }
 
   if (typeof state.pqiEnabled === "boolean") {
@@ -492,8 +500,8 @@ function setCount(id, value) {
 function renderStagedRow(p) {
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
       <td>${formatTime(p.created_at)}</td>
       <td>
         <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
@@ -521,35 +529,36 @@ function renderActiveRow(p, now) {
   const currentValet = p.keys_holder || "";
 
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
+  const latestNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
+  const olderNotes = notesPieces.slice(0, -1).slice(-4); // Last 4 older notes
 
   const washSelectedLabel =
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
   const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
 
   const washBtns = `
-    <div class="wash-buttons" style="margin-top:0.15rem;">
+    <div class="wash-buttons">
       <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected" : ""}"
-        data-action="car-wash-area" data-id="${p.id}">Car in wash</button>
+        data-action="car-wash-area" data-id="${p.id}">In wash</button>
       <button class="btn small ${currentWash === "ON_RED_LINE" ? "selected" : ""}"
-        data-action="car-red-line" data-id="${p.id}">Car on red line</button>
+        data-action="car-red-line" data-id="${p.id}">On redline</button>
     </div>
-    <div class="wash-buttons" style="margin-top:0.15rem;">
+    <div class="wash-buttons">
       <button class="btn small ${currentWash === "DUSTY" ? "selected" : ""}"
         data-action="wash-dusty" data-id="${p.id}">Dusty</button>
       <button class="btn small keymachine-only ${p.status === "KEYS_IN_MACHINE" ? "selected" : ""}"
         data-action="keys-machine" data-id="${p.id}">Key machine</button>
     </div>
-    <div class="wash-buttons" style="margin-top:0.15rem;">
+    <div class="wash-buttons">
       <button class="btn small ${currentWash === "NEEDS_REWASH" ? "selected wash-needs" : ""}"
         data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
       <button class="btn small ${currentWash === "REWASH" ? "selected" : ""}"
-        data-action="wash-rewash" data-id="${p.id}">Re wash</button>
+        data-action="wash-rewash" data-id="${p.id}">Rewash</button>
     </div>
   `;
 
   const valetBtns = `
-    <div class="keys-buttons">
+    <div class="valet-grid">
       <button class="btn small ${currentValet === "Fernando" ? "selected" : ""}" data-action="with-fernando" data-id="${p.id}">Fernando</button>
       <button class="btn small ${currentValet === "Juan" ? "selected" : ""}" data-action="with-juan" data-id="${p.id}">Juan</button>
       <button class="btn small ${currentValet === "Miguel" ? "selected" : ""}" data-action="with-miguel" data-id="${p.id}">Miguel</button>
@@ -558,16 +567,23 @@ function renderActiveRow(p, now) {
     </div>
   `;
 
-  const notesHtml = `
-    <button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>
-    ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
-  `;
+  let notesHtml = `<button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>`;
+  if (notesPieces.length > 0) {
+    notesHtml += '<div class="notes-list">';
+    if (latestNote) {
+      notesHtml += `<div class="note-line latest">${escapeHtml(latestNote)}</div>`;
+    }
+    olderNotes.forEach((note) => {
+      notesHtml += `<div class="note-line old">${escapeHtml(note)}</div>`;
+    });
+    notesHtml += '</div>';
+  }
 
   if (role === "dispatcher") {
     return `
       <tr>
-        <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-        <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+        <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+        <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
         <td>
           <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
           ${washBtns}
@@ -597,8 +613,8 @@ function renderActiveRow(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
       <td>
         <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
         ${washBtns}
@@ -637,8 +653,8 @@ function renderActiveRowWallboard(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
       <td><span class="status-badge">${escapeHtml(statusLabel)}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
@@ -660,8 +676,8 @@ function renderWaitingRow(p, now) {
 
     return `
       <tr>
-        <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-        <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+        <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+        <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
         <td>${escapeHtml(deliveredBy)}</td>
         <td><span class="timer ${waitingClass}">${waitingLabel}</span></td>
       </tr>
@@ -678,21 +694,29 @@ function renderWaitingRow(p, now) {
   const masterLabel = formatDuration(masterSeconds);
 
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
+  const latestNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
+  const olderNotes = notesPieces.slice(0, -1).slice(-4); // Last 4 older notes
+
+  let notesHtml = `<button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${p.id}">Add note</button>`;
+  if (notesPieces.length > 0) {
+    notesHtml += '<div class="notes-list">';
+    if (latestNote) {
+      notesHtml += `<div class="note-line latest">${escapeHtml(latestNote)}</div>`;
+    }
+    olderNotes.forEach((note) => {
+      notesHtml += `<div class="note-line old">${escapeHtml(note)}</div>`;
+    });
+    notesHtml += '</div>';
+  }
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td><span class="timer ${stagedClass}">${stagedLabel}</span></td>
       <td><span class="timer ${masterClass}">${masterLabel}</span></td>
-      <td>
-        <button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${p.id}">
-          Add note
-        </button>
-        ${lastNote ? `<div class="notes-preview">${escapeHtml(lastNote)}</div>` : ""}
-      </td>
+      <td>${notesHtml}</td>
       <td>
         <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">
           Customer picked up
@@ -708,25 +732,30 @@ function renderCompletedRow(p, now) {
   const deliveredBy = p.keys_holder || "—";
 
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const lastNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
-  const prevNotes = notesPieces.slice(0, -1);
+  const latestNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
+  const olderNotes = notesPieces.slice(0, -1).slice(-4); // Last 4 older notes
+
+  let notesHtml = "";
+  if (notesPieces.length > 0) {
+    notesHtml += '<div class="notes-list">';
+    if (latestNote) {
+      notesHtml += `<div class="note-line latest">${escapeHtml(latestNote)}</div>`;
+    }
+    olderNotes.forEach((note) => {
+      notesHtml += `<div class="note-line old">${escapeHtml(note)}</div>`;
+    });
+    notesHtml += '</div>';
+  }
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
       <td>${masterLabel}</td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td>${formatTime(p.created_at)}</td>
       <td>${formatTime(p.completed_at)}</td>
-      <td>
-        ${lastNote ? escapeHtml(lastNote) : ""}
-        ${
-          prevNotes.length
-            ? "<br>" + prevNotes.map((n) => escapeHtml(n)).join("<br>")
-            : ""
-        }
-      </td>
+      <td>${notesHtml}</td>
       <td>
         <button class="btn small" data-action="view-timeline" data-id="${p.id}">
           Timeline
@@ -856,11 +885,11 @@ function humanStatus(p) {
 function humanWashStatus(wash_status) {
   switch (wash_status) {
     case "IN_WASH_AREA":
-      return "Car in wash area";
+      return "In wash";
     case "ON_RED_LINE":
-      return "Car on red line";
+      return "On redline";
     case "REWASH":
-      return "Re wash";
+      return "Rewash";
     case "NEEDS_REWASH":
       return "Needs rewash";
     case "DUSTY":
