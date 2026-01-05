@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Valet Ops Live – System Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+
+    <!-- App logic (cache-bust) -->
+    <script type="module" src="system_settings.js?v=20260105e"></script>
+</head>
+
+<body class="role-system_settings">
+    <div class="app-shell">
+        <header class="app-header">
+            <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+            <div class="titles">
+                <div class="brand">Optima Dealer Services</div>
+                <div class="subtitle">System Settings (Read Only)</div>
+            </div>
+
+            <div class="header-right">
+                <button id="signout-btn" class="btn small">Sign out</button>
+                <div class="role-pill">System Settings</div>
+            </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main">
+            <section class="section">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">System Settings</div>
+                        <div class="section-subtitle">Read-only system configuration and health monitoring</div>
+                    </div>
+                </div>
+
+                <!-- System Overview Card -->
+                <div class="kpi-card" style="margin-bottom: 1rem; text-align: left;">
+                    <h3 class="section-title" style="margin-bottom: 0.75rem;">System Overview</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Polling</div>
+                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-polling">5s
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Timer Display Snap
+                            </div>
+                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-timer-snap">15s
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Realtime</div>
+                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-realtime">
+                                Unknown</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Version</div>
+                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-version">—
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Health Card -->
+                <div class="kpi-card" style="margin-bottom: 1rem; text-align: left;">
+                    <h3 class="section-title" style="margin-bottom: 0.75rem;">Data Health</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Last Successful
+                                Query</div>
+                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="health-last-query">—
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Query Errors
+                                (Session)</div>
+                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="health-error-count">0
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Links Card -->
+                <div class="kpi-card" style="text-align: left;">
+                    <h3 class="section-title" style="margin-bottom: 0.75rem;">Links</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                        <a class="btn btn-primary" href="executive.html">Executive Console</a>
+                        <a class="btn" href="history.html">History</a>
+                        <a class="btn" href="sales_history.html">Sales History</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>
