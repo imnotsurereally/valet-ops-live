@@ -6,30 +6,27 @@
 
 :root {
   --bg: #000000;
-  /* true black */
-  --surface-1: #0B0B0B;
-  /* panels */
-  --surface-2: #101010;
-  /* cards/rows */
-  --surface-3: #141414;
-  /* elevated */
-  --border: #1A1A1A;
-  /* hairline */
-  --border-2: #232323;
-  /* stronger hairline */
-  --text: #EAEAEA;
-  /* not pure white */
-  --text-2: #A4A4A4;
-  --text-3: #6E6E6E;
 
+  /* make surfaces MUCH closer to true black */
+  --surface-1: #000000;
+  --surface-2: #050505;
+  --surface-3: #0A0A0A;
+
+  /* borders darker + thinner vibe */
+  --border: #141414;
+  --border-2: #1E1E1E;
+
+  --text: #EAEAEA;
+  --text-2: #A8A8A8;
+  --text-3: #6B6B6B;
+
+  /* keep accents but increase clarity/contrast */
   --blue: #2D6BFF;
-  /* muted “info” */
-  --amber: #C58A2A;
-  /* muted attention */
-  --red: #B02A2A;
-  /* deep red */
+  --amber: #F0A33A;
+  /* slightly brighter so orange reads on black */
+  --red: #E23B3B;
+  /* clearer red without neon */
   --green: #2FBF71;
-  /* muted success */
 
   --radius: 14px;
   --radius-sm: 10px;
@@ -73,10 +70,15 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  background: #000 !important;
+}
+
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: var(--bg);
+  background: var(--bg) !important;
   color: var(--text);
   letter-spacing: .01em;
   -webkit-font-smoothing: antialiased;
@@ -568,7 +570,7 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
   border-radius: var(--radius-xs);
   border-style: solid;
   border-color: var(--border);
-  background: rgba(255, 255, 255, .02);
+  background: rgba(255, 255, 255, .015);
 }
 
 /* ========== NEW PICKUP FORM (DISPATCH) ========== */
@@ -576,7 +578,7 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  background: var(--surface-1);
+  background: var(--surface-2) !important;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   padding: 0.7rem 0.9rem;
@@ -586,11 +588,12 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
 .new-pickup-form,
 .table-wrapper,
 .section,
-.panel {
-  background: var(--surface-1);
+.panel,
+.card {
+  background: var(--surface-2) !important;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
 .input-group {
@@ -686,13 +689,13 @@ textarea:focus {
 
 /* ========== TABLE WRAPPERS ========== */
 .table-wrapper {
-  background: var(--surface-1);
+  background: var(--surface-2) !important;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow-y: auto;
   position: relative;
   isolation: isolate;
-  box-shadow: none;
+  box-shadow: none !important;
   /* prevents any overlay/pseudo from leaking into click layering */
 }
 
@@ -705,8 +708,21 @@ textarea:focus {
 /* Active Pickups highlight — SAFE VERSION (no overlay pseudo-element) */
 .section-active .table-wrapper {
   border-width: 1px;
-  border-color: rgba(45, 107, 255, .38);
-  animation: pulseSoftBlue 2s ease-out infinite;
+  border-color: rgba(45, 107, 255, .70);
+  background: rgba(45, 107, 255, .10) !important;
+  position: relative;
+  animation: pulseBlueStrong .85s ease-in-out infinite;
+}
+
+.section-active .table-wrapper::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 4px;
+  border-radius: 12px;
+  background: rgba(45, 107, 255, .95);
 }
 
 .table-wrapper.small {
@@ -744,7 +760,7 @@ tbody td {
 }
 
 tbody tr:hover {
-  background: rgba(255, 255, 255, .02);
+  background: rgba(255, 255, 255, .015);
 }
 
 /* remove “busy” outlines around everything */
@@ -801,7 +817,7 @@ td.cell-customer {
   padding: 7px 10px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, .02);
+  background: rgba(255, 255, 255, .015);
   color: var(--text-2);
   font-size: 12px;
   line-height: 1.25;
@@ -811,8 +827,8 @@ td.cell-customer {
 }
 
 .note-pill.latest {
-  border-color: rgba(45, 107, 255, .28);
   background: rgba(45, 107, 255, .10);
+  border-color: rgba(45, 107, 255, .35);
   color: var(--text);
 }
 
@@ -877,10 +893,22 @@ td.cell-customer {
 /* Needs rewash – flashing blue pill */
 .wash-needs {
   border-radius: var(--radius-xs);
-  border: 1px solid rgba(45, 107, 255, .36);
-  background: rgba(45, 107, 255, .14);
+  border: 1px solid rgba(45, 107, 255, .70);
+  background: rgba(45, 107, 255, .10);
   color: var(--text);
-  animation: pulseSoftBlue 1.4s ease-out infinite;
+  position: relative;
+  animation: pulseBlueStrong .85s ease-in-out infinite;
+}
+
+.wash-needs::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 4px;
+  border-radius: 12px;
+  background: rgba(45, 107, 255, .95);
 }
 
 /* ========== INLINE DIALOG (REWASH FLOW) ========== */
@@ -918,60 +946,144 @@ td.cell-customer {
   font-size: 0.75rem;
 }
 
-/* Pulse animations */
-/* Pulse animations */
-@keyframes pulseSoftBlue {
+/* Base “attention” look (steady) */
+.attn-blue {
+  border-color: rgba(45, 107, 255, .70) !important;
+  background: rgba(45, 107, 255, .10) !important;
+  position: relative;
+}
+
+.attn-orange {
+  border-color: rgba(240, 163, 58, .70) !important;
+  background: rgba(240, 163, 58, .11) !important;
+  position: relative;
+}
+
+.attn-red {
+  border-color: rgba(226, 59, 59, .75) !important;
+  background: rgba(226, 59, 59, .12) !important;
+  position: relative;
+}
+
+/* Left accent bar for “this matters” */
+.attn-blue::before,
+.attn-orange::before,
+.attn-red::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 4px;
+  border-radius: 12px;
+}
+
+.attn-blue::before {
+  background: rgba(45, 107, 255, .95);
+}
+
+.attn-orange::before {
+  background: rgba(240, 163, 58, .95);
+}
+
+.attn-red::before {
+  background: rgba(226, 59, 59, .95);
+}
+
+@keyframes pulseBlueStrong {
   0% {
-    box-shadow: 0 0 0 0 rgba(45, 107, 255, .18);
+    background: rgba(45, 107, 255, .10);
+    border-color: rgba(45, 107, 255, .70);
   }
 
-  70% {
-    box-shadow: 0 0 0 10px rgba(45, 107, 255, 0);
+  50% {
+    background: rgba(45, 107, 255, .18);
+    border-color: rgba(45, 107, 255, .92);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(45, 107, 255, 0);
+    background: rgba(45, 107, 255, .10);
+    border-color: rgba(45, 107, 255, .70);
   }
 }
 
-@keyframes pulseSoftAmber {
+@keyframes pulseOrangeStrong {
   0% {
-    box-shadow: 0 0 0 0 rgba(197, 138, 42, .18);
+    background: rgba(240, 163, 58, .11);
+    border-color: rgba(240, 163, 58, .70);
   }
 
-  70% {
-    box-shadow: 0 0 0 10px rgba(197, 138, 42, 0);
+  50% {
+    background: rgba(240, 163, 58, .20);
+    border-color: rgba(240, 163, 58, .92);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(197, 138, 42, 0);
+    background: rgba(240, 163, 58, .11);
+    border-color: rgba(240, 163, 58, .70);
   }
 }
 
-@keyframes pulseSoftRed {
+@keyframes pulseRedStrong {
   0% {
-    box-shadow: 0 0 0 0 rgba(176, 42, 42, .22);
+    background: rgba(226, 59, 59, .12);
+    border-color: rgba(226, 59, 59, .75);
   }
 
-  70% {
-    box-shadow: 0 0 0 10px rgba(176, 42, 42, 0);
+  50% {
+    background: rgba(226, 59, 59, .24);
+    border-color: rgba(226, 59, 59, .98);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(176, 42, 42, 0);
+    background: rgba(226, 59, 59, .12);
+    border-color: rgba(226, 59, 59, .75);
   }
 }
 
 .pulse-blue {
-  animation: pulseSoftBlue 1.4s ease-out infinite;
+  animation: pulseBlueStrong .85s ease-in-out infinite;
+  border-color: rgba(45, 107, 255, .70) !important;
+  background: rgba(45, 107, 255, .10) !important;
+  position: relative;
 }
 
 .pulse-orange {
-  animation: pulseSoftAmber 1.4s ease-out infinite;
+  animation: pulseOrangeStrong .85s ease-in-out infinite;
+  border-color: rgba(240, 163, 58, .70) !important;
+  background: rgba(240, 163, 58, .11) !important;
+  position: relative;
 }
 
 .pulse-red {
-  animation: pulseSoftRed 1.1s ease-out infinite;
+  animation: pulseRedStrong .70s ease-in-out infinite;
+  border-color: rgba(226, 59, 59, .75) !important;
+  background: rgba(226, 59, 59, .12) !important;
+  position: relative;
+}
+
+.pulse-blue::before,
+.pulse-orange::before,
+.pulse-red::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 4px;
+  border-radius: 12px;
+}
+
+.pulse-blue::before {
+  background: rgba(45, 107, 255, .95);
+}
+
+.pulse-orange::before {
+  background: rgba(240, 163, 58, .95);
+}
+
+.pulse-red::before {
+  background: rgba(226, 59, 59, .95);
 }
 
 /* ========== MODAL SYSTEM ========== */

@@ -1,130 +1,128 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Valet Ops Live – History</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css" />
+<head>
+  <meta charset="utf-8" />
+  <title>Valet Ops Live – History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Supabase v1 global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260105f" />
 
-    <!-- History logic (NOT app.js) -->
-    <!-- Cache-bust so GH Pages doesn't serve stale history.js -->
-    <script type="module" src="history.js?v=20260105c"></script>
-  </head>
+  <!-- Supabase v1 global -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-  <body class="role-history">
-    <div class="app-shell">
-      <header class="app-header">
-        <img
-          src="assets/optima-logo.jpg"
-          alt="Optima Dealer Services"
-          class="logo"
-        />
-        <div class="titles">
-          <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">History – Prior Days & Search</div>
+  <!-- History logic (NOT app.js) -->
+  <!-- Cache-bust so GH Pages doesn't serve stale history.js -->
+  <script type="module" src="history.js?v=20260105c"></script>
+</head>
+
+<body class="role-history">
+  <div class="app-shell">
+    <header class="app-header">
+      <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+      <div class="titles">
+        <div class="brand">Optima Dealer Services</div>
+        <div class="subtitle">History – Prior Days & Search</div>
+      </div>
+
+      <div class="header-right">
+        <button id="signout-btn" class="btn small">Sign out</button>
+        <div class="role-pill">History</div>
+      </div>
+    </header>
+    <div id="screen-context" class="screen-context"></div>
+
+    <main class="app-main">
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-title">History Browser</div>
+            <div class="section-subtitle">
+              Filter by date, search tag/customer, and review notes + timeline.
+            </div>
+          </div>
         </div>
 
-        <div class="header-right">
-          <button id="signout-btn" class="btn small">Sign out</button>
-          <div class="role-pill">History</div>
+        <form class="new-pickup-form" id="history-controls" onsubmit="return false;">
+          <div class="input-group">
+            <label for="history-date">Date</label>
+            <input id="history-date" class="input-text" type="date" />
+          </div>
+
+          <div class="input-group">
+            <label for="history-search">Search</label>
+            <input id="history-search" class="input-text" placeholder="Tag # or customer name" />
+          </div>
+
+          <div class="input-group" style="align-self:flex-end;">
+            <button class="btn btn-primary" id="history-apply">Apply</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="section section-completed" id="history-completed">
+        <div class="section-header">
+          <div>
+            <div class="section-title">
+              Completed Results
+              <span class="section-count" id="count-completed">0</span>
+            </div>
+            <div class="section-subtitle">
+              Click Timeline to view event history. Notes show full log. Filtered by completed date.
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">SIMPLE:</span>
+              <button type="button" class="btn small" id="history-export-csv-simple">Download CSV</button>
+              <button type="button" class="btn small" id="history-export-tsv-simple">Copy TSV</button>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">FULL:</span>
+              <button type="button" class="btn small" id="history-export-csv-full">Download CSV</button>
+              <button type="button" class="btn small" id="history-export-tsv-full">Copy TSV</button>
+            </div>
+          </div>
         </div>
-      </header>
-      <div id="screen-context" class="screen-context"></div>
 
-      <main class="app-main">
-        <section class="section">
-          <div class="section-header">
-            <div>
-              <div class="section-title">History Browser</div>
-              <div class="section-subtitle">
-                Filter by date, search tag/customer, and review notes + timeline.
-              </div>
+        <div class="table-wrapper">
+          <table data-schema="completed">
+            <thead></thead>
+            <tbody id="completed-tbody">
+              <tr>
+                <td colspan="8" class="empty">Choose a date and apply.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="history-open">
+        <div class="section-header">
+          <div>
+            <div class="section-title">
+              Open Ticket Results
+              <span class="section-count" id="count-active">0</span>
+            </div>
+            <div class="section-subtitle">
+              Snapshot of matching tickets still open.
             </div>
           </div>
+        </div>
 
-          <form class="new-pickup-form" id="history-controls" onsubmit="return false;">
-            <div class="input-group">
-              <label for="history-date">Date</label>
-              <input id="history-date" class="input-text" type="date" />
-            </div>
+        <div class="table-wrapper">
+          <table data-schema="active">
+            <thead></thead>
+            <tbody id="active-tbody">
+              <tr>
+                <td colspan="7" class="empty">No open results.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
 
-            <div class="input-group">
-              <label for="history-search">Search</label>
-              <input
-                id="history-search"
-                class="input-text"
-                placeholder="Tag # or customer name"
-              />
-            </div>
-
-            <div class="input-group" style="align-self:flex-end;">
-              <button class="btn btn-primary" id="history-apply">Apply</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="section section-completed" id="history-completed">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Completed Results
-                <span class="section-count" id="count-completed">0</span>
-              </div>
-              <div class="section-subtitle">
-                Click Timeline to view event history. Notes show full log. Filtered by completed date.
-              </div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">SIMPLE:</span>
-                <button type="button" class="btn small" id="history-export-csv-simple">Download CSV</button>
-                <button type="button" class="btn small" id="history-export-tsv-simple">Copy TSV</button>
-              </div>
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">FULL:</span>
-                <button type="button" class="btn small" id="history-export-csv-full">Download CSV</button>
-                <button type="button" class="btn small" id="history-export-tsv-full">Copy TSV</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="table-wrapper">
-            <table data-schema="completed">
-              <thead></thead>
-              <tbody id="completed-tbody">
-                <tr><td colspan="8" class="empty">Choose a date and apply.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="section" id="history-open">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Open Ticket Results
-                <span class="section-count" id="count-active">0</span>
-              </div>
-              <div class="section-subtitle">
-                Snapshot of matching tickets still open.
-              </div>
-            </div>
-          </div>
-
-          <div class="table-wrapper">
-            <table data-schema="active">
-              <thead></thead>
-              <tbody id="active-tbody">
-                <tr><td colspan="7" class="empty">No open results.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-    </div>
-  </body>
 </html>
