@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Valet Ops Live – Executive Console</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+
+    <!-- App logic (cache-bust) -->
+    <script type="module" src="executive.js?v=20260105d"></script>
+</head>
+
+<body class="role-executive">
+    <div class="app-shell">
+        <header class="app-header">
+            <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+
+            <div class="titles">
+                <div class="brand">Optima Dealer Services</div>
+                <div class="subtitle">Executive Console</div>
+            </div>
+
+            <div class="header-right">
+                <button id="signout-btn" class="btn small">Sign out</button>
+                <div class="role-pill">Executive</div>
+            </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main">
+            <section class="section">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Executive Console</div>
+                        <div class="section-subtitle">Real-time analytics dashboard</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span id="last-updated" style="font-size: 0.7rem; color: #9ca3af;">Last updated: —</span>
+                        <button id="refresh-btn" class="btn small">Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Tab buttons -->
+                <div class="tab-row"
+                    style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #2b2e3a;">
+                    <button class="tab-btn btn" data-tab="store">Store Overview</button>
+                    <button class="tab-btn btn" data-tab="service">Service</button>
+                    <button class="tab-btn btn" data-tab="sales">Sales</button>
+                </div>
+
+                <!-- Store Overview Tab -->
+                <div id="tab-store" class="tab-content">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-active">—</div>
+                            <div class="kpi-label">Service Active</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-waiting">—</div>
+                            <div class="kpi-label">Service Waiting/Ready</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-completed">—</div>
+                            <div class="kpi-label">Service Completed Today</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-avg-cycle">—</div>
+                            <div class="kpi-label">Avg Service Cycle Time</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-needs-rewash">—</div>
+                            <div class="kpi-label">Needs Rewash</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-key-car-missing">—</div>
+                            <div class="kpi-label">Key/Car Missing</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-sales-active">—</div>
+                            <div class="kpi-label">Sales Active Requests</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-sales-completed">—</div>
+                            <div class="kpi-label">Sales Completed Today</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-sales-avg-driver">—</div>
+                            <div class="kpi-label">Avg Driver Time Today</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-live-health">—</div>
+                            <div class="kpi-label">Live Health</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Tab -->
+                <div id="tab-service" class="tab-content" style="display: none;">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-active-tab">—</div>
+                            <div class="kpi-label">Service Active</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-completed-tab">—</div>
+                            <div class="kpi-label">Service Completed Today</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-service-avg-cycle-tab">—</div>
+                            <div class="kpi-label">Avg Service Cycle Time</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0.5rem;">Breakdown by Status</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-status">
+                                    <tr>
+                                        <td colspan="2" class="empty">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0.5rem;">Breakdown by Location</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Location</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-location">
+                                    <tr>
+                                        <td colspan="2" class="empty">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0.5rem;">Top Valets Today</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Valet</th>
+                                        <th>Completed Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-valets">
+                                    <tr>
+                                        <td colspan="2" class="empty">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Tab -->
+                <div id="tab-sales" class="tab-content" style="display: none;">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-sales-active-tab">—</div>
+                            <div class="kpi-label">Sales Active Requests</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-sales-completed-tab">—</div>
+                            <div class="kpi-label">Sales Completed Today</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" id="kpi-sales-avg-driver-tab">—</div>
+                            <div class="kpi-label">Avg Driver Time Today</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0.5rem;">Breakdown by Status</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-sales-status">
+                                    <tr>
+                                        <td colspan="2" class="empty">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0.5rem;">By Salesperson Today</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Salesperson</th>
+                                        <th>Created Today</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-salesperson">
+                                    <tr>
+                                        <td colspan="2" class="empty">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0.5rem;">By Driver Today</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Driver</th>
+                                        <th>Completed Today</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="breakdown-driver">
+                                    <tr>
+                                        <td colspan="2" class="empty">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>
