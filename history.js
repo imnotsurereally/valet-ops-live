@@ -1,8 +1,9 @@
 // history.js  (FULL FILE REPLACEMENT) — V0.912
-// Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut)
+// Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut) + ./ui.js
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
+import { showModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105a";
 
 let storeId = null;
 let pickups = [];
@@ -18,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wireSignOut();
     wireControls();
     wireTimelineClicks();
+    wireExportButtons();
 
     // auto-run once on load
     runSearch();
@@ -76,7 +78,7 @@ async function runSearch() {
 /* ---------- Data ---------- */
 
 async function loadHistory({ dateVal, q }) {
-  // Query by created_at day window (simple + reliable)
+  // Query by created_at day window for open tickets, completed_at for completed
   let start = null;
   let end = null;
 
@@ -98,7 +100,7 @@ async function loadHistory({ dateVal, q }) {
 
   if (error) {
     console.error(error);
-    alert("History load failed. Check console.");
+    toast("History load failed. Check console.", "error");
     pickups = [];
     return;
   }
@@ -123,8 +125,28 @@ function renderHistory({ q }) {
   const completedTbody = document.getElementById("completed-tbody");
   const activeTbody = document.getElementById("active-tbody");
 
-  const completed = pickups.filter((p) => p.status === "COMPLETE");
+  // Filter completed by completed_at day (not created_at)
+  const dateEl = document.getElementById("history-date");
+  let targetDate = new Date();
+  if (dateEl && dateEl.value) {
+    targetDate = new Date(dateEl.value + "T00:00:00");
+  }
+
+  const dayStart = new Date(targetDate);
+  dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(targetDate);
+  dayEnd.setHours(23, 59, 59, 999);
+
+  const completed = pickups.filter((p) => {
+    if (p.status !== "COMPLETE") return false;
+    if (!p.completed_at) return false;
+    const completedDate = new Date(p.completed_at);
+    return completedDate >= dayStart && completedDate <= dayEnd;
+  });
   const open = pickups.filter((p) => p.status !== "COMPLETE");
+
+  // Store completed for export
+  window._historyCompletedForExport = completed;
 
   setCount("count-completed", completed.length);
   setCount("count-active", open.length);
@@ -219,7 +241,7 @@ function wireTimelineClicks() {
   });
 }
 
-function showTimeline(id) {
+async function showTimeline(id) {
   const p = pickups.find((x) => String(x.id) === String(id));
   if (!p) return;
 
@@ -247,7 +269,79 @@ function showTimeline(id) {
     p.notes.split("\n").forEach((n) => lines.push("• " + n));
   }
 
-  alert(lines.join("\n"));
+  await showModal({
+    title: "Timeline",
+    content: `<pre style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem;">${escapeHtml(lines.join("\n"))}</pre>`,
+    width: "600px"
+  });
+}
+
+async function exportHistoryCSV() {
+  const completed = window._historyCompletedForExport || [];
+  if (completed.length === 0) {
+    toast("No completed tickets to export", "warn");
+    return;
+  }
+
+  const headers = [
+    { key: "tag_number", label: "Tag #" },
+    { key: "customer_name", label: "Customer" },
+    { key: "master_time", label: "Total Time" },
+    { key: "keys_holder", label: "Delivered By" },
+    { key: "created_at", label: "Created" },
+    { key: "completed_at", label: "Completed" },
+    { key: "notes", label: "Notes" }
+  ];
+
+  const rows = completed.map((p) => {
+    const masterSeconds = computeMasterSeconds(p, new Date());
+    return {
+      tag_number: p.tag_number || "",
+      customer_name: p.customer_name || "",
+      master_time: formatDuration(masterSeconds),
+      keys_holder: p.keys_holder || "",
+      created_at: formatTime(p.created_at),
+      completed_at: formatTime(p.completed_at),
+      notes: (p.notes || "").replace(/\n/g, " | ")
+    };
+  });
+
+  const dateEl = document.getElementById("history-date");
+  const dateStr = dateEl && dateEl.value ? dateEl.value : new Date().toISOString().split("T")[0];
+  downloadCSV(`history-completed-${dateStr}`, headers, rows);
+}
+
+async function exportHistoryTSV() {
+  const completed = window._historyCompletedForExport || [];
+  if (completed.length === 0) {
+    toast("No completed tickets to export", "warn");
+    return;
+  }
+
+  const headers = [
+    { key: "tag_number", label: "Tag #" },
+    { key: "customer_name", label: "Customer" },
+    { key: "master_time", label: "Total Time" },
+    { key: "keys_holder", label: "Delivered By" },
+    { key: "created_at", label: "Created" },
+    { key: "completed_at", label: "Completed" },
+    { key: "notes", label: "Notes" }
+  ];
+
+  const rows = completed.map((p) => {
+    const masterSeconds = computeMasterSeconds(p, new Date());
+    return {
+      tag_number: p.tag_number || "",
+      customer_name: p.customer_name || "",
+      master_time: formatDuration(masterSeconds),
+      keys_holder: p.keys_holder || "",
+      created_at: formatTime(p.created_at),
+      completed_at: formatTime(p.completed_at),
+      notes: (p.notes || "").replace(/\n/g, " | ")
+    };
+  });
+
+  copyTSV(headers, rows);
 }
 
 /* ---------- Helpers ---------- */
@@ -302,4 +396,16 @@ function setCount(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = String(value);
+}
+
+function wireExportButtons() {
+  const csvBtn = document.getElementById("history-export-csv");
+  const tsvBtn = document.getElementById("history-export-tsv");
+
+  if (csvBtn) {
+    csvBtn.addEventListener("click", exportHistoryCSV);
+  }
+  if (tsvBtn) {
+    tsvBtn.addEventListener("click", exportHistoryTSV);
+  }
 }

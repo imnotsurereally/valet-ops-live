@@ -1,8 +1,9 @@
 // app.js  (FULL FILE REPLACEMENT) — V0.912
-// Requires: ./supabaseClient.js  +  ./auth.js (requireAuth / wireSignOut)
+// Requires: ./supabaseClient.js  +  ./auth.js (requireAuth / wireSignOut) + ./ui.js
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
+import { showModal, showTextModal, showSelectModal, toast } from "./ui.js?v=20260105a";
 
 let pickups = [];
 let role = "dispatcher";
@@ -10,6 +11,7 @@ let severityMap = new Map(); // id -> severity for sound alerts
 let pqiEnabled = false;
 let uiStateLoaded = false;
 let storeId = null;
+let valetNames = []; // Dynamic valet names from store_settings
 
 /* ---------- AUDIT LOGGING ---------- */
 
@@ -87,11 +89,14 @@ document.addEventListener("DOMContentLoaded", () => {
     await loadPickups();
     subscribeRealtime();
 
+    // Load store settings for dynamic valets
+    await loadStoreSettings();
+
     // Timers tick in 15s intervals
     setInterval(() => renderTables(true), 15 * 1000);
 
-    // Update debug strip every 5 seconds (for "last refresh" time)
-    setInterval(() => updateDebugStrip(), 5 * 1000);
+    // Update debug strip every 15 seconds (for "last refresh" time)
+    setInterval(() => updateDebugStrip(), 15 * 1000);
   })();
 });
 
@@ -456,6 +461,52 @@ async function safeUpdatePickup(id, updates, meta = {}) {
   }
 }
 
+/* ---------- STORE SETTINGS ---------- */
+
+async function loadStoreSettings() {
+  if (!storeId) return;
+
+  try {
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("valet_names")
+      .eq("store_id", storeId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Store settings load error:", error);
+      return;
+    }
+
+    if (!data) {
+      // Fallback to default valets if no settings
+      valetNames = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
+      return;
+    }
+
+    // Parse JSONB array or text[] - handle both
+    if (Array.isArray(data.valet_names)) {
+      valetNames = data.valet_names;
+    } else if (typeof data.valet_names === "string") {
+      try {
+        valetNames = JSON.parse(data.valet_names);
+      } catch {
+        valetNames = [data.valet_names];
+      }
+    } else {
+      // Fallback
+      valetNames = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
+    }
+
+    if (valetNames.length === 0) {
+      valetNames = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
+    }
+  } catch (err) {
+    console.error("Store settings error:", err);
+    valetNames = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
+  }
+}
+
 /* ---------- NEW PICKUP FORM ---------- */
 
 function setupForm() {
@@ -495,10 +546,17 @@ function setupForm() {
       insertData.active_started_at = null;
 
       const baseLine = "Service advisor request";
-      const extra = window.prompt(
-        "Optional note for dispatcher (saved under 'Service advisor request'):",
-        ""
+      const extra = await showTextModal(
+        "Optional note for dispatcher",
+        {
+          placeholder: "Optional note (saved under 'Service advisor request')",
+          initialValue: "",
+          required: false,
+          multiline: false
+        }
       );
+
+      if (extra === null) return; // User cancelled
 
       const extraTrimmed = (extra || "").trim();
       insertData.notes = extraTrimmed ? `${baseLine}\n${extraTrimmed}` : baseLine;
@@ -519,9 +577,11 @@ function setupForm() {
 
     if (error) {
       console.error(error);
-      alert("Error creating ticket. Check console.");
+      toast("Error creating ticket. Check console.", "error");
       return;
     }
+
+    toast("Ticket created", "success");
 
     if (tagInput) tagInput.value = "";
     if (nameInput) nameInput.value = "";
@@ -591,13 +651,56 @@ async function handleAction(id, action) {
       updates.wash_status_at = now;
       break;
 
-    case "wash-rewash":
-      updates.wash_status = "REWASH";
+    case "key-car-missing":
+      updates.wash_status = "KEY_CAR_MISSING";
       updates.wash_status_at = now;
       break;
 
     case "wash-needs-rewash":
-      updates.wash_status = "NEEDS_REWASH";
+      updates.wash_status = "NEEDS_REWASH_PENDING";
+      updates.wash_status_at = now;
+      break;
+
+    case "rewash-yes": {
+      // Show "Text car wash manager?" dialog
+      const textManager = await showSelectModal("Text car wash manager?", {
+        label: "Should we text the car wash manager?",
+        options: [
+          { label: "Yes", value: "yes" },
+          { label: "No", value: "no" }
+        ],
+        required: true
+      });
+
+      if (textManager === null) return; // User cancelled
+
+      const shouldText = textManager === "yes";
+      if (shouldText) {
+        // Non-blocking text stub
+        sendOpsText({
+          message: `Rewash needed for ticket ${pickups.find((p) => String(p.id) === String(id))?.tag_number || id}`,
+          ticketId: id,
+          storeId
+        });
+      }
+
+      updates.wash_status = "SEND_TO_WASH";
+      updates.wash_status_at = now;
+      // Append note about rewash confirmation
+      const current = pickups.find((p) => String(p.id) === String(id));
+      const existingNotes = current?.notes || "";
+      const stamp = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      const rewashNote = `[${stamp}] Rewash confirmed — Text manager: ${shouldText ? "Yes" : "No"}`;
+      updates.notes = existingNotes ? existingNotes + "\n" + rewashNote : rewashNote;
+      updates.notes_updated_at = now;
+      break;
+    }
+
+    case "rewash-no":
+      updates.wash_status = "NEEDS_REWASH_NO";
       updates.wash_status_at = now;
       break;
 
@@ -606,21 +709,12 @@ async function handleAction(id, action) {
       updates.wash_status_at = now;
       break;
 
-    /* --- valets --- */
-    case "with-fernando":
-      setValetUpdates(updates, "Fernando", now);
-      break;
-    case "with-juan":
-      setValetUpdates(updates, "Juan", now);
-      break;
-    case "with-miguel":
-      setValetUpdates(updates, "Miguel", now);
-      break;
-    case "with-maria":
-      setValetUpdates(updates, "Maria", now);
-      break;
-    case "with-helper":
-      setValetUpdates(updates, "Helper", now);
+    /* --- valets (dynamic) --- */
+    case "with-valet":
+      const valetName = btn.getAttribute("data-valet-name");
+      if (valetName) {
+        setValetUpdates(updates, valetName, now);
+      }
       break;
 
     /* --- move to waiting/staged for customer: freeze master timer --- */
@@ -639,13 +733,16 @@ async function handleAction(id, action) {
     case "edit-note": {
       const current = pickups.find((p) => String(p.id) === String(id));
       const existing = current?.notes || "";
-      const promptText = existing
-        ? "Add new note (previous notes stay on record):\n\n" +
-        existing +
-        "\n\nNew note:"
-        : "Add note:";
-      const newNote = window.prompt(promptText, "");
-      if (newNote === null) return;
+      const placeholder = existing
+        ? "Add new note (previous notes stay on record)"
+        : "Add note";
+      const newNote = await showTextModal("Add Note", {
+        placeholder,
+        initialValue: "",
+        required: false,
+        multiline: true
+      });
+      if (newNote === null) return; // User cancelled
       const trimmed = newNote.trim();
       if (!trimmed) return;
 
@@ -695,7 +792,11 @@ async function handleAction(id, action) {
         p.notes.split("\n").forEach((n) => lines.push("• " + n));
       }
 
-      alert(lines.join("\n"));
+      await showModal({
+        title: "Timeline",
+        content: `<pre style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem;">${escapeHtml(lines.join("\n"))}</pre>`,
+        width: "600px"
+      });
       return;
     }
 
@@ -943,6 +1044,12 @@ function renderActiveRow(p, now) {
     currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
   const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
 
+  // Determine rewash state for inline dialog
+  const needsRewashPending = currentWash === "NEEDS_REWASH_PENDING";
+  const needsRewashNo = currentWash === "NEEDS_REWASH_NO";
+  const sendToWash = currentWash === "SEND_TO_WASH";
+  const keyCarMissing = currentWash === "KEY_CAR_MISSING";
+
   const washBtns = `
     <div class="wash-buttons">
       <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected" : ""}"
@@ -957,31 +1064,52 @@ function renderActiveRow(p, now) {
         data-action="keys-machine" data-id="${p.id}">Key machine</button>
     </div>
     <div class="wash-buttons">
-      <button class="btn small ${currentWash === "NEEDS_REWASH" ? "selected wash-needs" : ""}"
-        data-action="wash-needs-rewash" data-id="${p.id}">Needs rewash</button>
-      <button class="btn small ${currentWash === "REWASH" ? "selected" : ""}"
-        data-action="wash-rewash" data-id="${p.id}">Rewash</button>
+      <button class="btn small ${needsRewashPending || needsRewashNo ? "selected wash-needs pulse-blue" : ""} ${sendToWash ? "selected pulse-orange" : ""}"
+        data-action="wash-needs-rewash" data-id="${p.id}">${sendToWash ? "Send to wash" : "Needs rewash"}</button>
+      <button class="btn small ${keyCarMissing ? "selected pulse-red" : ""}"
+        data-action="key-car-missing" data-id="${p.id}">Key/car missing</button>
     </div>
   `;
 
+  // Inline rewash dialog
+  let rewashDialogHtml = "";
+  if (needsRewashPending) {
+    rewashDialogHtml = `
+      <div class="inline-dialog pulse-blue" data-pickup-id="${p.id}">
+        <div class="dialog-content">
+          <div class="dialog-label">Rewash needed?</div>
+          <div class="dialog-buttons">
+            <button class="btn small" data-action="rewash-yes" data-id="${p.id}">Yes rewash</button>
+            <button class="btn small" data-action="rewash-no" data-id="${p.id}">Don't rewash</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (needsRewashNo) {
+    // Keep pulsing blue indicator but no dialog
+  } else if (sendToWash) {
+    // Show orange "Send to wash" state (already in button)
+  }
+
+  // Dynamic valet buttons
   const valetBtns = `
     <div class="valet-grid">
-      <button class="btn small ${currentValet === "Fernando" ? "selected" : ""}" data-action="with-fernando" data-id="${p.id}">Fernando</button>
-      <button class="btn small ${currentValet === "Juan" ? "selected" : ""}" data-action="with-juan" data-id="${p.id}">Juan</button>
-      <button class="btn small ${currentValet === "Miguel" ? "selected" : ""}" data-action="with-miguel" data-id="${p.id}">Miguel</button>
-      <button class="btn small ${currentValet === "Maria" ? "selected" : ""}" data-action="with-maria" data-id="${p.id}">Maria</button>
-      <button class="btn small ${currentValet === "Helper" ? "selected" : ""}" data-action="with-helper" data-id="${p.id}">Helper</button>
+      ${valetNames.map((name) => `
+        <button class="btn small ${currentValet === name ? "selected" : ""}" 
+          data-action="with-valet" 
+          data-valet-name="${escapeHtml(name)}" 
+          data-id="${p.id}">${escapeHtml(name)}</button>
+      `).join("")}
     </div>
   `;
 
+  // Notes as pills
   let notesHtml = `<button class="btn small notes-button" data-action="edit-note" data-id="${p.id}">Add note</button>`;
   if (notesPieces.length > 0) {
     notesHtml += '<div class="notes-list">';
-    if (latestNote) {
-      notesHtml += `<div class="note-line latest">${escapeHtml(latestNote)}</div>`;
-    }
-    olderNotes.forEach((note) => {
-      notesHtml += `<div class="note-line old">${escapeHtml(note)}</div>`;
+    notesPieces.forEach((note, idx) => {
+      const isLatest = idx === notesPieces.length - 1;
+      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"}">${escapeHtml(note)}</span>`;
     });
     notesHtml += '</div>';
   }
@@ -994,6 +1122,7 @@ function renderActiveRow(p, now) {
         <td>
           <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
           ${washBtns}
+          ${rewashDialogHtml}
         </td>
         <td>
           <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
@@ -1024,6 +1153,7 @@ function renderActiveRow(p, now) {
       <td>
         <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
         ${washBtns}
+        ${rewashDialogHtml}
       </td>
       <td>
         <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
@@ -1099,17 +1229,13 @@ function renderWaitingRow(p, now) {
   const masterLabel = formatDuration(masterSeconds);
 
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const latestNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
-  const olderNotes = notesPieces.slice(0, -1).slice(-4); // Last 4 older notes
 
   let notesHtml = `<button class="btn small notes-button dispatcher-only" data-action="edit-note" data-id="${p.id}">Add note</button>`;
   if (notesPieces.length > 0) {
     notesHtml += '<div class="notes-list">';
-    if (latestNote) {
-      notesHtml += `<div class="note-line latest">${escapeHtml(latestNote)}</div>`;
-    }
-    olderNotes.forEach((note) => {
-      notesHtml += `<div class="note-line old">${escapeHtml(note)}</div>`;
+    notesPieces.forEach((note, idx) => {
+      const isLatest = idx === notesPieces.length - 1;
+      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"}">${escapeHtml(note)}</span>`;
     });
     notesHtml += '</div>';
   }
@@ -1137,17 +1263,13 @@ function renderCompletedRow(p, now) {
   const deliveredBy = p.keys_holder || "—";
 
   const notesPieces = (p.notes || "").split("\n").filter(Boolean);
-  const latestNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
-  const olderNotes = notesPieces.slice(0, -1).slice(-4); // Last 4 older notes
 
   let notesHtml = "";
   if (notesPieces.length > 0) {
     notesHtml += '<div class="notes-list">';
-    if (latestNote) {
-      notesHtml += `<div class="note-line latest">${escapeHtml(latestNote)}</div>`;
-    }
-    olderNotes.forEach((note) => {
-      notesHtml += `<div class="note-line old">${escapeHtml(note)}</div>`;
+    notesPieces.forEach((note, idx) => {
+      const isLatest = idx === notesPieces.length - 1;
+      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"}">${escapeHtml(note)}</span>`;
     });
     notesHtml += '</div>';
   }
@@ -1223,9 +1345,8 @@ function renderMetrics(active, waiting, completed, now) {
   ).length;
   redlineCountEl.textContent = String(redLineCount);
 
-  const baseValets = ["Fernando", "Juan", "Miguel", "Maria", "Helper"];
   const valetCounts = {};
-  baseValets.forEach((v) => (valetCounts[v] = 0));
+  valetNames.forEach((v) => (valetCounts[v] = 0));
 
   pickups.forEach((p) => {
     if (!p.keys_holder) return;
@@ -1235,7 +1356,7 @@ function renderMetrics(active, waiting, completed, now) {
     valetCounts[p.keys_holder] += 1;
   });
 
-  valetsEl.innerHTML = baseValets
+  valetsEl.innerHTML = valetNames
     .map(
       (name) => `
       <li>
@@ -1293,15 +1414,36 @@ function humanWashStatus(wash_status) {
       return "In wash";
     case "ON_RED_LINE":
       return "On redline";
-    case "REWASH":
-      return "Rewash";
-    case "NEEDS_REWASH":
+    case "KEY_CAR_MISSING":
+      return "Key/car missing";
+    case "NEEDS_REWASH_PENDING":
       return "Needs rewash";
+    case "NEEDS_REWASH_NO":
+      return "Needs rewash";
+    case "SEND_TO_WASH":
+      return "Send to wash";
     case "DUSTY":
       return "Dusty";
     case "NONE":
     default:
       return "Not set";
+  }
+}
+
+/* ---------- TEXT STUB (NON-BLOCKING) ---------- */
+
+async function sendOpsText({ message, ticketId, storeId }) {
+  if (window.OPS_TEXT_WEBHOOK_URL) {
+    // Fire and forget POST
+    fetch(window.OPS_TEXT_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, ticketId, storeId })
+    }).catch(() => {
+      // Silently fail - don't block UI
+    });
+  } else {
+    toast("Text not configured (demo mode)", "info");
   }
 }
 

@@ -15,10 +15,10 @@
     <script type="module" src="debugHarness.js?v=20251228a"></script>
 
     <!-- App logic (cache-bust) -->
-    <script type="module" src="sales.js?v=20251228a"></script>
+    <script type="module" src="sales.js?v=20260105a"></script>
 </head>
 
-<body class="role-sales-manager">
+<body class="role-sales_manager">
     <div class="app-shell">
         <header class="app-header">
             <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
@@ -33,6 +33,7 @@
                 <div class="role-pill">SALES MANAGER</div>
             </div>
         </header>
+        <div id="screen-context" class="screen-context"></div>
 
         <main class="app-main layout-grid">
             <div class="layout-center">
@@ -59,6 +60,7 @@
                             <select id="salesperson" name="salesperson" class="input-text" required>
                                 <option value="">Select salesperson...</option>
                             </select>
+                            <div id="salesperson-warning" style="display: none; font-size: 0.7rem; color: #ffa94d; margin-top: 0.25rem;"></div>
                         </div>
 
                         <div class="input-group">
@@ -117,10 +119,15 @@
                                 <span class="section-count" id="count-completed">0</span>
                             </div>
                             <div class="section-subtitle">
-                                Completed and cancelled requests.
+                                Completed and cancelled requests (filtered by completed date).
                             </div>
                         </div>
-                        <button type="button" class="btn small" id="toggle-completed">Show</button>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="date" id="completed-date-filter" class="input-text" style="width: auto; min-width: 150px;" />
+                            <button type="button" class="btn small" id="export-csv">Download CSV</button>
+                            <button type="button" class="btn small" id="export-tsv">Copy TSV</button>
+                            <button type="button" class="btn small" id="toggle-completed">Show</button>
+                        </div>
                     </div>
 
                     <div class="section-completed-table">
