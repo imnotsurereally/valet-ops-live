@@ -6,7 +6,7 @@
     <title>Quali Sales — History</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=20260105f" />
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
@@ -47,7 +47,8 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                            <input type="date" id="completed-date-filter" class="input-text" style="width: auto; min-width: 150px;" />
+                            <input type="date" id="completed-date-filter" class="input-text"
+                                style="width: auto; min-width: 150px;" />
                             <button type="button" class="btn small" id="export-csv">Download CSV</button>
                             <button type="button" class="btn small" id="export-tsv">Copy TSV</button>
                         </div>
@@ -80,4 +81,3 @@
 </body>
 
 </html>
-

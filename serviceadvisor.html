@@ -1,95 +1,77 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Valet Ops Live – Service Advisor</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css" />
+<head>
+  <meta charset="utf-8" />
+  <title>Valet Ops Live – Service Advisor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Supabase v1 global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260105f" />
 
-    <!-- App logic -->
-    <script type="module" src="app.js?v=20260105a"></script>
-  </head>
+  <!-- Supabase v1 global -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-  <body class="role-serviceadvisor">
-    <div class="app-shell">
-      <header class="app-header">
-        <img
-          src="assets/optima-logo.jpg"
-          alt="Optima Dealer Services"
-          class="logo"
-        />
-        <div class="titles">
-          <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Service Advisor – Staging Request</div>
-        </div>
+  <!-- App logic -->
+  <script type="module" src="app.js?v=20260105a"></script>
+</head>
 
-        <div class="header-right">
-          <a class="btn small" href="index.html">Home</a>
-          <button id="signout-btn" class="btn small">Sign out</button>
-          <div class="role-pill">Service Advisor</div>
-        </div>
-      </header>
-      <div id="screen-context" class="screen-context"></div>
+<body class="role-serviceadvisor">
+  <div class="app-shell">
+    <header class="app-header">
+      <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+      <div class="titles">
+        <div class="brand">Optima Dealer Services</div>
+        <div class="subtitle">Service Advisor – Staging Request</div>
+      </div>
 
-      <main class="app-main app-main-center">
-        <section class="section" style="max-width: 480px; width: 100%;">
-          <div class="section-header">
-            <div>
-              <div class="section-title">Request Vehicle Staged</div>
-              <div class="section-subtitle">
-                This creates a <b>staged (non-urgent)</b> request that dispatch can activate later.
-              </div>
+      <div class="header-right">
+        <a class="btn small" href="index.html">Home</a>
+        <button id="signout-btn" class="btn small">Sign out</button>
+        <div class="role-pill">Service Advisor</div>
+      </div>
+    </header>
+    <div id="screen-context" class="screen-context"></div>
+
+    <main class="app-main app-main-center">
+      <section class="section" style="max-width: 480px; width: 100%;">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Request Vehicle Staged</div>
+            <div class="section-subtitle">
+              This creates a <b>staged (non-urgent)</b> request that dispatch can activate later.
             </div>
           </div>
+        </div>
 
-          <form id="new-pickup-form" class="new-pickup-form">
-            <div class="input-group">
-              <label for="tag-number">Tag #</label>
-              <input
-                id="tag-number"
-                name="tag-number"
-                class="input-text"
-                placeholder="e.g. 1432"
-                required
-              />
-            </div>
+        <form id="new-pickup-form" class="new-pickup-form">
+          <div class="input-group">
+            <label for="tag-number">Tag #</label>
+            <input id="tag-number" name="tag-number" class="input-text" placeholder="e.g. 1432" required />
+          </div>
 
-            <div class="input-group">
-              <label for="customer-name">Customer name</label>
-              <input
-                id="customer-name"
-                name="customer-name"
-                class="input-text"
-                placeholder="e.g. Maria Lopez"
-                required
-              />
-            </div>
+          <div class="input-group">
+            <label for="customer-name">Customer name</label>
+            <input id="customer-name" name="customer-name" class="input-text" placeholder="e.g. Maria Lopez" required />
+          </div>
 
-            <!-- Optional note input for the “original note” you mentioned -->
-            <div class="input-group">
-              <label for="initial-note">Note (optional)</label>
-              <input
-                id="initial-note"
-                name="initial-note"
-                class="input-text"
-                placeholder="Optional details for dispatch (leave blank if none)"
-              />
-            </div>
+          <!-- Optional note input for the “original note” you mentioned -->
+          <div class="input-group">
+            <label for="initial-note">Note (optional)</label>
+            <input id="initial-note" name="initial-note" class="input-text"
+              placeholder="Optional details for dispatch (leave blank if none)" />
+          </div>
 
-            <div class="input-group" style="align-self: flex-end;">
-              <button type="submit" class="btn btn-primary">Request Staging</button>
-            </div>
+          <div class="input-group" style="align-self: flex-end;">
+            <button type="submit" class="btn btn-primary">Request Staging</button>
+          </div>
 
-            <div class="section-subtitle" style="margin-top: 0.6rem;">
-              Auto-note will include: <b>“service advisor request”</b>.
-            </div>
-          </form>
-        </section>
-      </main>
-    </div>
-  </body>
+          <div class="section-subtitle" style="margin-top: 0.6rem;">
+            Auto-note will include: <b>“service advisor request”</b>.
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+</body>
+
 </html>
