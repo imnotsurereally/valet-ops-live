@@ -20,7 +20,7 @@
       */
 
       // Cache-bust to avoid GitHub Pages stale auth.js
-      import { requireAuth, wireLoginForm } from "./auth.js?v=20251224a";
+      import { requireAuth, wireLoginForm } from "./auth.js?v=20260105a";
 
       document.addEventListener("DOMContentLoaded", async () => {
         const auth = await requireAuth({ page: "login" });

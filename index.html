@@ -69,7 +69,7 @@
 
   <!-- ✅ Auth gate: HOME is owner/manager-only. Employees get redirected to their screen. -->
   <script type="module">
-    import { requireAuth, wireSignOut } from "./auth.js?v=20251224a";
+    import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
 
     document.addEventListener("DOMContentLoaded", async () => {
       const auth = await requireAuth({ page: "home" });
@@ -96,6 +96,7 @@
         <div class="role-pill">Home</div>
       </div>
     </header>
+    <div id="screen-context" class="screen-context"></div>
 
     <main class="app-main app-main-center">
       <section class="section">
@@ -109,9 +110,9 @@
         </div>
 
         <div class="screen-links">
-          <div style="margin-bottom: 2rem;">
-            <h3 style="color: #e0e0e0; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Service</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+          <div class="service-section">
+            <h3 class="section-title">Service</h3>
+            <div class="section-buttons">
               <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
                 Dispatcher Screen
               </a>
@@ -142,9 +143,11 @@
             </div>
           </div>
 
-          <div>
-            <h3 style="color: #e0e0e0; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Sales</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+          <div class="section-divider"></div>
+
+          <div class="sales-section">
+            <h3 class="section-title">Sales</h3>
+            <div class="section-buttons">
               <a class="btn link-sales-manager" href="sales_manager.html">
                 Sales Manager
               </a>

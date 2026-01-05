@@ -59,6 +59,9 @@ function hardRedirect(toFile) {
   window.location.replace(base + toFile);
 }
 
+// Store name cache (in-memory, per session)
+let storeNameCache = new Map();
+
 /**
  * ✅ Important:
  * We keep BOTH:
@@ -66,6 +69,7 @@ function hardRedirect(toFile) {
  * - role-{currentPage}    (what page this is, like role-history)
  */
 function setBodyRoleClasses(effectiveRole, currentPage) {
+  // Remove ALL known role classes (both hyphen and underscore variants)
   const known = [
     "role-dispatcher",
     "role-keymachine",
@@ -79,13 +83,80 @@ function setBodyRoleClasses(effectiveRole, currentPage) {
     "role-home",
     "role-login",
     "role-sales-manager",
-    "role-sales-driver"
+    "role-sales_manager", // underscore variant
+    "role-sales-driver",
+    "role-sales_driver"   // underscore variant
   ];
 
   known.forEach((c) => document.body.classList.remove(c));
 
+  // Add role classes (preserve underscores in effectiveRole)
   if (effectiveRole) document.body.classList.add(`role-${effectiveRole}`);
   if (currentPage) document.body.classList.add(`role-${currentPage}`);
+}
+
+/**
+ * Render screen context line at top of page
+ * Format: "{STORE_NAME}  •  {SCREEN_LABEL}  •  {ROLE_LABEL}  •  {USER_LABEL}"
+ */
+async function renderScreenContext(profile, pageKey) {
+  const contextEl = document.getElementById("screen-context");
+  if (!contextEl) return;
+
+  // Screen label mapping
+  const screenLabels = {
+    home: "Home",
+    dispatcher: "Dispatcher",
+    keymachine: "Key Machine",
+    carwash: "Car Wash",
+    serviceadvisor: "Service Advisor",
+    loancar: "Loan Car",
+    wallboard: "Wallboard",
+    history: "History",
+    sales_manager: "Sales Manager",
+    sales_driver: "Sales Driver"
+  };
+
+  const screenLabel = screenLabels[pageKey] || pageKey || "Unknown";
+
+  // Role label (pretty-case operational_role, fallback to role)
+  const opRole = profile?.operational_role || "";
+  const baseRole = profile?.role || "";
+  const roleForLabel = opRole || baseRole;
+  const roleLabel = roleForLabel
+    .split(/[-_]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+
+  // User label (display_name if exists, else role label)
+  const userLabel = profile?.display_name || roleLabel;
+
+  // Store name (cached)
+  let storeName = "Store";
+  if (profile?.store_id) {
+    if (storeNameCache.has(profile.store_id)) {
+      storeName = storeNameCache.get(profile.store_id);
+    } else {
+      try {
+        const { data, error } = await supabase
+          .from("stores")
+          .select("name")
+          .eq("id", profile.store_id)
+          .maybeSingle();
+
+        if (!error && data?.name) {
+          storeName = data.name;
+          storeNameCache.set(profile.store_id, storeName);
+        }
+      } catch (err) {
+        console.warn("Failed to load store name:", err);
+      }
+    }
+  }
+
+  // Build context string
+  const contextParts = [storeName, screenLabel, roleLabel, userLabel].filter(Boolean);
+  contextEl.textContent = contextParts.join("  •  ");
 }
 
 function routeForRole(role) {
@@ -179,6 +250,9 @@ export async function requireAuth({ page } = {}) {
 
   // ✅ Apply BOTH user role + page role classes
   setBodyRoleClasses(effectiveRole, currentPage);
+
+  // Render screen context (after auth success, before returning)
+  await renderScreenContext(profile, currentPage);
 
   // Owner/Manager: allow everything
   if (effectiveRole === "owner" || effectiveRole === "manager") {

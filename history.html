@@ -12,7 +12,7 @@
 
     <!-- History logic (NOT app.js) -->
     <!-- Cache-bust so GH Pages doesn’t serve stale history.js -->
-    <script type="module" src="history.js?v=20251224a"></script>
+    <script type="module" src="history.js?v=20260105a"></script>
   </head>
 
   <body class="role-history">
@@ -33,6 +33,7 @@
           <div class="role-pill">History</div>
         </div>
       </header>
+      <div id="screen-context" class="screen-context"></div>
 
       <main class="app-main">
         <section class="section">
@@ -74,8 +75,12 @@
                 <span class="section-count" id="count-completed">0</span>
               </div>
               <div class="section-subtitle">
-                Click Timeline to view event history. Notes show full log.
+                Click Timeline to view event history. Notes show full log. Filtered by completed date.
               </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button type="button" class="btn small" id="history-export-csv">Download CSV</button>
+              <button type="button" class="btn small" id="history-export-tsv">Copy TSV</button>
             </div>
           </div>
 
