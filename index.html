@@ -62,14 +62,16 @@
     body.role-owner .link-sales-manager,
     body.role-manager .link-sales-manager,
     body.role-owner .link-sales-driver,
-    body.role-manager .link-sales-driver {
+    body.role-manager .link-sales-driver,
+    body.role-owner .link-sales-history,
+    body.role-manager .link-sales-history {
       display: inline-flex;
     }
   </style>
 
   <!-- ✅ Auth gate: HOME is owner/manager-only. Employees get redirected to their screen. -->
   <script type="module">
-    import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
+    import { requireAuth, wireSignOut } from "./auth.js?v=20260105c";
 
     document.addEventListener("DOMContentLoaded", async () => {
       const auth = await requireAuth({ page: "home" });
@@ -154,6 +156,10 @@
 
               <a class="btn link-sales-driver" href="sales_driver.html">
                 Sales Driver
+              </a>
+
+              <a class="btn link-sales-history" href="sales_history.html">
+                Sales History
               </a>
             </div>
           </div>

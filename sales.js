@@ -2,8 +2,8 @@
 // Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut) + ./ui.js
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
-import { showModal, showTextModal, showSelectModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105a";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260105c";
+import { showModal, showTextModal, showSelectModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105c";
 
 let salesPickups = [];
 let pageRole = null; // "sales_manager" or "sales_driver"
@@ -12,6 +12,11 @@ let salespeople = [];
 let drivers = [];
 let refreshInterval = null;
 let timerInterval = null;
+
+// Helper: snap milliseconds to 15-second increments
+function snapMsTo15s(ms) {
+  return Math.floor(ms / 15000) * 15000;
+}
 
 /* ---------- INITIALIZATION ---------- */
 
@@ -69,7 +74,10 @@ async function initSalesApp() {
 
   // Setup UI
   ensureOpsUI();
-  setupCompletedToggle();
+  // Only setup completed toggle if NOT on sales_manager page
+  if (pageRole !== "sales_manager") {
+    setupCompletedToggle();
+  }
 
   // Load store settings
   await loadStoreSettings();
@@ -82,26 +90,19 @@ async function initSalesApp() {
   // Setup table actions
   setupTableActions();
 
-  // Setup completed date filter and export buttons
-  if (pageRole === "sales_manager") {
-    setupCompletedFilter();
-    setupExportButtons();
-  }
+  // Note: Completed/history removed from sales_manager (moved to sales_history.html)
 
   // Load data
   await loadSalesPickups();
 
-  // Start refresh intervals (15s only)
-  // Snap to 15s intervals
+  // Start refresh intervals
+  // Polling refresh: 5 seconds (as per Dan's requirement)
+  refreshInterval = setInterval(() => loadSalesPickups(), 5000);
+  
+  // Timer UI updates: 15 seconds (snap display to 15s increments)
   const now = Date.now();
   const next15s = Math.ceil(now / 15000) * 15000;
   const delay = next15s - now;
-
-  setTimeout(() => {
-    loadSalesPickups();
-    refreshInterval = setInterval(() => loadSalesPickups(), 15000);
-  }, delay);
-
   setTimeout(() => {
     renderTables(true);
     timerInterval = setInterval(() => renderTables(true), 15000);
@@ -608,7 +609,10 @@ async function loadSalesPickups() {
 function renderTables(timerOnly = false) {
   if (!timerOnly) {
     renderActiveTable();
-    renderCompletedTable();
+    // Only render completed table if NOT on sales_manager page
+    if (pageRole !== "sales_manager") {
+      renderCompletedTable();
+    }
   } else {
     // Just update timers
     updateTimers();
@@ -885,8 +889,9 @@ function updateTimers() {
 
 function formatTimer(startTime) {
   const now = new Date();
-  const diff = now - startTime;
-  const seconds = Math.floor(diff / 1000);
+  const diffMs = now - startTime;
+  const snappedMs = snapMsTo15s(diffMs);
+  const seconds = Math.floor(snappedMs / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
 

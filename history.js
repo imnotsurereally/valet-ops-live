@@ -2,8 +2,8 @@
 // Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut) + ./ui.js
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
-import { showModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105a";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260105c";
+import { showModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105c";
 
 let storeId = null;
 let pickups = [];
@@ -78,23 +78,13 @@ async function runSearch() {
 /* ---------- Data ---------- */
 
 async function loadHistory({ dateVal, q }) {
-  // Query by created_at day window for open tickets, completed_at for completed
-  let start = null;
-  let end = null;
-
-  if (dateVal) {
-    start = new Date(dateVal + "T00:00:00");
-    end = new Date(dateVal + "T23:59:59.999");
-  }
-
+  // Query all pickups (we'll filter completed by completed_at in renderHistory)
   let query = supabase
     .from("pickups")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (storeId) query = query.eq("store_id", storeId);
-  if (start) query = query.gte("created_at", start.toISOString());
-  if (end) query = query.lte("created_at", end.toISOString());
 
   const { data, error } = await query;
 
@@ -135,13 +125,14 @@ function renderHistory({ q }) {
   const dayStart = new Date(targetDate);
   dayStart.setHours(0, 0, 0, 0);
   const dayEnd = new Date(targetDate);
-  dayEnd.setHours(23, 59, 59, 999);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+  dayEnd.setHours(0, 0, 0, 0);
 
   const completed = pickups.filter((p) => {
     if (p.status !== "COMPLETE") return false;
     if (!p.completed_at) return false;
     const completedDate = new Date(p.completed_at);
-    return completedDate >= dayStart && completedDate <= dayEnd;
+    return completedDate >= dayStart && completedDate < dayEnd;
   });
   const open = pickups.filter((p) => p.status !== "COMPLETE");
 
@@ -276,7 +267,12 @@ async function showTimeline(id) {
   });
 }
 
-async function exportHistoryCSV() {
+// Get valet name from pickup (delivered_by / keys_holder / "keys with")
+function getValetName(p) {
+  return p.keys_holder || p.delivered_by || "UNKNOWN";
+}
+
+async function exportHistorySimple(format) {
   const completed = window._historyCompletedForExport || [];
   if (completed.length === 0) {
     toast("No completed tickets to export", "warn");
@@ -284,67 +280,138 @@ async function exportHistoryCSV() {
   }
 
   const headers = [
+    { key: "created_at", label: "Created At" },
+    { key: "completed_at", label: "Completed At" },
     { key: "tag_number", label: "Tag #" },
-    { key: "customer_name", label: "Customer" },
-    { key: "master_time", label: "Total Time" },
-    { key: "keys_holder", label: "Delivered By" },
-    { key: "created_at", label: "Created" },
-    { key: "completed_at", label: "Completed" },
-    { key: "notes", label: "Notes" }
+    { key: "customer_name", label: "Customer Name" },
+    { key: "valet_name", label: "Valet Name" },
+    { key: "master_time", label: "Master Time" }
   ];
 
   const rows = completed.map((p) => {
     const masterSeconds = computeMasterSeconds(p, new Date());
     return {
+      created_at: p.created_at ? new Date(p.created_at).toISOString() : "",
+      completed_at: p.completed_at ? new Date(p.completed_at).toISOString() : "",
       tag_number: p.tag_number || "",
       customer_name: p.customer_name || "",
-      master_time: formatDuration(masterSeconds),
-      keys_holder: p.keys_holder || "",
-      created_at: formatTime(p.created_at),
-      completed_at: formatTime(p.completed_at),
-      notes: (p.notes || "").replace(/\n/g, " | ")
+      valet_name: getValetName(p),
+      master_time: formatDuration(masterSeconds)
     };
   });
 
   const dateEl = document.getElementById("history-date");
   const dateStr = dateEl && dateEl.value ? dateEl.value : new Date().toISOString().split("T")[0];
-  downloadCSV(`history-completed-${dateStr}`, headers, rows);
+
+  if (format === "csv") {
+    downloadCSV(`history-simple-${dateStr}`, headers, rows);
+  } else {
+    copyTSV(headers, rows);
+  }
 }
 
-async function exportHistoryTSV() {
+async function exportHistoryFull(format) {
   const completed = window._historyCompletedForExport || [];
   if (completed.length === 0) {
     toast("No completed tickets to export", "warn");
     return;
   }
 
+  // Fetch pickup_events for all completed pickups
+  const pickupIds = completed.map((p) => p.id);
+  let events = [];
+  
+  if (pickupIds.length > 0) {
+    try {
+      const { data, error } = await supabase
+        .from("pickup_events")
+        .select("pickup_id, created_at, action, payload")
+        .in("pickup_id", pickupIds)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Failed to load pickup_events:", error);
+        toast("Warning: Could not load event timeline", "warn");
+      } else {
+        events = data || [];
+      }
+    } catch (err) {
+      console.error("Error loading pickup_events:", err);
+      toast("Warning: Could not load event timeline", "warn");
+    }
+  }
+
+  // Group events by pickup_id
+  const eventsByPickup = new Map();
+  events.forEach((e) => {
+    if (!eventsByPickup.has(e.pickup_id)) {
+      eventsByPickup.set(e.pickup_id, []);
+    }
+    eventsByPickup.get(e.pickup_id).push(e);
+  });
+
+  // Build timeline string for each pickup
+  function buildTimeline(pickupId) {
+    const pickupEvents = eventsByPickup.get(pickupId) || [];
+    if (pickupEvents.length === 0) return "";
+
+    return pickupEvents
+      .map((e) => {
+        const time = new Date(e.created_at);
+        const timeStr = time.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false
+        });
+        const action = e.action || "";
+        const payload = e.payload ? JSON.stringify(e.payload) : "";
+        return `${timeStr} — ${action}${payload ? ` — ${payload}` : ""}`;
+      })
+      .join("\n");
+  }
+
   const headers = [
+    { key: "created_at", label: "Created At" },
+    { key: "completed_at", label: "Completed At" },
     { key: "tag_number", label: "Tag #" },
-    { key: "customer_name", label: "Customer" },
-    { key: "master_time", label: "Total Time" },
-    { key: "keys_holder", label: "Delivered By" },
-    { key: "created_at", label: "Created" },
-    { key: "completed_at", label: "Completed" },
-    { key: "notes", label: "Notes" }
+    { key: "customer_name", label: "Customer Name" },
+    { key: "valet_name", label: "Valet Name" },
+    { key: "master_time", label: "Master Time" },
+    { key: "notes", label: "Notes" },
+    { key: "timeline", label: "Timeline" }
   ];
 
   const rows = completed.map((p) => {
     const masterSeconds = computeMasterSeconds(p, new Date());
     return {
+      created_at: p.created_at ? new Date(p.created_at).toISOString() : "",
+      completed_at: p.completed_at ? new Date(p.completed_at).toISOString() : "",
       tag_number: p.tag_number || "",
       customer_name: p.customer_name || "",
+      valet_name: getValetName(p),
       master_time: formatDuration(masterSeconds),
-      keys_holder: p.keys_holder || "",
-      created_at: formatTime(p.created_at),
-      completed_at: formatTime(p.completed_at),
-      notes: (p.notes || "").replace(/\n/g, " | ")
+      notes: (p.notes || "").replace(/\n/g, "\n"), // Preserve newlines
+      timeline: buildTimeline(p.id)
     };
   });
 
-  copyTSV(headers, rows);
+  const dateEl = document.getElementById("history-date");
+  const dateStr = dateEl && dateEl.value ? dateEl.value : new Date().toISOString().split("T")[0];
+
+  if (format === "csv") {
+    downloadCSV(`history-full-${dateStr}`, headers, rows);
+  } else {
+    copyTSV(headers, rows);
+  }
 }
 
 /* ---------- Helpers ---------- */
+
+// Helper: snap milliseconds to 15-second increments
+function snapMsTo15s(ms) {
+  return Math.floor(ms / 15000) * 15000;
+}
 
 function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
@@ -352,7 +419,9 @@ function computeMasterSeconds(p, now) {
 
   // V0.912: freeze master timer once waiting OR completed
   const endIso = p.waiting_client_at || p.completed_at || null;
-  return computeSeconds(startIso, endIso, now);
+  const ms = computeSeconds(startIso, endIso, now) * 1000;
+  const snappedMs = snapMsTo15s(ms);
+  return snappedMs / 1000;
 }
 
 function computeSeconds(startIso, endIso, now) {
@@ -399,13 +468,21 @@ function setCount(id, value) {
 }
 
 function wireExportButtons() {
-  const csvBtn = document.getElementById("history-export-csv");
-  const tsvBtn = document.getElementById("history-export-tsv");
+  const csvSimpleBtn = document.getElementById("history-export-csv-simple");
+  const tsvSimpleBtn = document.getElementById("history-export-tsv-simple");
+  const csvFullBtn = document.getElementById("history-export-csv-full");
+  const tsvFullBtn = document.getElementById("history-export-tsv-full");
 
-  if (csvBtn) {
-    csvBtn.addEventListener("click", exportHistoryCSV);
+  if (csvSimpleBtn) {
+    csvSimpleBtn.addEventListener("click", () => exportHistorySimple("csv"));
   }
-  if (tsvBtn) {
-    tsvBtn.addEventListener("click", exportHistoryTSV);
+  if (tsvSimpleBtn) {
+    tsvSimpleBtn.addEventListener("click", () => exportHistorySimple("tsv"));
+  }
+  if (csvFullBtn) {
+    csvFullBtn.addEventListener("click", () => exportHistoryFull("csv"));
+  }
+  if (tsvFullBtn) {
+    tsvFullBtn.addEventListener("click", () => exportHistoryFull("tsv"));
   }
 }
