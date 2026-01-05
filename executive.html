@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
     <!-- App logic (cache-bust) -->
-    <script type="module" src="executive.js?v=20260105d"></script>
+    <script type="module" src="executive.js?v=20260105e"></script>
 </head>
 
 <body class="role-executive">
@@ -51,6 +51,7 @@
                     <button class="tab-btn btn" data-tab="store">Store Overview</button>
                     <button class="tab-btn btn" data-tab="service">Service</button>
                     <button class="tab-btn btn" data-tab="sales">Sales</button>
+                    <button class="tab-btn btn" data-tab="market">Market Screen</button>
                 </div>
 
                 <!-- Store Overview Tab -->
@@ -247,6 +248,20 @@
                             </table>
                         </div>
                     </div>
+                </div>
+
+                <!-- Market Screen Tab -->
+                <div id="tab-market" class="tab-content" style="display: none;">
+                    <!-- Ticker tape bar -->
+                    <div class="ticker">
+                        <div id="ticker-track" class="ticker-track"></div>
+                    </div>
+
+                    <!-- KPI grid -->
+                    <div id="market-grid" class="market-grid"></div>
+
+                    <!-- Hover/Detail panel -->
+                    <div id="market-detail" class="market-detail"></div>
                 </div>
             </section>
         </main>

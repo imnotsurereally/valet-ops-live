@@ -66,14 +66,16 @@
     body.role-owner .link-sales-history,
     body.role-manager .link-sales-history,
     body.role-owner .link-executive,
-    body.role-manager .link-executive {
+    body.role-manager .link-executive,
+    body.role-owner .link-system-settings,
+    body.role-manager .link-system-settings {
       display: inline-flex;
     }
   </style>
 
   <!-- ✅ Auth gate: HOME is owner/manager-only. Employees get redirected to their screen. -->
   <script type="module">
-    import { requireAuth, wireSignOut } from "./auth.js?v=20260105c";
+    import { requireAuth, wireSignOut } from "./auth.js?v=20260105e";
 
     document.addEventListener("DOMContentLoaded", async () => {
       const auth = await requireAuth({ page: "home" });
@@ -147,6 +149,10 @@
 
               <a class="btn link-executive" href="executive.html">
                 Executive Console
+              </a>
+
+              <a class="btn link-system-settings" href="system_settings.html">
+                System Settings
               </a>
             </div>
           </div>

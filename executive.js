@@ -2,13 +2,14 @@
 // Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut)
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20260105d";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260105e";
 
 let storeId = null;
 let servicePickups = [];
 let salesPickups = [];
 let refreshInterval = null;
 let lastRefreshTime = null;
+let previousMarketSnapshot = null;
 
 function pageKeyFromPath() {
   const file = (
@@ -55,10 +56,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial load
     await loadData();
 
-    // Auto-refresh every 30s
+    // Auto-refresh every 5s (for market screen)
     refreshInterval = setInterval(() => {
       loadData();
-    }, 30000);
+    }, 5000);
   })();
 });
 
@@ -85,6 +86,8 @@ function setupTabs() {
         document.getElementById("tab-service").style.display = "block";
       } else if (tab === "sales") {
         document.getElementById("tab-sales").style.display = "block";
+      } else if (tab === "market") {
+        document.getElementById("tab-market").style.display = "block";
       }
 
       // Re-render current tab
@@ -201,6 +204,7 @@ async function loadData() {
   renderStoreOverview();
   renderServiceTab();
   renderSalesTab();
+  renderMarketScreen();
 }
 
 function updateLastUpdated() {
@@ -563,6 +567,8 @@ function renderTab(tab) {
     renderServiceTab();
   } else if (tab === "sales") {
     renderSalesTab();
+  } else if (tab === "market") {
+    renderMarketScreen();
   }
 }
 
@@ -628,5 +634,338 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+// Market Screen Functions
+function computeMarketSnapshot() {
+  const now = new Date();
+  const dayStart = new Date(now);
+  dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  // Service metrics
+  const serviceActive = servicePickups.filter(
+    (p) => p.status !== "COMPLETE"
+  ).length;
+
+  const serviceWaiting = servicePickups.filter(
+    (p) => p.status === "WAITING_FOR_CUSTOMER"
+  ).length;
+
+  const serviceCompletedToday = servicePickups.filter((p) => {
+    if (!p.completed_at) return false;
+    const d = new Date(p.completed_at);
+    return d >= dayStart && d < dayEnd;
+  }).length;
+
+  const cycleTimes = servicePickups
+    .filter((p) => {
+      if (!p.active_started_at || !p.waiting_client_at) return false;
+      const started = new Date(p.active_started_at);
+      const waiting = new Date(p.waiting_client_at);
+      return started >= dayStart && waiting >= dayStart;
+    })
+    .map((p) => {
+      const started = new Date(p.active_started_at);
+      const waiting = new Date(p.waiting_client_at);
+      return (waiting - started) / 1000 / 60; // minutes
+    });
+
+  const avgCycleMin = cycleTimes.length > 0
+    ? Math.round(cycleTimes.reduce((a, b) => a + b, 0) / cycleTimes.length)
+    : 0;
+
+  const rewashCount = servicePickups.filter(
+    (p) =>
+      (p.wash_status && p.wash_status.startsWith("NEEDS_REWASH")) ||
+      p.wash_status === "SEND_TO_WASH"
+  ).length;
+
+  const keyMissingCount = servicePickups.filter(
+    (p) => p.wash_status === "KEY_CAR_MISSING"
+  ).length;
+
+  // Sales metrics
+  const salesActive = salesPickups.filter(
+    (p) => p.status !== "COMPLETE" && p.status !== "CANCELLED"
+  ).length;
+
+  const salesCompletedToday = salesPickups.filter((p) => {
+    if (!p.completed_at) return false;
+    const d = new Date(p.completed_at);
+    return d >= dayStart && d < dayEnd;
+  }).length;
+
+  const driverTimes = salesPickups
+    .filter((p) => {
+      if (!p.on_the_way_at || !p.completed_at) return false;
+      const completed = new Date(p.completed_at);
+      return completed >= dayStart && completed < dayEnd;
+    })
+    .map((p) => {
+      const onWay = new Date(p.on_the_way_at);
+      const completed = new Date(p.completed_at);
+      return (completed - onWay) / 1000 / 60; // minutes
+    });
+
+  const avgDriverMin = driverTimes.length > 0
+    ? Math.round(driverTimes.reduce((a, b) => a + b, 0) / driverTimes.length)
+    : 0;
+
+  // Hot alerts (redline, key missing, needs attention)
+  const hotAlerts = servicePickups.filter(
+    (p) =>
+      p.wash_status === "ON_RED_LINE" ||
+      p.wash_status === "KEY_CAR_MISSING" ||
+      (p.wash_status && p.wash_status.startsWith("NEEDS_REWASH"))
+  ).length;
+
+  return {
+    SERVICE_ACTIVE: serviceActive,
+    SERVICE_WAITING: serviceWaiting,
+    SERVICE_COMPLETED_TODAY: serviceCompletedToday,
+    SERVICE_AVG_CYCLE_MIN: avgCycleMin,
+    REWASH_COUNT: rewashCount,
+    KEY_MISSING_COUNT: keyMissingCount,
+    SALES_ACTIVE: salesActive,
+    SALES_COMPLETED_TODAY: salesCompletedToday,
+    SALES_AVG_DRIVER_MIN: avgDriverMin,
+    HOT_ALERTS: hotAlerts
+  };
+}
+
+function renderMarketScreen() {
+  const snapshot = computeMarketSnapshot();
+  const previous = previousMarketSnapshot;
+
+  // Render ticker tape
+  renderTickerTape(snapshot, previous);
+
+  // Render market grid
+  renderMarketGrid(snapshot, previous);
+
+  // Update previous snapshot
+  previousMarketSnapshot = { ...snapshot };
+}
+
+function renderTickerTape(snapshot, previous) {
+  const tickerTrack = document.getElementById("ticker-track");
+  if (!tickerTrack) return;
+
+  const items = [];
+
+  // Build ticker items with deltas
+  const addItem = (label, value, prevValue) => {
+    const delta = prevValue !== null && prevValue !== undefined ? value - prevValue : 0;
+    const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "";
+    const deltaStr = delta !== 0 ? Math.abs(delta).toString() : "";
+    items.push(`${label} ${value} ${arrow}${deltaStr}`);
+  };
+
+  addItem("SVC ACT", snapshot.SERVICE_ACTIVE, previous?.SERVICE_ACTIVE);
+  addItem("WAIT", snapshot.SERVICE_WAITING, previous?.SERVICE_WAITING);
+  addItem("REWASH", snapshot.REWASH_COUNT, previous?.REWASH_COUNT);
+  addItem("SALES ACT", snapshot.SALES_ACTIVE, previous?.SALES_ACTIVE);
+  addItem("AVG CYCLE", `${snapshot.SERVICE_AVG_CYCLE_MIN}m`, previous?.SERVICE_AVG_CYCLE_MIN !== undefined ? `${previous.SERVICE_AVG_CYCLE_MIN}m` : null);
+  addItem("SALES COMP", snapshot.SALES_COMPLETED_TODAY, previous?.SALES_COMPLETED_TODAY);
+  addItem("ALERTS", snapshot.HOT_ALERTS, previous?.HOT_ALERTS);
+
+  // Repeat items for continuous scroll
+  const repeatedItems = [...items, ...items, ...items].join("  •  ");
+
+  tickerTrack.innerHTML = `<span class="ticker-item">${repeatedItems}</span>`;
+}
+
+function renderMarketGrid(snapshot, previous) {
+  const grid = document.getElementById("market-grid");
+  if (!grid) return;
+
+  const tiles = [
+    {
+      key: "SERVICE_ACTIVE",
+      label: "Service Active",
+      value: snapshot.SERVICE_ACTIVE,
+      prevValue: previous?.SERVICE_ACTIVE,
+      detail: () => {
+        const byStatus = {};
+        servicePickups.forEach((p) => {
+          const status = p.status || "UNKNOWN";
+          byStatus[status] = (byStatus[status] || 0) + 1;
+        });
+        return { title: "Service Active Breakdown", data: byStatus };
+      }
+    },
+    {
+      key: "SERVICE_WAITING",
+      label: "Waiting/Ready",
+      value: snapshot.SERVICE_WAITING,
+      prevValue: previous?.SERVICE_WAITING,
+      detail: () => {
+        return { title: "Service Waiting", data: { "WAITING_FOR_CUSTOMER": snapshot.SERVICE_WAITING } };
+      }
+    },
+    {
+      key: "SERVICE_COMPLETED_TODAY",
+      label: "Completed Today",
+      value: snapshot.SERVICE_COMPLETED_TODAY,
+      prevValue: previous?.SERVICE_COMPLETED_TODAY,
+      detail: () => {
+        return { title: "Service Completed Today", data: { "COMPLETED": snapshot.SERVICE_COMPLETED_TODAY } };
+      }
+    },
+    {
+      key: "SERVICE_AVG_CYCLE_MIN",
+      label: "Avg Cycle",
+      value: `${snapshot.SERVICE_AVG_CYCLE_MIN}m`,
+      prevValue: previous?.SERVICE_AVG_CYCLE_MIN,
+      detail: () => {
+        return { title: "Average Service Cycle Time", data: { "Minutes": snapshot.SERVICE_AVG_CYCLE_MIN } };
+      }
+    },
+    {
+      key: "REWASH_COUNT",
+      label: "Rewash",
+      value: snapshot.REWASH_COUNT,
+      prevValue: previous?.REWASH_COUNT,
+      detail: () => {
+        return { title: "Needs Rewash", data: { "Count": snapshot.REWASH_COUNT } };
+      }
+    },
+    {
+      key: "KEY_MISSING_COUNT",
+      label: "Key Missing",
+      value: snapshot.KEY_MISSING_COUNT,
+      prevValue: previous?.KEY_MISSING_COUNT,
+      detail: () => {
+        return { title: "Key/Car Missing", data: { "Count": snapshot.KEY_MISSING_COUNT } };
+      }
+    },
+    {
+      key: "SALES_ACTIVE",
+      label: "Sales Active",
+      value: snapshot.SALES_ACTIVE,
+      prevValue: previous?.SALES_ACTIVE,
+      detail: () => {
+        const byStatus = {};
+        salesPickups.forEach((p) => {
+          const status = p.status || "UNKNOWN";
+          byStatus[status] = (byStatus[status] || 0) + 1;
+        });
+        return { title: "Sales Active Breakdown", data: byStatus };
+      }
+    },
+    {
+      key: "SALES_COMPLETED_TODAY",
+      label: "Sales Completed",
+      value: snapshot.SALES_COMPLETED_TODAY,
+      prevValue: previous?.SALES_COMPLETED_TODAY,
+      detail: () => {
+        return { title: "Sales Completed Today", data: { "COMPLETED": snapshot.SALES_COMPLETED_TODAY } };
+      }
+    },
+    {
+      key: "SALES_AVG_DRIVER_MIN",
+      label: "Avg Driver",
+      value: `${snapshot.SALES_AVG_DRIVER_MIN}m`,
+      prevValue: previous?.SALES_AVG_DRIVER_MIN,
+      detail: () => {
+        return { title: "Average Driver Time", data: { "Minutes": snapshot.SALES_AVG_DRIVER_MIN } };
+      }
+    },
+    {
+      key: "HOT_ALERTS",
+      label: "Hot Alerts",
+      value: snapshot.HOT_ALERTS,
+      prevValue: previous?.HOT_ALERTS,
+      detail: () => {
+        return { title: "Hot Alerts", data: { "Count": snapshot.HOT_ALERTS } };
+      }
+    }
+  ];
+
+  grid.innerHTML = tiles.map((tile) => {
+    const delta = tile.prevValue !== null && tile.prevValue !== undefined
+      ? (typeof tile.value === "string" ? parseFloat(tile.value) : tile.value) - (typeof tile.prevValue === "string" ? parseFloat(tile.prevValue) : tile.prevValue)
+      : 0;
+    const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "";
+    const deltaClass = delta > 0 ? "flash-up" : delta < 0 ? "flash-down" : "";
+    const flashClass = delta !== 0 ? deltaClass : "";
+
+    return `
+      <div class="market-tile ${flashClass}" data-key="${tile.key}" data-tile='${JSON.stringify(tile)}'>
+        <div class="market-tile-label">${escapeHtml(tile.label)}</div>
+        <div class="market-tile-value">${escapeHtml(String(tile.value))}</div>
+        ${delta !== 0 ? `<div class="market-tile-delta">${arrow}${Math.abs(delta)}</div>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  // Wire hover events
+  const marketTiles = grid.querySelectorAll(".market-tile");
+  marketTiles.forEach((tile) => {
+    const tileData = JSON.parse(tile.getAttribute("data-tile"));
+    const detailFn = tileData.detail;
+
+    tile.addEventListener("mouseenter", () => {
+      const detail = detailFn();
+      renderMarketDetail(detail);
+    });
+
+    tile.addEventListener("mouseleave", () => {
+      clearMarketDetail();
+    });
+
+    // Mobile tap support
+    tile.addEventListener("click", () => {
+      const detail = detailFn();
+      renderMarketDetail(detail);
+    });
+  });
+
+  // Remove flash classes after animation
+  setTimeout(() => {
+    marketTiles.forEach((tile) => {
+      tile.classList.remove("flash-up", "flash-down");
+    });
+  }, 1000);
+}
+
+function renderMarketDetail(detail) {
+  const detailPanel = document.getElementById("market-detail");
+  if (!detailPanel || !detail) return;
+
+  const rows = Object.entries(detail.data || {})
+    .map(([key, value]) => `
+      <tr>
+        <td>${escapeHtml(key)}</td>
+        <td>${escapeHtml(String(value))}</td>
+      </tr>
+    `)
+    .join("");
+
+  detailPanel.innerHTML = `
+    <div class="market-detail-content">
+      <h3 class="market-detail-title">${escapeHtml(detail.title || "Details")}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || "<tr><td colspan='2' class='empty'>No data</td></tr>"}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function clearMarketDetail() {
+  const detailPanel = document.getElementById("market-detail");
+  if (detailPanel) {
+    detailPanel.innerHTML = "";
+  }
 }
 

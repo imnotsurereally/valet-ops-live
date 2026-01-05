@@ -13,6 +13,7 @@ const ROUTES = {
   sales_driver: "sales_driver.html",
   sales_history: "sales_history.html",
   executive: "executive.html",
+  system_settings: "system_settings.html",
   driver: "sales_driver.html", // operational_role "driver" maps to sales_driver.html
   home: "index.html",
   login: "login.html"
@@ -50,6 +51,7 @@ function pageKeyFromPath() {
     "sales_driver.html": "sales_driver",
     "sales_history.html": "sales_history",
     "executive.html": "executive",
+    "system_settings.html": "system_settings",
     "login.html": "login"
   };
 
@@ -92,7 +94,9 @@ function setBodyRoleClasses(effectiveRole, currentPage) {
     "role-sales_driver",   // underscore variant
     "role-sales-history",
     "role-sales_history",   // underscore variant
-    "role-executive"
+    "role-executive",
+    "role-system_settings",
+    "role-system-settings"  // hyphen variant
   ];
 
   known.forEach((c) => document.body.classList.remove(c));
@@ -123,7 +127,8 @@ async function renderScreenContext(profile, pageKey) {
     sales_manager: "Sales Manager",
     sales_driver: "Sales Driver",
     sales_history: "Sales History",
-    executive: "Executive Console"
+    executive: "Executive Console",
+    system_settings: "System Settings"
   };
 
   const screenLabel = screenLabels[pageKey] || pageKey || "Unknown";
@@ -276,6 +281,14 @@ export async function requireAuth({ page } = {}) {
     if (effectiveRole !== "owner" && effectiveRole !== "manager") {
       hardRedirect(routeForRole(effectiveRole));
       return { ok: false, reason: "executive_restricted" };
+    }
+  }
+
+  // Special case: system_settings is owner/manager ONLY (enforced here and in system_settings.js)
+  if (currentPage === "system_settings") {
+    if (effectiveRole !== "owner" && effectiveRole !== "manager") {
+      hardRedirect(routeForRole(effectiveRole));
+      return { ok: false, reason: "system_settings_restricted" };
     }
   }
 
