@@ -11,8 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
     <!-- History logic (NOT app.js) -->
-    <!-- Cache-bust so GH Pages doesn’t serve stale history.js -->
-    <script type="module" src="history.js?v=20260105a"></script>
+    <!-- Cache-bust so GH Pages doesn't serve stale history.js -->
+    <script type="module" src="history.js?v=20260105c"></script>
   </head>
 
   <body class="role-history">
@@ -78,9 +78,17 @@
                 Click Timeline to view event history. Notes show full log. Filtered by completed date.
               </div>
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button type="button" class="btn small" id="history-export-csv">Download CSV</button>
-              <button type="button" class="btn small" id="history-export-tsv">Copy TSV</button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">SIMPLE:</span>
+                <button type="button" class="btn small" id="history-export-csv-simple">Download CSV</button>
+                <button type="button" class="btn small" id="history-export-tsv-simple">Copy TSV</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">FULL:</span>
+                <button type="button" class="btn small" id="history-export-csv-full">Download CSV</button>
+                <button type="button" class="btn small" id="history-export-tsv-full">Copy TSV</button>
+              </div>
             </div>
           </div>
 

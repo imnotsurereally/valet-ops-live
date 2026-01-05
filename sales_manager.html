@@ -15,7 +15,7 @@
     <script type="module" src="debugHarness.js?v=20251228a"></script>
 
     <!-- App logic (cache-bust) -->
-    <script type="module" src="sales.js?v=20260105a"></script>
+    <script type="module" src="sales.js?v=20260105c"></script>
 </head>
 
 <body class="role-sales_manager">
@@ -110,47 +110,6 @@
                     </div>
                 </section>
 
-                <!-- Completed -->
-                <section class="section section-completed" id="completed-section">
-                    <div class="section-header">
-                        <div>
-                            <div class="section-title">
-                                <span class="check-icon">✔</span> Completed
-                                <span class="section-count" id="count-completed">0</span>
-                            </div>
-                            <div class="section-subtitle">
-                                Completed and cancelled requests (filtered by completed date).
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="date" id="completed-date-filter" class="input-text" style="width: auto; min-width: 150px;" />
-                            <button type="button" class="btn small" id="export-csv">Download CSV</button>
-                            <button type="button" class="btn small" id="export-tsv">Copy TSV</button>
-                            <button type="button" class="btn small" id="toggle-completed">Show</button>
-                        </div>
-                    </div>
-
-                    <div class="section-completed-table">
-                        <div class="table-wrapper">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Stock #</th>
-                                        <th>Salesperson</th>
-                                        <th>Final Status</th>
-                                        <th>Completed/Cancelled Time</th>
-                                        <th>Timeline</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="completed-tbody">
-                                    <tr>
-                                        <td colspan="5" class="empty">No completed requests yet.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
             </div>
         </main>
     </div>

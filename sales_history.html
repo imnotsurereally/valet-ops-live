@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Quali Sales — History</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Supabase v1 global -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+
+    <!-- App logic (cache-bust) -->
+    <script type="module" src="sales_history.js?v=20260105c"></script>
+</head>
+
+<body class="role-sales_history">
+    <div class="app-shell">
+        <header class="app-header">
+            <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+
+            <div class="titles">
+                <div class="brand">Quali Sales</div>
+                <div class="subtitle">History – Completed & Cancelled</div>
+            </div>
+
+            <div class="header-right">
+                <button id="signout-btn" class="btn small">Sign out</button>
+                <div class="role-pill">SALES HISTORY</div>
+            </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main layout-grid">
+            <div class="layout-center">
+                <!-- Completed/Cancelled History -->
+                <section class="section section-completed">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">
+                                <span class="check-icon">✔</span> Completed & Cancelled
+                                <span class="section-count" id="count-completed">0</span>
+                            </div>
+                            <div class="section-subtitle">
+                                Completed and cancelled requests (filtered by completed/cancelled date).
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <input type="date" id="completed-date-filter" class="input-text" style="width: auto; min-width: 150px;" />
+                            <button type="button" class="btn small" id="export-csv">Download CSV</button>
+                            <button type="button" class="btn small" id="export-tsv">Copy TSV</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Stock #</th>
+                                    <th>Salesperson</th>
+                                    <th>Driver</th>
+                                    <th>Status</th>
+                                    <th>Completed/Cancelled At</th>
+                                    <th>Master Time</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completed-tbody">
+                                <tr>
+                                    <td colspan="7" class="empty">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
+

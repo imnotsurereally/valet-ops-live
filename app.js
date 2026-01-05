@@ -2,8 +2,8 @@
 // Requires: ./supabaseClient.js  +  ./auth.js (requireAuth / wireSignOut) + ./ui.js
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20260105a";
-import { showModal, showTextModal, showSelectModal, toast } from "./ui.js?v=20260105a";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260105c";
+import { showModal, showTextModal, showSelectModal, toast } from "./ui.js?v=20260105c";
 
 let pickups = [];
 let role = "dispatcher";
@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load store settings for dynamic valets
     await loadStoreSettings();
 
-    // Timers tick in 15s intervals
+    // Timers tick in 15s intervals (UI display snap)
     setInterval(() => renderTables(true), 15 * 1000);
 
     // Update debug strip every 15 seconds (for "last refresh" time)
@@ -1201,11 +1201,13 @@ function renderActiveRowWallboard(p, now) {
 function renderWaitingRow(p, now) {
   if (role === "wallboard") {
     const deliveredBy = p.keys_holder || "—";
-    const waitingSeconds = computeSeconds(
+    const waitingMs = computeSeconds(
       p.waiting_client_at,
       p.completed_at,
       now
-    );
+    ) * 1000;
+    const waitingSnappedMs = snapMsTo15s(waitingMs);
+    const waitingSeconds = waitingSnappedMs / 1000;
     const waitingClass = timerClass(computeSeverity(waitingSeconds));
     const waitingLabel = formatDuration(waitingSeconds);
 
@@ -1220,7 +1222,9 @@ function renderWaitingRow(p, now) {
   }
 
   const deliveredBy = p.keys_holder || "—";
-  const stagedSeconds = computeSeconds(p.waiting_client_at, p.completed_at, now);
+  const stagedMs = computeSeconds(p.waiting_client_at, p.completed_at, now) * 1000;
+  const stagedSnappedMs = snapMsTo15s(stagedMs);
+  const stagedSeconds = stagedSnappedMs / 1000;
   const stagedClass = timerClass(computeSeverity(stagedSeconds));
   const stagedLabel = formatDuration(stagedSeconds);
 
@@ -1258,7 +1262,10 @@ function renderWaitingRow(p, now) {
 }
 
 function renderCompletedRow(p, now) {
-  const masterSeconds = computeMasterSeconds(p, now);
+  // Completed rows: master time is frozen, but still snap for display consistency
+  const masterMs = computeMasterSeconds(p, now) * 1000;
+  const masterSnappedMs = snapMsTo15s(masterMs);
+  const masterSeconds = masterSnappedMs / 1000;
   const masterLabel = formatDuration(masterSeconds);
   const deliveredBy = p.keys_holder || "—";
 
@@ -1451,7 +1458,9 @@ function computeMasterSeconds(p, now) {
   const startIso = p.active_started_at || p.created_at;
   if (!startIso) return 0;
   const endIso = p.waiting_client_at || null;
-  return computeSeconds(startIso, endIso, now);
+  const ms = computeSeconds(startIso, endIso, now) * 1000;
+  const snappedMs = snapMsTo15s(ms);
+  return snappedMs / 1000;
 }
 
 function computeValetSeconds(p, now) {
@@ -1459,7 +1468,9 @@ function computeValetSeconds(p, now) {
   const startIso = p.keys_with_valet_at;
   const endIso =
     p.keys_at_machine_at || p.waiting_client_at || p.completed_at || null;
-  return computeSeconds(startIso, endIso, now);
+  const ms = computeSeconds(startIso, endIso, now) * 1000;
+  const snappedMs = snapMsTo15s(ms);
+  return snappedMs / 1000;
 }
 
 function computeSeconds(startIso, endIso, now) {
@@ -1469,6 +1480,7 @@ function computeSeconds(startIso, endIso, now) {
   if (end < start) end = now;
   const diffMs = end - start;
   if (Number.isNaN(diffMs) || diffMs < 0) return 0;
+  // Note: This returns raw seconds; callers should snap to 15s for display
   return diffMs / 1000;
 }
 
@@ -1492,6 +1504,11 @@ function timerClass(severity) {
     default:
       return "timer-green";
   }
+}
+
+// Helper: snap milliseconds to 15-second increments
+function snapMsTo15s(ms) {
+  return Math.floor(ms / 15000) * 15000;
 }
 
 function formatDuration(seconds) {
