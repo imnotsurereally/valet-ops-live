@@ -6,39 +6,34 @@
 
 :root {
   --bg: #000000;
-
-  /* make surfaces MUCH closer to true black */
   --surface-1: #000000;
   --surface-2: #050505;
   --surface-3: #0A0A0A;
-
-  /* borders darker + thinner vibe */
   --border: #141414;
   --border-2: #1E1E1E;
-
   --text: #EAEAEA;
   --text-2: #A8A8A8;
   --text-3: #6B6B6B;
-
-  /* keep accents but increase clarity/contrast */
   --blue: #2D6BFF;
   --amber: #F0A33A;
-  /* slightly brighter so orange reads on black */
   --red: #E23B3B;
-  /* clearer red without neon */
   --green: #2FBF71;
-
+  --focus: rgba(255, 255, 255, .22);
+  --btn-radius: 0px;
+  --btn-pad-y: 8px;
+  --btn-pad-x: 10px;
+  --hover-bg: rgba(255, 255, 255, .04);
+  --active-bg: rgba(255, 255, 255, .06);
+  --hairline: rgba(255, 255, 255, .10);
+  --hairline-2: rgba(255, 255, 255, .16);
   --radius: 14px;
   --radius-sm: 10px;
   --radius-xs: 8px;
-
   --shadow: 0 10px 30px rgba(0, 0, 0, .55);
   --shadow-soft: 0 6px 18px rgba(0, 0, 0, .45);
-
   --pad-1: 10px;
   --pad-2: 14px;
   --pad-3: 18px;
-
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
@@ -55,7 +50,7 @@
 
 *::-webkit-scrollbar-thumb {
   background: #1E1E1E;
-  border-radius: 999px;
+  border-radius: 0;
   border: 2px solid #0B0B0B;
 }
 
@@ -321,7 +316,7 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
 
 .role-pill {
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   font-size: 11px;
   text-transform: uppercase;
@@ -406,7 +401,7 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
   justify-content: center;
   min-width: 1.4rem;
   padding: 0.06rem 0.4rem;
-  border-radius: var(--radius-xs);
+  border-radius: 0;
   border: 1px solid rgba(45, 107, 255, .32);
   background: rgba(45, 107, 255, .08);
   font-size: 0.75rem;
@@ -420,84 +415,115 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: var(--radius-xs);
-  /* no more 999px pills */
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, .02);
-  color: var(--text);
-  padding: 9px 12px;
+  border-radius: var(--btn-radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, .86);
+  padding: var(--btn-pad-y) var(--btn-pad-x);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background .14s ease, border-color .14s ease, transform .08s ease, color .14s ease;
+  user-select: none;
+  transition: background .12s ease, border-color .12s ease, color .12s ease, transform .06s ease;
 }
 
 .btn:hover {
-  background: rgba(255, 255, 255, .045);
-  border-color: var(--border-2);
+  background: var(--hover-bg);
+  border-color: var(--hairline);
+  color: rgba(255, 255, 255, .96);
 }
 
 .btn:active {
+  background: var(--active-bg);
+  border-color: var(--hairline-2);
   transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.btn[disabled],
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  background: transparent;
+  border-color: transparent;
+  transform: none;
 }
 
 .btn.primary,
 .btn-primary {
-  background: rgba(45, 107, 255, .14);
-  border-color: rgba(45, 107, 255, .28);
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .16);
+  color: rgba(255, 255, 255, .95);
 }
 
 .btn.primary:hover,
 .btn-primary:hover {
-  background: rgba(45, 107, 255, .18);
-  border-color: rgba(45, 107, 255, .36);
+  background: rgba(255, 255, 255, .09);
+  border-color: rgba(255, 255, 255, .22);
+}
+
+.btn.primary:active,
+.btn-primary:active {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .26);
 }
 
 .btn.danger,
 .btn-danger {
-  background: rgba(176, 42, 42, .12);
-  border-color: rgba(176, 42, 42, .32);
+  background: rgba(226, 59, 59, .10);
+  border-color: rgba(226, 59, 59, .30);
+  color: rgba(255, 255, 255, .96);
 }
 
 .btn.danger:hover,
 .btn-danger:hover {
-  background: rgba(176, 42, 42, .18);
-  border-color: rgba(176, 42, 42, .40);
+  background: rgba(226, 59, 59, .16);
+  border-color: rgba(226, 59, 59, .44);
 }
 
-/* compact button variant (if you need it in tables) */
 .btn.compact {
-  padding: 7px 10px;
+  padding: 6px 8px;
   font-size: 12px;
-  border-radius: 10px;
+  border-radius: var(--btn-radius);
 }
 
 .btn.small {
-  padding: 6px 10px;
+  padding: 6px 8px;
   font-size: 12px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--btn-radius);
   line-height: 1.2;
 }
 
-/* Shared blue pill style for any "selected" button */
 .btn.selected,
 .btn.active,
 .btn.is-active,
 .btn.is-selected,
 .keys-buttons .btn.selected,
 .wash-buttons .btn.selected {
-  border-radius: var(--radius-xs);
-  border: 1px solid rgba(45, 107, 255, .36);
-  background: rgba(45, 107, 255, .14);
-  color: var(--text);
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--hairline-2);
+  background: rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .96);
   font-weight: 600;
+}
+
+button,
+.btn,
+.button,
+.pill,
+.chip {
+  border-radius: 0 !important;
 }
 
 /* Generic pill */
 .pill-blue {
   display: inline-block;
   padding: 0.25rem 0.55rem;
-  border-radius: var(--radius-xs);
+  border-radius: 0;
   border: 1px solid rgba(45, 107, 255, .32);
   background: rgba(45, 107, 255, .1);
   color: var(--text);
@@ -519,16 +545,17 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
 }
 
 .keys-buttons .btn {
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, .02);
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--hairline);
+  background: transparent;
   padding: 0.35rem 0.65rem;
   font-size: 12px;
-  color: var(--text);
+  color: rgba(255, 255, 255, .86);
 }
 
 .keys-buttons .btn:hover {
-  border-color: var(--border-2);
+  border-color: var(--hairline-2);
+  background: var(--hover-bg);
 }
 
 /* Valet grid (2 rows x 4 cols) */
@@ -553,21 +580,22 @@ body:has(.debug-strip:not(.hidden)):not(:has(.global-banner:not(.hidden))) {
 }
 
 .wash-buttons .btn {
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, .02);
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--hairline);
+  background: transparent;
   padding: 0.35rem 0.65rem;
   font-size: 12px;
-  color: var(--text);
+  color: rgba(255, 255, 255, .86);
 }
 
 .wash-buttons .btn:hover {
-  border-color: var(--border-2);
+  border-color: var(--hairline-2);
+  background: var(--hover-bg);
 }
 
 /* Notes "Add note" button – keep rectangular */
 .notes-button {
-  border-radius: var(--radius-xs);
+  border-radius: var(--btn-radius);
   border-style: solid;
   border-color: var(--border);
   background: rgba(255, 255, 255, .015);
@@ -763,6 +791,37 @@ tbody tr:hover {
   background: rgba(255, 255, 255, .015);
 }
 
+/* Any container you apply .hover-reveal to will look flat until hover */
+.hover-reveal {
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background .12s ease, border-color .12s ease;
+}
+
+.hover-reveal:hover {
+  background: rgba(255, 255, 255, .015);
+  border-color: rgba(255, 255, 255, .08);
+}
+
+/* Hide “secondary actions” until row hover */
+.hover-actions {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(1px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+
+.hover-reveal:hover .hover-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+td .btn {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
 /* remove “busy” outlines around everything */
 hr,
 .divider {
@@ -787,7 +846,7 @@ td.cell-customer {
 .status-badge {
   display: inline-block;
   padding: 0.25rem 0.55rem;
-  border-radius: var(--radius-xs);
+  border-radius: 0;
   border: 1px solid var(--border);
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -815,7 +874,7 @@ td.cell-customer {
   display: inline-block;
   max-width: 520px;
   padding: 7px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, .015);
   color: var(--text-2);
@@ -860,7 +919,7 @@ td.cell-customer {
   font-family: var(--mono);
   font-size: 0.8rem;
   padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-xs);
+  border-radius: 0;
   border: 1px solid var(--border);
   display: inline-block;
   background: var(--surface-2);
@@ -993,97 +1052,70 @@ td.cell-customer {
 @keyframes pulseBlueStrong {
   0% {
     background: rgba(45, 107, 255, .10);
-    border-color: rgba(45, 107, 255, .70);
+    border-color: rgba(45, 107, 255, .55);
   }
 
   50% {
-    background: rgba(45, 107, 255, .18);
+    background: rgba(45, 107, 255, .22);
     border-color: rgba(45, 107, 255, .92);
   }
 
   100% {
     background: rgba(45, 107, 255, .10);
-    border-color: rgba(45, 107, 255, .70);
+    border-color: rgba(45, 107, 255, .55);
   }
 }
 
 @keyframes pulseOrangeStrong {
   0% {
-    background: rgba(240, 163, 58, .11);
-    border-color: rgba(240, 163, 58, .70);
+    background: rgba(240, 163, 58, .10);
+    border-color: rgba(240, 163, 58, .55);
   }
 
   50% {
-    background: rgba(240, 163, 58, .20);
+    background: rgba(240, 163, 58, .24);
     border-color: rgba(240, 163, 58, .92);
   }
 
   100% {
-    background: rgba(240, 163, 58, .11);
-    border-color: rgba(240, 163, 58, .70);
+    background: rgba(240, 163, 58, .10);
+    border-color: rgba(240, 163, 58, .55);
   }
 }
 
 @keyframes pulseRedStrong {
   0% {
     background: rgba(226, 59, 59, .12);
-    border-color: rgba(226, 59, 59, .75);
+    border-color: rgba(226, 59, 59, .62);
   }
 
   50% {
-    background: rgba(226, 59, 59, .24);
+    background: rgba(226, 59, 59, .28);
     border-color: rgba(226, 59, 59, .98);
   }
 
   100% {
     background: rgba(226, 59, 59, .12);
-    border-color: rgba(226, 59, 59, .75);
+    border-color: rgba(226, 59, 59, .62);
   }
 }
 
 .pulse-blue {
   animation: pulseBlueStrong .85s ease-in-out infinite;
-  border-color: rgba(45, 107, 255, .70) !important;
-  background: rgba(45, 107, 255, .10) !important;
-  position: relative;
+  border: 1px solid rgba(45, 107, 255, .70) !important;
+  background: rgba(45, 107, 255, .14) !important;
 }
 
 .pulse-orange {
   animation: pulseOrangeStrong .85s ease-in-out infinite;
-  border-color: rgba(240, 163, 58, .70) !important;
-  background: rgba(240, 163, 58, .11) !important;
-  position: relative;
+  border: 1px solid rgba(240, 163, 58, .70) !important;
+  background: rgba(240, 163, 58, .16) !important;
 }
 
 .pulse-red {
   animation: pulseRedStrong .70s ease-in-out infinite;
-  border-color: rgba(226, 59, 59, .75) !important;
-  background: rgba(226, 59, 59, .12) !important;
-  position: relative;
-}
-
-.pulse-blue::before,
-.pulse-orange::before,
-.pulse-red::before {
-  content: "";
-  position: absolute;
-  left: -1px;
-  top: -1px;
-  bottom: -1px;
-  width: 4px;
-  border-radius: 12px;
-}
-
-.pulse-blue::before {
-  background: rgba(45, 107, 255, .95);
-}
-
-.pulse-orange::before {
-  background: rgba(240, 163, 58, .95);
-}
-
-.pulse-red::before {
-  background: rgba(226, 59, 59, .95);
+  border: 1px solid rgba(226, 59, 59, .78) !important;
+  background: rgba(226, 59, 59, .18) !important;
 }
 
 /* ========== MODAL SYSTEM ========== */
