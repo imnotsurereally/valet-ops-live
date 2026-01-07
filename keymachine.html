@@ -1,111 +1,144 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Valet Ops Live – Key Machine</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css?v=20260106d" />
+<head>
+  <meta charset="utf-8" />
+  <title>Valet Ops Live – Key Machine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Supabase v1 global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
-    <!-- Our app logic -->
-    <script type="module" src="app.js?v=20260105a"></script>
-  </head>
+  <link rel="stylesheet" href="style.css?v=20260106d" />
 
-  <body data-page="keymachine" class="role-keymachine">
-    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
+  <!-- Supabase v1 global -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+  <!-- Our app logic -->
+  <script type="module" src="app.js?v=20260105a"></script>
+</head>
 
-    <div class="app-shell">
-      <nav class="side-nav" aria-label="Primary">
-        <div class="side-nav__inner">
-          <div class="side-nav__brand">
-            <div class="side-nav__logo">O</div>
-            <div class="side-nav__brand-text">Optima Ops</div>
-          </div>
+<body data-page="keymachine" class="role-keymachine">
+  <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
-          <div class="side-nav__group">
-            <div class="side-nav__group-title">Service</div>
-            <a class="side-link" href="dispatcher.html" data-page="dispatcher"><div class="side-link__icon">⎈</div><div class="side-link__label">Dispatcher</div></a>
-            <a class="side-link" href="keymachine.html" data-page="keymachine"><div class="side-link__icon">🔑</div><div class="side-link__label">Key Machine</div></a>
-            <a class="side-link" href="carwash.html" data-page="carwash"><div class="side-link__icon">🧼</div><div class="side-link__label">Car Wash</div></a>
-            <a class="side-link" href="wallboard.html" data-page="wallboard"><div class="side-link__icon">▦</div><div class="side-link__label">Wallboard</div></a>
-            <a class="side-link" href="history.html" data-page="history"><div class="side-link__icon">⏱</div><div class="side-link__label">History</div></a>
-          </div>
-
-          <div class="side-nav__group">
-            <div class="side-nav__group-title">Sales</div>
-            <a class="side-link" href="sales_manager.html" data-page="sales_manager"><div class="side-link__icon">◎</div><div class="side-link__label">Sales Manager</div></a>
-            <a class="side-link" href="sales_driver.html" data-page="sales_driver"><div class="side-link__icon">➜</div><div class="side-link__label">Sales Driver</div></a>
-            <a class="side-link" href="sales_history.html" data-page="sales_history"><div class="side-link__icon">⏱</div><div class="side-link__label">Sales History</div></a>
-          </div>
-
-          <div class="side-nav__group">
-            <div class="side-nav__group-title">Owner</div>
-            <a class="side-link" href="executive.html" data-page="executive"><div class="side-link__icon">↗</div><div class="side-link__label">Executive</div></a>
-            <a class="side-link" href="system_settings.html" data-page="system_settings"><div class="side-link__icon">⚙</div><div class="side-link__label">Settings</div></a>
-            <a class="side-link" href="index.html" data-page="home"><div class="side-link__icon">⌂</div><div class="side-link__label">Home</div></a>
-          </div>
+  <div class="app-shell">
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-nav__inner">
+        <div class="side-nav__brand">
+          <div class="side-nav__logo">O</div>
+          <div class="side-nav__brand-text">Optima Ops</div>
         </div>
-      </nav>
 
-      <main class="app-main">
-        <div class="app-main__inner">
-          <header class="app-header">
-            <img
-              src="assets/optima-logo.jpg"
-              alt="Optima Dealer Services"
-              class="logo"
-            />
-            <div class="titles">
-              <div class="brand">Optima Dealer Services</div>
-              <div class="subtitle">Key Machine – Live View</div>
-            </div>
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Service</div>
+          <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+            <div class="side-link__icon">⎈</div>
+            <div class="side-link__label">Dispatcher</div>
+          </a>
+          <a class="side-link" href="keymachine.html" data-page="keymachine">
+            <div class="side-link__icon">🔑</div>
+            <div class="side-link__label">Key Machine</div>
+          </a>
+          <a class="side-link" href="carwash.html" data-page="carwash">
+            <div class="side-link__icon">🧼</div>
+            <div class="side-link__label">Car Wash</div>
+          </a>
+          <a class="side-link" href="wallboard.html" data-page="wallboard">
+            <div class="side-link__icon">▦</div>
+            <div class="side-link__label">Wallboard</div>
+          </a>
+          <a class="side-link" href="history.html" data-page="history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">History</div>
+          </a>
+        </div>
 
-            <div class="header-right">
-              <button id="signout-btn" class="btn small">Sign out</button>
-              <div class="role-pill">Key Machine</div>
-            </div>
-          </header>
-          <div id="screen-context" class="screen-context"></div>
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Sales</div>
+          <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+            <div class="side-link__icon">◎</div>
+            <div class="side-link__label">Sales Manager</div>
+          </a>
+          <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+            <div class="side-link__icon">➜</div>
+            <div class="side-link__label">Sales Driver</div>
+          </a>
+          <a class="side-link" href="sales_history.html" data-page="sales_history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">Sales History</div>
+          </a>
+        </div>
 
-          <main class="app-main">
-            <section class="section">
-              <div class="section-header">
-                <div>
-                  <div class="section-title">
-                    Active Pickups
-                    <span class="section-count" id="count-active">0</span>
-                  </div>
-                  <div class="section-subtitle">
-                    Set keys to valet / key machine. Update wash flags if needed.
-                  </div>
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Owner</div>
+          <a class="side-link" href="executive.html" data-page="executive">
+            <div class="side-link__icon">↗</div>
+            <div class="side-link__label">Executive</div>
+          </a>
+          <a class="side-link" href="system_settings.html" data-page="system_settings">
+            <div class="side-link__icon">⚙</div>
+            <div class="side-link__label">Settings</div>
+          </a>
+          <a class="side-link" href="index.html" data-page="home">
+            <div class="side-link__icon">⌂</div>
+            <div class="side-link__label">Home</div>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <div class="app-main__inner">
+        <header class="app-header">
+          <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+          <div class="titles">
+            <div class="brand">Optima Dealer Services</div>
+            <div class="subtitle">Key Machine – Live View</div>
+          </div>
+
+          <div class="header-right">
+            <button id="signout-btn" class="btn small">Sign out</button>
+            <div class="role-pill">Key Machine</div>
+          </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main">
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Active Pickups
+                  <span class="section-count" id="count-active">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Set keys to valet / key machine. Update wash flags if needed.
                 </div>
               </div>
+            </div>
 
-              <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tag #</th>
-                      <th>Customer</th>
-                      <th>Status/Location</th>
-                      <th>Keys with</th>
-                      <th>Valet Time</th>
-                      <th>Notes</th>
-                      <th>Master Time</th>
-                    </tr>
-                  </thead>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Status/Location</th>
+                    <th>Keys with</th>
+                    <th>Valet Time</th>
+                    <th>Notes</th>
+                    <th>Master Time</th>
+                  </tr>
+                </thead>
 
-                  <tbody id="active-tbody">
-                    <tr><td colspan="7" class="empty">Loading…</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </main>
-        </div>
-      </main>
-    </div>
-  </body>
+                <tbody id="active-tbody">
+                  <tr>
+                    <td colspan="7" class="empty">Loading…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </main>
+  </div>
+</body>
+
 </html>

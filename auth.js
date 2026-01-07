@@ -384,9 +384,9 @@ export function wireSignOut() {
   });
 }
 
-function highlightActiveSidebarLink(){
+function highlightActiveSidebarLink() {
   const page = document.body?.dataset?.page || "";
-  document.querySelectorAll(".side-link").forEach(a=>{
+  document.querySelectorAll(".side-link").forEach(a => {
     a.classList.toggle("is-active", a.dataset.page === page);
   });
 }

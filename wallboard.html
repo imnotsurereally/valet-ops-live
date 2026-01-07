@@ -1,166 +1,203 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Valet Ops Live – Wallboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css?v=20260106d" />
+<head>
+  <meta charset="utf-8" />
+  <title>Valet Ops Live – Wallboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Supabase v1 global -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260106d" />
 
-    <!-- Our app logic (renders the tables live) -->
-    <script type="module" src="app.js?v=20260105a"></script>
+  <!-- Supabase v1 global -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
-    <style>
-      /* Wallboard should feel like a TV screen (read-only, no interaction) */
-      body.role-wallboard {
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      body.role-wallboard * {
-        cursor: default !important;
-      }
-      body.role-wallboard :focus {
-        outline: none !important;
-      }
+  <!-- Our app logic (renders the tables live) -->
+  <script type="module" src="app.js?v=20260105a"></script>
 
-      /* HARD: prevent any pointer interaction on the wallboard content */
-      body.role-wallboard .app-main,
-      body.role-wallboard .table-wrapper,
-      body.role-wallboard table,
-      body.role-wallboard tbody,
-      body.role-wallboard tr,
-      body.role-wallboard td,
-      body.role-wallboard th {
-        pointer-events: none !important;
-      }
+  <style>
+    /* Wallboard should feel like a TV screen (read-only, no interaction) */
+    body.role-wallboard {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-      /* Optional: make header look like a pure display (no “app” controls) */
-      body.role-wallboard .header-right {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-    </style>
-  </head>
+    body.role-wallboard * {
+      cursor: default !important;
+    }
 
-  <body data-page="wallboard" class="role-wallboard">
-    <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
+    body.role-wallboard :focus {
+      outline: none !important;
+    }
 
-    <div class="app-shell">
-      <nav class="side-nav" aria-label="Primary">
-        <div class="side-nav__inner">
-          <div class="side-nav__brand">
-            <div class="side-nav__logo">O</div>
-            <div class="side-nav__brand-text">Optima Ops</div>
-          </div>
+    /* HARD: prevent any pointer interaction on the wallboard content */
+    body.role-wallboard .app-main,
+    body.role-wallboard .table-wrapper,
+    body.role-wallboard table,
+    body.role-wallboard tbody,
+    body.role-wallboard tr,
+    body.role-wallboard td,
+    body.role-wallboard th {
+      pointer-events: none !important;
+    }
 
-          <div class="side-nav__group">
-            <div class="side-nav__group-title">Service</div>
-            <a class="side-link" href="dispatcher.html" data-page="dispatcher"><div class="side-link__icon">⎈</div><div class="side-link__label">Dispatcher</div></a>
-            <a class="side-link" href="keymachine.html" data-page="keymachine"><div class="side-link__icon">🔑</div><div class="side-link__label">Key Machine</div></a>
-            <a class="side-link" href="carwash.html" data-page="carwash"><div class="side-link__icon">🧼</div><div class="side-link__label">Car Wash</div></a>
-            <a class="side-link" href="wallboard.html" data-page="wallboard"><div class="side-link__icon">▦</div><div class="side-link__label">Wallboard</div></a>
-            <a class="side-link" href="history.html" data-page="history"><div class="side-link__icon">⏱</div><div class="side-link__label">History</div></a>
-          </div>
+    /* Optional: make header look like a pure display (no “app” controls) */
+    body.role-wallboard .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
 
-          <div class="side-nav__group">
-            <div class="side-nav__group-title">Sales</div>
-            <a class="side-link" href="sales_manager.html" data-page="sales_manager"><div class="side-link__icon">◎</div><div class="side-link__label">Sales Manager</div></a>
-            <a class="side-link" href="sales_driver.html" data-page="sales_driver"><div class="side-link__icon">➜</div><div class="side-link__label">Sales Driver</div></a>
-            <a class="side-link" href="sales_history.html" data-page="sales_history"><div class="side-link__icon">⏱</div><div class="side-link__label">Sales History</div></a>
-          </div>
+<body data-page="wallboard" class="role-wallboard">
+  <audio id="alert-sound" src="sounds/alert.mp3" preload="auto"></audio>
 
-          <div class="side-nav__group">
-            <div class="side-nav__group-title">Owner</div>
-            <a class="side-link" href="executive.html" data-page="executive"><div class="side-link__icon">↗</div><div class="side-link__label">Executive</div></a>
-            <a class="side-link" href="system_settings.html" data-page="system_settings"><div class="side-link__icon">⚙</div><div class="side-link__label">Settings</div></a>
-            <a class="side-link" href="index.html" data-page="home"><div class="side-link__icon">⌂</div><div class="side-link__label">Home</div></a>
-          </div>
+  <div class="app-shell">
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-nav__inner">
+        <div class="side-nav__brand">
+          <div class="side-nav__logo">O</div>
+          <div class="side-nav__brand-text">Optima Ops</div>
         </div>
-      </nav>
 
-      <main class="app-main">
-        <div class="app-main__inner">
-          <header class="app-header">
-            <img
-              src="assets/optima-logo.jpg"
-              alt="Optima Dealer Services"
-              class="logo"
-            />
-            <div class="titles">
-              <div class="brand">Valet Ops Wallboard</div>
-              <div class="subtitle">Read-only live display</div>
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Service</div>
+          <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+            <div class="side-link__icon">⎈</div>
+            <div class="side-link__label">Dispatcher</div>
+          </a>
+          <a class="side-link" href="keymachine.html" data-page="keymachine">
+            <div class="side-link__icon">🔑</div>
+            <div class="side-link__label">Key Machine</div>
+          </a>
+          <a class="side-link" href="carwash.html" data-page="carwash">
+            <div class="side-link__icon">🧼</div>
+            <div class="side-link__label">Car Wash</div>
+          </a>
+          <a class="side-link" href="wallboard.html" data-page="wallboard">
+            <div class="side-link__icon">▦</div>
+            <div class="side-link__label">Wallboard</div>
+          </a>
+          <a class="side-link" href="history.html" data-page="history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Sales</div>
+          <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+            <div class="side-link__icon">◎</div>
+            <div class="side-link__label">Sales Manager</div>
+          </a>
+          <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+            <div class="side-link__icon">➜</div>
+            <div class="side-link__label">Sales Driver</div>
+          </a>
+          <a class="side-link" href="sales_history.html" data-page="sales_history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">Sales History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Owner</div>
+          <a class="side-link" href="executive.html" data-page="executive">
+            <div class="side-link__icon">↗</div>
+            <div class="side-link__label">Executive</div>
+          </a>
+          <a class="side-link" href="system_settings.html" data-page="system_settings">
+            <div class="side-link__icon">⚙</div>
+            <div class="side-link__label">Settings</div>
+          </a>
+          <a class="side-link" href="index.html" data-page="home">
+            <div class="side-link__icon">⌂</div>
+            <div class="side-link__label">Home</div>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <div class="app-main__inner">
+        <header class="app-header">
+          <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+          <div class="titles">
+            <div class="brand">Valet Ops Wallboard</div>
+            <div class="subtitle">Read-only live display</div>
+          </div>
+
+          <!-- No signout on wallboard (TV display). If you want it, use Home. -->
+          <div class="header-right">
+            <div class="role-pill">Wallboard</div>
+          </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main wallboard-main">
+          <!-- ACTIVE -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Active Pickups</div>
+                <div class="section-subtitle">Oldest first. Color-coded by time.</div>
+              </div>
             </div>
 
-            <!-- No signout on wallboard (TV display). If you want it, use Home. -->
-            <div class="header-right">
-              <div class="role-pill">Wallboard</div>
+            <div class="table-wrapper">
+              <table class="wallboard-table">
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Keys with</th>
+                    <th>Valet Time</th>
+                    <th>Master Time</th>
+                  </tr>
+                </thead>
+                <tbody id="active-tbody">
+                  <tr>
+                    <td colspan="6" class="empty">Loading…</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </header>
-          <div id="screen-context" class="screen-context"></div>
+          </section>
 
-          <main class="app-main wallboard-main">
-            <!-- ACTIVE -->
-            <section class="section">
-              <div class="section-header">
-                <div>
-                  <div class="section-title">Active Pickups</div>
-                  <div class="section-subtitle">Oldest first. Color-coded by time.</div>
-                </div>
+          <!-- WAITING -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Waiting for Customer</div>
+                <div class="section-subtitle">Cars ready out front</div>
               </div>
+            </div>
 
-              <div class="table-wrapper">
-                <table class="wallboard-table">
-                  <thead>
-                    <tr>
-                      <th>Tag #</th>
-                      <th>Customer</th>
-                      <th>Status</th>
-                      <th>Keys with</th>
-                      <th>Valet Time</th>
-                      <th>Master Time</th>
-                    </tr>
-                  </thead>
-                  <tbody id="active-tbody">
-                    <tr><td colspan="6" class="empty">Loading…</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            <div class="table-wrapper">
+              <table class="wallboard-table">
+                <thead>
+                  <tr>
+                    <th>Tag #</th>
+                    <th>Customer</th>
+                    <th>Delivered by</th>
+                    <th>Waiting Time</th>
+                  </tr>
+                </thead>
+                <tbody id="waiting-tbody">
+                  <tr>
+                    <td colspan="4" class="empty">None currently waiting.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </main>
+  </div>
+</body>
 
-            <!-- WAITING -->
-            <section class="section">
-              <div class="section-header">
-                <div>
-                  <div class="section-title">Waiting for Customer</div>
-                  <div class="section-subtitle">Cars ready out front</div>
-                </div>
-              </div>
-
-              <div class="table-wrapper">
-                <table class="wallboard-table">
-                  <thead>
-                    <tr>
-                      <th>Tag #</th>
-                      <th>Customer</th>
-                      <th>Delivered by</th>
-                      <th>Waiting Time</th>
-                    </tr>
-                  </thead>
-                  <tbody id="waiting-tbody">
-                    <tr><td colspan="4" class="empty">None currently waiting.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </main>
-        </div>
-      </main>
-    </div>
-  </body>
 </html>
