@@ -383,3 +383,11 @@ export function wireSignOut() {
     hardRedirect(ROUTES.login);
   });
 }
+
+function highlightActiveSidebarLink(){
+  const page = document.body?.dataset?.page || "";
+  document.querySelectorAll(".side-link").forEach(a=>{
+    a.classList.toggle("is-active", a.dataset.page === page);
+  });
+}
+document.addEventListener("DOMContentLoaded", highlightActiveSidebarLink);
