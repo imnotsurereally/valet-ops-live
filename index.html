@@ -6,7 +6,7 @@
   <title>Valet Ops Live – Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" href="style.css?v=20260106a" />
+  <link rel="stylesheet" href="style.css?v=20260106d" />
 
   <!-- Supabase v1 global -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
@@ -88,95 +88,164 @@
   </script>
 </head>
 
-<body>
+<body data-page="home">
   <div class="app-shell">
-    <header class="app-header">
-      <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
-      <div class="titles">
-        <div class="brand">Optima Dealer Services</div>
-        <div class="subtitle">Valet Operations Live Board</div>
-      </div>
-
-      <div class="header-right">
-        <button id="signout-btn" class="btn small">Sign out</button>
-        <div class="role-pill">Home</div>
-      </div>
-    </header>
-    <div id="screen-context" class="screen-context"></div>
-
-    <main class="app-main app-main-center">
-      <section class="section">
-        <div class="section-header">
-          <div>
-            <div class="section-title">Choose a Screen</div>
-            <div class="section-subtitle">
-              Owner/Manager router only. Employees are redirected to their screen.
-            </div>
-          </div>
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-nav__inner">
+        <div class="side-nav__brand">
+          <div class="side-nav__logo">O</div>
+          <div class="side-nav__brand-text">Optima Ops</div>
         </div>
 
-        <div class="screen-links">
-          <div class="service-section">
-            <h3 class="section-title">Service</h3>
-            <div class="section-buttons">
-              <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
-                Dispatcher Screen
-              </a>
-
-              <a class="btn link-keymachine" href="keymachine.html">
-                Key Machine Screen
-              </a>
-
-              <a class="btn link-carwash" href="carwash.html">
-                Car Wash Screen
-              </a>
-
-              <a class="btn link-wallboard" href="wallboard.html">
-                TV Wallboard
-              </a>
-
-              <a class="btn link-serviceadvisor" href="serviceadvisor.html">
-                Service Advisor
-              </a>
-
-              <a class="btn link-loancar" href="loancar.html">
-                Loan Car
-              </a>
-
-              <a class="btn link-history" href="history.html">
-                History
-              </a>
-
-              <a class="btn link-executive" href="executive.html">
-                Executive Console
-              </a>
-
-              <a class="btn link-system-settings" href="system_settings.html">
-                System Settings
-              </a>
-            </div>
-          </div>
-
-          <div class="section-divider"></div>
-
-          <div class="sales-section">
-            <h3 class="section-title">Sales</h3>
-            <div class="section-buttons">
-              <a class="btn link-sales-manager" href="sales_manager.html">
-                Sales Manager
-              </a>
-
-              <a class="btn link-sales-driver" href="sales_driver.html">
-                Sales Driver
-              </a>
-
-              <a class="btn link-sales-history" href="sales_history.html">
-                Sales History
-              </a>
-            </div>
-          </div>
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Service</div>
+          <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+            <div class="side-link__icon">⎈</div>
+            <div class="side-link__label">Dispatcher</div>
+          </a>
+          <a class="side-link" href="keymachine.html" data-page="keymachine">
+            <div class="side-link__icon">🔑</div>
+            <div class="side-link__label">Key Machine</div>
+          </a>
+          <a class="side-link" href="carwash.html" data-page="carwash">
+            <div class="side-link__icon">🧼</div>
+            <div class="side-link__label">Car Wash</div>
+          </a>
+          <a class="side-link" href="wallboard.html" data-page="wallboard">
+            <div class="side-link__icon">▦</div>
+            <div class="side-link__label">Wallboard</div>
+          </a>
+          <a class="side-link" href="history.html" data-page="history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">History</div>
+          </a>
         </div>
-      </section>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Sales</div>
+          <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+            <div class="side-link__icon">◎</div>
+            <div class="side-link__label">Sales Manager</div>
+          </a>
+          <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+            <div class="side-link__icon">➜</div>
+            <div class="side-link__label">Sales Driver</div>
+          </a>
+          <a class="side-link" href="sales_history.html" data-page="sales_history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">Sales History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Owner</div>
+          <a class="side-link" href="executive.html" data-page="executive">
+            <div class="side-link__icon">↗</div>
+            <div class="side-link__label">Executive</div>
+          </a>
+          <a class="side-link" href="system_settings.html" data-page="system_settings">
+            <div class="side-link__icon">⚙</div>
+            <div class="side-link__label">Settings</div>
+          </a>
+          <a class="side-link" href="index.html" data-page="home">
+            <div class="side-link__icon">⌂</div>
+            <div class="side-link__label">Home</div>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <div class="app-main__inner">
+        <header class="app-header">
+          <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+          <div class="titles">
+            <div class="brand">Optima Dealer Services</div>
+            <div class="subtitle">Valet Operations Live Board</div>
+          </div>
+
+          <div class="header-right">
+            <button id="signout-btn" class="btn small">Sign out</button>
+            <div class="role-pill">Home</div>
+          </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main app-main-center">
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Choose a Screen</div>
+                <div class="section-subtitle">
+                  Owner/Manager router only. Employees are redirected to their screen.
+                </div>
+              </div>
+            </div>
+
+            <div class="screen-links">
+              <div class="service-section">
+                <h3 class="section-title">Service</h3>
+                <div class="section-buttons">
+                  <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
+                    Dispatcher Screen
+                  </a>
+
+                  <a class="btn link-keymachine" href="keymachine.html">
+                    Key Machine Screen
+                  </a>
+
+                  <a class="btn link-carwash" href="carwash.html">
+                    Car Wash Screen
+                  </a>
+
+                  <a class="btn link-wallboard" href="wallboard.html">
+                    TV Wallboard
+                  </a>
+
+                  <a class="btn link-serviceadvisor" href="serviceadvisor.html">
+                    Service Advisor
+                  </a>
+
+                  <a class="btn link-loancar" href="loancar.html">
+                    Loan Car
+                  </a>
+
+                  <a class="btn link-history" href="history.html">
+                    History
+                  </a>
+
+                  <a class="btn link-executive" href="executive.html">
+                    Executive Console
+                  </a>
+
+                  <a class="btn link-system-settings" href="system_settings.html">
+                    System Settings
+                  </a>
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="sales-section">
+                <h3 class="section-title">Sales</h3>
+                <div class="section-buttons">
+                  <a class="btn link-sales-manager" href="sales_manager.html">
+                    Sales Manager
+                  </a>
+
+                  <a class="btn link-sales-driver" href="sales_driver.html">
+                    Sales Driver
+                  </a>
+
+                  <a class="btn link-sales-history" href="sales_history.html">
+                    Sales History
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
     </main>
   </div>
 </body>

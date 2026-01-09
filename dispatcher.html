@@ -6,7 +6,7 @@
   <title>Valet Ops Live – Dispatcher</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" href="style.css?v=20260106a" />
+  <link rel="stylesheet" href="style.css?v=20260106d" />
 
   <!-- Supabase v1 global -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
@@ -18,218 +18,287 @@
   <script type="module" src="app.js?v=20260105a"></script>
 </head>
 
-<body class="role-dispatcher">
+<body data-page="dispatcher" class="role-dispatcher">
   <!--   <!--  <!--  --<audio id="alert-sound" src="""/alert.mp3" preload="auto" -->></audio>
 
   <div class="app-shell">
-    <header class="app-header">
-      <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-nav__inner">
+        <div class="side-nav__brand">
+          <div class="side-nav__logo">O</div>
+          <div class="side-nav__brand-text">Optima Ops</div>
+        </div>
 
-      <div class="titles">
-        <div class="brand">Optima Dealer Services</div>
-        <div class="subtitle">Dispatcher – Live Valet Operations</div>
-        <!-- ✅ Always-visible build/version stamp -->
-        <div id="build-stamp" style="font-size:0.7rem;color:#9ca3af;margin-top:0.15rem;">
-          Build: (loading…)
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Service</div>
+          <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+            <div class="side-link__icon">⎈</div>
+            <div class="side-link__label">Dispatcher</div>
+          </a>
+          <a class="side-link" href="keymachine.html" data-page="keymachine">
+            <div class="side-link__icon">🔑</div>
+            <div class="side-link__label">Key Machine</div>
+          </a>
+          <a class="side-link" href="carwash.html" data-page="carwash">
+            <div class="side-link__icon">🧼</div>
+            <div class="side-link__label">Car Wash</div>
+          </a>
+          <a class="side-link" href="wallboard.html" data-page="wallboard">
+            <div class="side-link__icon">▦</div>
+            <div class="side-link__label">Wallboard</div>
+          </a>
+          <a class="side-link" href="history.html" data-page="history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Sales</div>
+          <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+            <div class="side-link__icon">◎</div>
+            <div class="side-link__label">Sales Manager</div>
+          </a>
+          <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+            <div class="side-link__icon">➜</div>
+            <div class="side-link__label">Sales Driver</div>
+          </a>
+          <a class="side-link" href="sales_history.html" data-page="sales_history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">Sales History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Owner</div>
+          <a class="side-link" href="executive.html" data-page="executive">
+            <div class="side-link__icon">↗</div>
+            <div class="side-link__label">Executive</div>
+          </a>
+          <a class="side-link" href="system_settings.html" data-page="system_settings">
+            <div class="side-link__icon">⚙</div>
+            <div class="side-link__label">Settings</div>
+          </a>
+          <a class="side-link" href="index.html" data-page="home">
+            <div class="side-link__icon">⌂</div>
+            <div class="side-link__label">Home</div>
+          </a>
         </div>
       </div>
+    </nav>
 
-      <div class="header-right">
-        <a class="btn small dispatcher-only" href="history.html">History</a>
+    <main class="app-main">
+      <div class="app-main__inner">
+        <header class="app-header">
+          <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
 
-        <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
-
-        <button id="signout-btn" class="btn small">Sign out</button>
-
-        <div class="role-pill">Dispatcher</div>
-      </div>
-    </header>
-    <div id="screen-context" class="screen-context"></div>
-
-    <main class="app-main layout-grid">
-      <!-- Center column -->
-      <div class="layout-center">
-        <!-- Stage request -->
-        <section class="section section-staged">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Stage Request
-                <span class="section-count" id="count-staged">0</span>
-              </div>
-              <div class="section-subtitle">
-                Cars expected later – not under time pressure yet.
-              </div>
+          <div class="titles">
+            <div class="brand">Optima Dealer Services</div>
+            <div class="subtitle">Dispatcher – Live Valet Operations</div>
+            <!-- ✅ Always-visible build/version stamp -->
+            <div id="build-stamp" style="font-size:0.7rem;color:#9ca3af;margin-top:0.15rem;">
+              Build: (loading…)
             </div>
           </div>
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Staged At</th>
-                  <th>Activate</th>
-                </tr>
-              </thead>
-              <tbody id="staged-tbody">
-                <tr>
-                  <td colspan="4" class="empty">No staged tickets.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+          <div class="header-right">
+            <a class="btn small dispatcher-only" href="history.html">History</a>
 
-        <!-- New pickup form -->
-        <section class="section dispatcher-only">
-          <div class="section-header">
-            <div>
-              <div class="section-title">New Pickup</div>
-              <div class="section-subtitle">
-                Dispatcher #1: only place where Tag # and Customer Name are typed.
+            <button id="pqi-toggle" class="pqi-toggle-global off">PQI: Off</button>
+
+            <button id="signout-btn" class="btn small">Sign out</button>
+
+            <div class="role-pill">Dispatcher</div>
+          </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
+
+        <main class="app-main layout-grid">
+          <!-- Center column -->
+          <div class="layout-center">
+            <!-- Stage request -->
+            <section class="section section-staged">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">
+                    Stage Request
+                    <span class="section-count" id="count-staged">0</span>
+                  </div>
+                  <div class="section-subtitle">
+                    Cars expected later – not under time pressure yet.
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <form id="new-pickup-form" class="new-pickup-form">
-            <div class="input-group">
-              <label for="tag-number">Tag #</label>
-              <input id="tag-number" name="tag-number" class="input-text" placeholder="e.g. 1432" required />
-            </div>
-
-            <div class="input-group">
-              <label for="customer-name">Customer name</label>
-              <input id="customer-name" name="customer-name" class="input-text" placeholder="e.g. Maria Lopez"
-                required />
-            </div>
-
-            <div class="input-group checkbox-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="stage-only" />
-                Stage only (not active yet)
-              </label>
-            </div>
-
-            <div class="input-group" style="align-self: flex-end">
-              <button type="submit" class="btn btn-primary">Create</button>
-            </div>
-          </form>
-        </section>
-
-        <!-- Active pickups -->
-        <section class="section section-active">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Active Pickups
-                <span class="section-count" id="count-active">0</span>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tag #</th>
+                      <th>Customer</th>
+                      <th>Staged At</th>
+                      <th>Activate</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staged-tbody">
+                    <tr>
+                      <td colspan="4" class="empty">No staged tickets.</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div class="section-subtitle">
-                Live flow – status/location, wash flags, valets. Master time on the right.
-              </div>
-            </div>
-          </div>
+            </section>
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Status/Location</th>
-                  <th>Keys with</th>
-                  <th>Valet Time</th>
-                  <th class="dispatcher-only">Staged</th>
-                  <th>Notes</th>
-                  <th>Master Time</th>
-                </tr>
-              </thead>
-              <tbody id="active-tbody">
-                <tr>
-                  <td colspan="8" class="empty">Loading…</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Waiting / staged for customer -->
-        <section class="section dispatcher-only">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                Waiting/staged for customer
-                <span class="section-count" id="count-waiting">0</span>
+            <!-- New pickup form -->
+            <section class="section dispatcher-only">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">New Pickup</div>
+                  <div class="section-subtitle">
+                    Dispatcher #1: only place where Tag # and Customer Name are typed.
+                  </div>
+                </div>
               </div>
-              <div class="section-subtitle">
-                Keys secure, car ready – now waiting on pick up.
-              </div>
-            </div>
-          </div>
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tag #</th>
-                  <th>Customer</th>
-                  <th>Delivered by</th>
-                  <th>Staged Time</th>
-                  <th>Master Time</th>
-                  <th>Notes</th>
-                  <th>Customer Picked Up</th>
-                </tr>
-              </thead>
-              <tbody id="waiting-tbody">
-                <tr>
-                  <td colspan="7" class="empty">None currently waiting.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+              <form id="new-pickup-form" class="new-pickup-form">
+                <div class="input-group">
+                  <label for="tag-number">Tag #</label>
+                  <input id="tag-number" name="tag-number" class="input-text" placeholder="e.g. 1432" required />
+                </div>
 
-        <!-- Completed -->
-        <section class="section section-completed dispatcher-only" id="completed-section">
-          <div class="section-header">
-            <div>
-              <div class="section-title">
-                <span class="check-icon">✔</span> Completed
-                <span class="section-count" id="count-completed">0</span>
-              </div>
-              <div class="section-subtitle">
-                Final time, notes, and full timeline history.
-              </div>
-            </div>
-            <button type="button" class="btn small" id="toggle-completed">Hide</button>
-          </div>
+                <div class="input-group">
+                  <label for="customer-name">Customer name</label>
+                  <input id="customer-name" name="customer-name" class="input-text" placeholder="e.g. Maria Lopez"
+                    required />
+                </div>
 
-          <div class="section-completed-table">
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tag #</th>
-                    <th>Customer</th>
-                    <th>Total Time</th>
-                    <th>Delivered by</th>
-                    <th>Created</th>
-                    <th>Completed</th>
-                    <th>Notes</th>
-                    <th>Timeline</th>
-                  </tr>
-                </thead>
-                <tbody id="completed-tbody">
-                  <tr>
-                    <td colspan="8" class="empty">No completed tickets yet.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                <div class="input-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="stage-only" />
+                    Stage only (not active yet)
+                  </label>
+                </div>
+
+                <div class="input-group" style="align-self: flex-end">
+                  <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+              </form>
+            </section>
+
+            <!-- Active pickups -->
+            <section class="section section-active">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">
+                    Active Pickups
+                    <span class="section-count" id="count-active">0</span>
+                  </div>
+                  <div class="section-subtitle">
+                    Live flow – status/location, wash flags, valets. Master time on the right.
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tag #</th>
+                      <th>Customer</th>
+                      <th>Status/Location</th>
+                      <th>Keys with</th>
+                      <th>Valet Time</th>
+                      <th class="dispatcher-only">Staged</th>
+                      <th>Notes</th>
+                      <th>Master Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="active-tbody">
+                    <tr>
+                      <td colspan="8" class="empty">Loading…</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Waiting / staged for customer -->
+            <section class="section dispatcher-only">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">
+                    Waiting/staged for customer
+                    <span class="section-count" id="count-waiting">0</span>
+                  </div>
+                  <div class="section-subtitle">
+                    Keys secure, car ready – now waiting on pick up.
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tag #</th>
+                      <th>Customer</th>
+                      <th>Delivered by</th>
+                      <th>Staged Time</th>
+                      <th>Master Time</th>
+                      <th>Notes</th>
+                      <th>Customer Picked Up</th>
+                    </tr>
+                  </thead>
+                  <tbody id="waiting-tbody">
+                    <tr>
+                      <td colspan="7" class="empty">None currently waiting.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- Completed -->
+            <section class="section section-completed dispatcher-only" id="completed-section">
+              <div class="section-header">
+                <div>
+                  <div class="section-title">
+                    <span class="check-icon">✔</span> Completed
+                    <span class="section-count" id="count-completed">0</span>
+                  </div>
+                  <div class="section-subtitle">
+                    Final time, notes, and full timeline history.
+                  </div>
+                </div>
+                <button type="button" class="btn small" id="toggle-completed">Hide</button>
+              </div>
+
+              <div class="section-completed-table">
+                <div class="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Tag #</th>
+                        <th>Customer</th>
+                        <th>Total Time</th>
+                        <th>Delivered by</th>
+                        <th>Created</th>
+                        <th>Completed</th>
+                        <th>Notes</th>
+                        <th>Timeline</th>
+                      </tr>
+                    </thead>
+                    <tbody id="completed-tbody">
+                      <tr>
+                        <td colspan="8" class="empty">No completed tickets yet.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
+        </main>
       </div>
     </main>
   </div>

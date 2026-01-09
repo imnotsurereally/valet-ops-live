@@ -6,7 +6,7 @@
   <title>Valet Ops Live – History</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" href="style.css?v=20260106a" />
+  <link rel="stylesheet" href="style.css?v=20260106d" />
 
   <!-- Supabase v1 global -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
@@ -16,111 +16,180 @@
   <script type="module" src="history.js?v=20260105c"></script>
 </head>
 
-<body class="role-history">
+<body data-page="history" class="role-history">
   <div class="app-shell">
-    <header class="app-header">
-      <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
-      <div class="titles">
-        <div class="brand">Optima Dealer Services</div>
-        <div class="subtitle">History – Prior Days & Search</div>
-      </div>
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-nav__inner">
+        <div class="side-nav__brand">
+          <div class="side-nav__logo">O</div>
+          <div class="side-nav__brand-text">Optima Ops</div>
+        </div>
 
-      <div class="header-right">
-        <button id="signout-btn" class="btn small">Sign out</button>
-        <div class="role-pill">History</div>
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Service</div>
+          <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+            <div class="side-link__icon">⎈</div>
+            <div class="side-link__label">Dispatcher</div>
+          </a>
+          <a class="side-link" href="keymachine.html" data-page="keymachine">
+            <div class="side-link__icon">🔑</div>
+            <div class="side-link__label">Key Machine</div>
+          </a>
+          <a class="side-link" href="carwash.html" data-page="carwash">
+            <div class="side-link__icon">🧼</div>
+            <div class="side-link__label">Car Wash</div>
+          </a>
+          <a class="side-link" href="wallboard.html" data-page="wallboard">
+            <div class="side-link__icon">▦</div>
+            <div class="side-link__label">Wallboard</div>
+          </a>
+          <a class="side-link" href="history.html" data-page="history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Sales</div>
+          <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+            <div class="side-link__icon">◎</div>
+            <div class="side-link__label">Sales Manager</div>
+          </a>
+          <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+            <div class="side-link__icon">➜</div>
+            <div class="side-link__label">Sales Driver</div>
+          </a>
+          <a class="side-link" href="sales_history.html" data-page="sales_history">
+            <div class="side-link__icon">⏱</div>
+            <div class="side-link__label">Sales History</div>
+          </a>
+        </div>
+
+        <div class="side-nav__group">
+          <div class="side-nav__group-title">Owner</div>
+          <a class="side-link" href="executive.html" data-page="executive">
+            <div class="side-link__icon">↗</div>
+            <div class="side-link__label">Executive</div>
+          </a>
+          <a class="side-link" href="system_settings.html" data-page="system_settings">
+            <div class="side-link__icon">⚙</div>
+            <div class="side-link__label">Settings</div>
+          </a>
+          <a class="side-link" href="index.html" data-page="home">
+            <div class="side-link__icon">⌂</div>
+            <div class="side-link__label">Home</div>
+          </a>
+        </div>
       </div>
-    </header>
-    <div id="screen-context" class="screen-context"></div>
+    </nav>
 
     <main class="app-main">
-      <section class="section">
-        <div class="section-header">
-          <div>
-            <div class="section-title">History Browser</div>
-            <div class="section-subtitle">
-              Filter by date, search tag/customer, and review notes + timeline.
-            </div>
-          </div>
-        </div>
-
-        <form class="new-pickup-form" id="history-controls" onsubmit="return false;">
-          <div class="input-group">
-            <label for="history-date">Date</label>
-            <input id="history-date" class="input-text" type="date" />
+      <div class="app-main__inner">
+        <header class="app-header">
+          <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+          <div class="titles">
+            <div class="brand">Optima Dealer Services</div>
+            <div class="subtitle">History – Prior Days & Search</div>
           </div>
 
-          <div class="input-group">
-            <label for="history-search">Search</label>
-            <input id="history-search" class="input-text" placeholder="Tag # or customer name" />
+          <div class="header-right">
+            <button id="signout-btn" class="btn small">Sign out</button>
+            <div class="role-pill">History</div>
           </div>
+        </header>
+        <div id="screen-context" class="screen-context"></div>
 
-          <div class="input-group" style="align-self:flex-end;">
-            <button class="btn btn-primary" id="history-apply">Apply</button>
-          </div>
-        </form>
-      </section>
+        <main class="app-main">
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-title">History Browser</div>
+                <div class="section-subtitle">
+                  Filter by date, search tag/customer, and review notes + timeline.
+                </div>
+              </div>
+            </div>
 
-      <section class="section section-completed" id="history-completed">
-        <div class="section-header">
-          <div>
-            <div class="section-title">
-              Completed Results
-              <span class="section-count" id="count-completed">0</span>
-            </div>
-            <div class="section-subtitle">
-              Click Timeline to view event history. Notes show full log. Filtered by completed date.
-            </div>
-          </div>
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">SIMPLE:</span>
-              <button type="button" class="btn small" id="history-export-csv-simple">Download CSV</button>
-              <button type="button" class="btn small" id="history-export-tsv-simple">Copy TSV</button>
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">FULL:</span>
-              <button type="button" class="btn small" id="history-export-csv-full">Download CSV</button>
-              <button type="button" class="btn small" id="history-export-tsv-full">Copy TSV</button>
-            </div>
-          </div>
-        </div>
+            <form class="new-pickup-form" id="history-controls" onsubmit="return false;">
+              <div class="input-group">
+                <label for="history-date">Date</label>
+                <input id="history-date" class="input-text" type="date" />
+              </div>
 
-        <div class="table-wrapper">
-          <table data-schema="completed">
-            <thead></thead>
-            <tbody id="completed-tbody">
-              <tr>
-                <td colspan="8" class="empty">Choose a date and apply.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+              <div class="input-group">
+                <label for="history-search">Search</label>
+                <input id="history-search" class="input-text" placeholder="Tag # or customer name" />
+              </div>
 
-      <section class="section" id="history-open">
-        <div class="section-header">
-          <div>
-            <div class="section-title">
-              Open Ticket Results
-              <span class="section-count" id="count-active">0</span>
-            </div>
-            <div class="section-subtitle">
-              Snapshot of matching tickets still open.
-            </div>
-          </div>
-        </div>
+              <div class="input-group" style="align-self:flex-end;">
+                <button class="btn btn-primary" id="history-apply">Apply</button>
+              </div>
+            </form>
+          </section>
 
-        <div class="table-wrapper">
-          <table data-schema="active">
-            <thead></thead>
-            <tbody id="active-tbody">
-              <tr>
-                <td colspan="7" class="empty">No open results.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+          <section class="section section-completed" id="history-completed">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Completed Results
+                  <span class="section-count" id="count-completed">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Click Timeline to view event history. Notes show full log. Filtered by completed date.
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">SIMPLE:</span>
+                  <button type="button" class="btn small" id="history-export-csv-simple">Download CSV</button>
+                  <button type="button" class="btn small" id="history-export-tsv-simple">Copy TSV</button>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">FULL:</span>
+                  <button type="button" class="btn small" id="history-export-csv-full">Download CSV</button>
+                  <button type="button" class="btn small" id="history-export-tsv-full">Copy TSV</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table data-schema="completed">
+                <thead></thead>
+                <tbody id="completed-tbody">
+                  <tr>
+                    <td colspan="8" class="empty">Choose a date and apply.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="section" id="history-open">
+            <div class="section-header">
+              <div>
+                <div class="section-title">
+                  Open Ticket Results
+                  <span class="section-count" id="count-active">0</span>
+                </div>
+                <div class="section-subtitle">
+                  Snapshot of matching tickets still open.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table data-schema="active">
+                <thead></thead>
+                <tbody id="active-tbody">
+                  <tr>
+                    <td colspan="7" class="empty">No open results.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
     </main>
   </div>
 </body>

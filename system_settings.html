@@ -6,7 +6,7 @@
     <title>Valet Ops Live – System Settings</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css?v=20260106a" />
+    <link rel="stylesheet" href="style.css?v=20260106d" />
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
@@ -15,88 +15,170 @@
     <script type="module" src="system_settings.js?v=20260105e"></script>
 </head>
 
-<body class="role-system_settings">
+<body data-page="system_settings" class="role-system_settings">
     <div class="app-shell">
-        <header class="app-header">
-            <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
-            <div class="titles">
-                <div class="brand">Optima Dealer Services</div>
-                <div class="subtitle">System Settings (Read Only)</div>
-            </div>
+        <nav class="side-nav" aria-label="Primary">
+            <div class="side-nav__inner">
+                <div class="side-nav__brand">
+                    <div class="side-nav__logo">O</div>
+                    <div class="side-nav__brand-text">Optima Ops</div>
+                </div>
 
-            <div class="header-right">
-                <button id="signout-btn" class="btn small">Sign out</button>
-                <div class="role-pill">System Settings</div>
+                <div class="side-nav__group">
+                    <div class="side-nav__group-title">Service</div>
+                    <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+                        <div class="side-link__icon">⎈</div>
+                        <div class="side-link__label">Dispatcher</div>
+                    </a>
+                    <a class="side-link" href="keymachine.html" data-page="keymachine">
+                        <div class="side-link__icon">🔑</div>
+                        <div class="side-link__label">Key Machine</div>
+                    </a>
+                    <a class="side-link" href="carwash.html" data-page="carwash">
+                        <div class="side-link__icon">🧼</div>
+                        <div class="side-link__label">Car Wash</div>
+                    </a>
+                    <a class="side-link" href="wallboard.html" data-page="wallboard">
+                        <div class="side-link__icon">▦</div>
+                        <div class="side-link__label">Wallboard</div>
+                    </a>
+                    <a class="side-link" href="history.html" data-page="history">
+                        <div class="side-link__icon">⏱</div>
+                        <div class="side-link__label">History</div>
+                    </a>
+                </div>
+
+                <div class="side-nav__group">
+                    <div class="side-nav__group-title">Sales</div>
+                    <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+                        <div class="side-link__icon">◎</div>
+                        <div class="side-link__label">Sales Manager</div>
+                    </a>
+                    <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+                        <div class="side-link__icon">➜</div>
+                        <div class="side-link__label">Sales Driver</div>
+                    </a>
+                    <a class="side-link" href="sales_history.html" data-page="sales_history">
+                        <div class="side-link__icon">⏱</div>
+                        <div class="side-link__label">Sales History</div>
+                    </a>
+                </div>
+
+                <div class="side-nav__group">
+                    <div class="side-nav__group-title">Owner</div>
+                    <a class="side-link" href="executive.html" data-page="executive">
+                        <div class="side-link__icon">↗</div>
+                        <div class="side-link__label">Executive</div>
+                    </a>
+                    <a class="side-link" href="system_settings.html" data-page="system_settings">
+                        <div class="side-link__icon">⚙</div>
+                        <div class="side-link__label">Settings</div>
+                    </a>
+                    <a class="side-link" href="index.html" data-page="home">
+                        <div class="side-link__icon">⌂</div>
+                        <div class="side-link__label">Home</div>
+                    </a>
+                </div>
             </div>
-        </header>
-        <div id="screen-context" class="screen-context"></div>
+        </nav>
 
         <main class="app-main">
-            <section class="section">
-                <div class="section-header">
-                    <div>
-                        <div class="section-title">System Settings</div>
-                        <div class="section-subtitle">Read-only system configuration and health monitoring</div>
+            <div class="app-main__inner">
+                <header class="app-header">
+                    <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
+                    <div class="titles">
+                        <div class="brand">Optima Dealer Services</div>
+                        <div class="subtitle">System Settings (Read Only)</div>
                     </div>
-                </div>
 
-                <!-- System Overview Card -->
-                <div class="kpi-card" style="margin-bottom: 1rem; text-align: left;">
-                    <h3 class="section-title" style="margin-bottom: 0.75rem;">System Overview</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                        <div>
-                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Polling</div>
-                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-polling">5s
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Timer Display Snap
-                            </div>
-                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-timer-snap">15s
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Realtime</div>
-                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-realtime">
-                                Unknown</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Version</div>
-                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="system-version">—
-                            </div>
-                        </div>
+                    <div class="header-right">
+                        <button id="signout-btn" class="btn small">Sign out</button>
+                        <div class="role-pill">System Settings</div>
                     </div>
-                </div>
+                </header>
+                <div id="screen-context" class="screen-context"></div>
 
-                <!-- Data Health Card -->
-                <div class="kpi-card" style="margin-bottom: 1rem; text-align: left;">
-                    <h3 class="section-title" style="margin-bottom: 0.75rem;">Data Health</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                        <div>
-                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Last Successful
-                                Query</div>
-                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="health-last-query">—
+                <main class="app-main">
+                    <section class="section">
+                        <div class="section-header">
+                            <div>
+                                <div class="section-title">System Settings</div>
+                                <div class="section-subtitle">Read-only system configuration and health monitoring</div>
                             </div>
                         </div>
-                        <div>
-                            <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Query Errors
-                                (Session)</div>
-                            <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;" id="health-error-count">0
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Links Card -->
-                <div class="kpi-card" style="text-align: left;">
-                    <h3 class="section-title" style="margin-bottom: 0.75rem;">Links</h3>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
-                        <a class="btn btn-primary" href="executive.html">Executive Console</a>
-                        <a class="btn" href="history.html">History</a>
-                        <a class="btn" href="sales_history.html">Sales History</a>
-                    </div>
-                </div>
-            </section>
+                        <!-- System Overview Card -->
+                        <div class="kpi-card" style="margin-bottom: 1rem; text-align: left;">
+                            <h3 class="section-title" style="margin-bottom: 0.75rem;">System Overview</h3>
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Polling
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;"
+                                        id="system-polling">5s
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Timer
+                                        Display Snap
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;"
+                                        id="system-timer-snap">15s
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Realtime
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;"
+                                        id="system-realtime">
+                                        Unknown</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Version
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;"
+                                        id="system-version">—
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Health Card -->
+                        <div class="kpi-card" style="margin-bottom: 1rem; text-align: left;">
+                            <h3 class="section-title" style="margin-bottom: 0.75rem;">Data Health</h3>
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Last
+                                        Successful
+                                        Query</div>
+                                    <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;"
+                                        id="health-last-query">—
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">Query Errors
+                                        (Session)</div>
+                                    <div style="font-size: 0.9rem; color: #f5f5f5; font-weight: 600;"
+                                        id="health-error-count">0
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Links Card -->
+                        <div class="kpi-card" style="text-align: left;">
+                            <h3 class="section-title" style="margin-bottom: 0.75rem;">Links</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                                <a class="btn btn-primary" href="executive.html">Executive Console</a>
+                                <a class="btn" href="history.html">History</a>
+                                <a class="btn" href="sales_history.html">Sales History</a>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
         </main>
     </div>
 </body>
