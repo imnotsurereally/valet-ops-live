@@ -384,10 +384,25 @@ export function wireSignOut() {
   });
 }
 
+function wireSidebarExpand(){
+  const shell = document.querySelector(".app-shell");
+  const nav = document.querySelector(".side-nav");
+  if (!shell || !nav) return;
+
+  nav.addEventListener("mouseenter", () => shell.classList.add("nav-expanded"));
+  nav.addEventListener("mouseleave", () => shell.classList.remove("nav-expanded"));
+}
+
 function highlightActiveSidebarLink() {
   const page = document.body?.dataset?.page || "";
   document.querySelectorAll(".side-link").forEach(a => {
     a.classList.toggle("is-active", a.dataset.page === page);
   });
 }
-document.addEventListener("DOMContentLoaded", highlightActiveSidebarLink);
+document.addEventListener("DOMContentLoaded", () => {
+  wireSidebarExpand();
+
+  if (typeof highlightActiveSidebarLink === "function") {
+    highlightActiveSidebarLink();
+  }
+});
