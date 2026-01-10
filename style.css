@@ -1952,3 +1952,37 @@ hr,
     transform: none;
   }
 }
+
+/* ===== Sidebar expand fix + SVG icons ===== */
+
+.side-nav { width: var(--sb-collapsed); }              /* hard width when collapsed */
+.side-nav__inner { width: var(--sb-expanded); }        /* actual inner width for expanded view */
+
+/* IMPORTANT: grid must expand too (this is what was missing) */
+.app-shell { grid-template-columns: var(--sb-collapsed) 1fr; transition: grid-template-columns .12s ease; }
+.app-shell.nav-expanded { grid-template-columns: var(--sb-expanded) 1fr; }
+
+.app-shell.nav-expanded .side-nav { width: var(--sb-expanded); }
+
+/* Keep hover feel crisp */
+.side-nav { transition: width .12s ease; }
+
+/* SVG icon styling */
+.sb-ico {
+  width: 18px;
+  height: 18px;
+  display: block;
+  stroke: rgba(255,255,255,0.92);
+  stroke-width: 1.6;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.side-link__icon { width: 32px; height: 32px; }
+.side-link__icon svg { margin-left: 2px; }
+
+/* Make hover/active a touch more “Supabase” */
+.side-link:hover { border-color: rgba(255,255,255,0.55) !important; }
+.side-link.is-active { border-color: rgba(255,255,255,0.85) !important; }
+
+/* Optional: make titles always readable when expanded */
+.side-nav:hover .side-nav__group-title { opacity: 1 !important; }
