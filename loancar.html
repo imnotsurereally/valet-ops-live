@@ -5,79 +5,179 @@
     <title>Valet Ops Live – Loan Car Arrival</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="style.css?v=20260106a" />
+    <link rel="stylesheet" href="style.css?v=20260110a" />
 
     <!-- Supabase v1 global -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
     <!-- App logic -->
-    <script type="module" src="app.js?v=20260105a"></script>
+    <script type="module" src="app.js?v=20260110a"></script>
   </head>
 
-  <body class="role-loancar">
+  <body data-page="loancar" class="role-loancar">
     <div class="app-shell">
-      <header class="app-header">
-        <img
-          src="assets/optima-logo.jpg"
-          alt="Optima Dealer Services"
-          class="logo"
-        />
-        <div class="titles">
-          <div class="brand">Optima Dealer Services</div>
-          <div class="subtitle">Loan Car – Customer Arrival</div>
-        </div>
-
-        <div class="header-right">
-          <a class="btn small" href="index.html">Home</a>
-          <button id="signout-btn" class="btn small">Sign out</button>
-          <div class="role-pill">Loan Car</div>
-        </div>
-      </header>
-      <div id="screen-context" class="screen-context"></div>
-
-      <main class="app-main app-main-center">
-        <section class="section" style="max-width: 420px; width: 100%;">
-          <div class="section-header">
-            <div>
-              <div class="section-title">Customer Arrived (Loaner)</div>
-              <div class="section-subtitle">
-                Creates an <b>active pickup immediately</b>.
-                <br />
-                Auto-note: <b>“customer just arrived in loaner”</b>
-              </div>
-            </div>
+      <nav class="side-nav" aria-label="Primary">
+        <div class="side-nav__inner">
+          <div class="side-nav__brand">
+            <div class="side-nav__logo">O</div>
+            <div class="side-nav__brand-text">Optima Ops</div>
           </div>
 
-          <form id="new-pickup-form" class="new-pickup-form">
-            <div class="input-group">
-              <label for="tag-number">Tag #</label>
-              <input
-                id="tag-number"
-                name="tag-number"
-                class="input-text"
-                placeholder="e.g. 1432"
-                required
-              />
+          <div class="side-nav__group">
+            <div class="side-nav__group-title">Service</div>
+            <a class="side-link" href="dispatcher.html" data-page="dispatcher">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 2l4 8-4 12-4-12 4-8z"/><path d="M12 10l6-2-6 2-6-2 6 2z"/></svg>
+              </div>
+              <div class="side-link__label">Dispatcher</div>
+            </a>
+            <a class="side-link" href="keymachine.html" data-page="keymachine">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M7 14a5 5 0 1 1 4.6 3H10l-2 2H6v-2l2-2h1"/><path d="M15 11h2"/></svg>
+              </div>
+              <div class="side-link__label">Key Machine</div>
+            </a>
+            <a class="side-link" href="carwash.html" data-page="carwash">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg>
+              </div>
+              <div class="side-link__label">Car Wash</div>
+            </a>
+            <a class="side-link" href="wallboard.html" data-page="wallboard">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+              </div>
+              <div class="side-link__label">Wallboard</div>
+            </a>
+            <a class="side-link" href="history.html" data-page="history">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>
+              </div>
+              <div class="side-link__label">History</div>
+            </a>
+          </div>
+
+          <div class="side-nav__group">
+            <div class="side-nav__group-title">Sales</div>
+            <a class="side-link" href="sales_manager.html" data-page="sales_manager" data-sales-only="1">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M8 7V5h8v2"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
+              </div>
+              <div class="side-link__label">Sales Manager</div>
+            </a>
+            <a class="side-link" href="sales_driver.html" data-page="sales_driver" data-sales-only="1">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>
+              </div>
+              <div class="side-link__label">Sales Driver</div>
+            </a>
+            <a class="side-link" href="sales_history.html" data-page="sales_history" data-sales-only="1">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>
+              </div>
+              <div class="side-link__label">Sales History</div>
+            </a>
+          </div>
+
+          <div class="side-nav__group">
+            <div class="side-nav__group-title">Owner</div>
+            <a class="side-link" href="executive.html" data-page="executive" data-owner-only="1">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 16l6-6 4 4 6-8"/><path d="M20 6v6h-6"/></svg>
+              </div>
+              <div class="side-link__label">Executive</div>
+            </a>
+            <a class="side-link" href="system_settings.html" data-page="system_settings" data-owner-only="1">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.5-2.3.7a7.6 7.6 0 0 0-1.7-1L15 4h-6l-.5 3a7.6 7.6 0 0 0-1.7 1L4.5 7.3l-2 3.5 2 1.2a8 8 0 0 0 .1 2l-2 1.2 2 3.5 2.3-.7a7.6 7.6 0 0 0 1.7 1L9 20h6l.5-3a7.6 7.6 0 0 0 1.7-1l2.3.7 2-3.5-2-1.2z"/></svg>
+              </div>
+              <div class="side-link__label">Settings</div>
+            </a>
+            <a class="side-link" href="index.html" data-page="home">
+              <div class="side-link__icon">
+                <svg class="sb-ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v11h12V10"/></svg>
+              </div>
+              <div class="side-link__label">Home</div>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <main class="app-main app-main-center">
+        <div class="app-main__inner">
+      <div class="topbar">
+        <div class="topbar__left">
+          <div class="topbar__title">Optima Ops</div>
+          <div class="topbar__who" id="topbar-who"></div>
+        </div>
+        <div class="topbar__right">
+          <button class="topbar__chip" id="density-dense" type="button">Dense</button>
+          <button class="topbar__chip" id="density-comfort" type="button">Comfort</button>
+        </div>
+      </div>
+
+          <header class="app-header">
+            <img
+              src="assets/optima-logo.jpg"
+              alt="Optima Dealer Services"
+              class="logo"
+            />
+            <div class="titles">
+              <div class="brand">Optima Dealer Services</div>
+              <div class="subtitle">Loan Car – Customer Arrival</div>
             </div>
 
-            <div class="input-group">
-              <label for="customer-name">Customer name</label>
-              <input
-                id="customer-name"
-                name="customer-name"
-                class="input-text"
-                placeholder="e.g. Maria Lopez"
-                required
-              />
+            <div class="header-right">
+              <a class="btn small" href="index.html">Home</a>
+              <button id="signout-btn" class="btn small">Sign out</button>
+              <div class="role-pill">Loan Car</div>
+            </div>
+          </header>
+          <div id="screen-context" class="screen-context"></div>
+
+          <section class="section" style="max-width: 420px; width: 100%;">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Customer Arrived (Loaner)</div>
+                <div class="section-subtitle">
+                  Creates an <b>active pickup immediately</b>.
+                  <br />
+                  Auto-note: <b>“customer just arrived in loaner”</b>
+                </div>
+              </div>
             </div>
 
-            <div class="input-group" style="align-self: flex-end;">
-              <button type="submit" class="btn btn-primary">
-                Create Active Pickup
-              </button>
-            </div>
-          </form>
-        </section>
+            <form id="new-pickup-form" class="new-pickup-form">
+              <div class="input-group">
+                <label for="tag-number">Tag #</label>
+                <input
+                  id="tag-number"
+                  name="tag-number"
+                  class="input-text"
+                  placeholder="e.g. 1432"
+                  required
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="customer-name">Customer name</label>
+                <input
+                  id="customer-name"
+                  name="customer-name"
+                  class="input-text"
+                  placeholder="e.g. Maria Lopez"
+                  required
+                />
+              </div>
+
+              <div class="input-group" style="align-self: flex-end;">
+                <button type="submit" class="btn btn-primary">
+                  Create Active Pickup
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
       </main>
     </div>
   </body>

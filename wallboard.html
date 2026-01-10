@@ -6,13 +6,13 @@
   <title>Valet Ops Live – Wallboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" href="style.css?v=20260106d" />
+  <link rel="stylesheet" href="style.css?v=20260110a" />
 
   <!-- Supabase v1 global -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
   <!-- Our app logic (renders the tables live) -->
-  <script type="module" src="app.js?v=20260105a"></script>
+  <script type="module" src="app.js?v=20260110a"></script>
 
   <style>
     /* Wallboard should feel like a TV screen (read-only, no interaction) */
@@ -98,19 +98,19 @@
 
         <div class="side-nav__group">
           <div class="side-nav__group-title">Sales</div>
-          <a class="side-link" href="sales_manager.html" data-page="sales_manager">
+          <a class="side-link" href="sales_manager.html" data-page="sales_manager" data-sales-only="1">
             <div class="side-link__icon">
               <svg class="sb-ico" viewBox="0 0 24 24"><path d="M8 7V5h8v2"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
             </div>
             <div class="side-link__label">Sales Manager</div>
           </a>
-          <a class="side-link" href="sales_driver.html" data-page="sales_driver">
+          <a class="side-link" href="sales_driver.html" data-page="sales_driver" data-sales-only="1">
             <div class="side-link__icon">
               <svg class="sb-ico" viewBox="0 0 24 24"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>
             </div>
             <div class="side-link__label">Sales Driver</div>
           </a>
-          <a class="side-link" href="sales_history.html" data-page="sales_history">
+          <a class="side-link" href="sales_history.html" data-page="sales_history" data-sales-only="1">
             <div class="side-link__icon">
               <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>
             </div>
@@ -120,13 +120,13 @@
 
         <div class="side-nav__group">
           <div class="side-nav__group-title">Owner</div>
-          <a class="side-link" href="executive.html" data-page="executive">
+          <a class="side-link" href="executive.html" data-page="executive" data-owner-only="1">
             <div class="side-link__icon">
               <svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 16l6-6 4 4 6-8"/><path d="M20 6v6h-6"/></svg>
             </div>
             <div class="side-link__label">Executive</div>
           </a>
-          <a class="side-link" href="system_settings.html" data-page="system_settings">
+          <a class="side-link" href="system_settings.html" data-page="system_settings" data-owner-only="1">
             <div class="side-link__icon">
               <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.5-2.3.7a7.6 7.6 0 0 0-1.7-1L15 4h-6l-.5 3a7.6 7.6 0 0 0-1.7 1L4.5 7.3l-2 3.5 2 1.2a8 8 0 0 0 .1 2l-2 1.2 2 3.5 2.3-.7a7.6 7.6 0 0 0 1.7 1L9 20h6l.5-3a7.6 7.6 0 0 0 1.7-1l2.3.7 2-3.5-2-1.2z"/></svg>
             </div>
@@ -144,6 +144,17 @@
 
     <main class="app-main">
       <div class="app-main__inner">
+      <div class="topbar">
+        <div class="topbar__left">
+          <div class="topbar__title">Optima Ops</div>
+          <div class="topbar__who" id="topbar-who"></div>
+        </div>
+        <div class="topbar__right">
+          <button class="topbar__chip" id="density-dense" type="button">Dense</button>
+          <button class="topbar__chip" id="density-comfort" type="button">Comfort</button>
+        </div>
+      </div>
+
         <header class="app-header">
           <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="logo" />
           <div class="titles">

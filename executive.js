@@ -2,13 +2,14 @@
 // Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut)
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20260105e";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
 
 let storeId = null;
 let servicePickups = [];
 let salesPickups = [];
 let refreshInterval = null;
 let lastRefreshTime = null;
+let latestSnapshot = null;
 let previousMarketSnapshot = null;
 
 function pageKeyFromPath() {
@@ -196,6 +197,9 @@ async function loadData() {
     console.error("Load sales pickups error:", err);
   }
 
+  // Snapshot for stock board + market screen
+  latestSnapshot = computeMarketSnapshot();
+
   // Update last refresh time
   lastRefreshTime = Date.now();
   updateLastUpdated();
@@ -204,7 +208,8 @@ async function loadData() {
   renderStoreOverview();
   renderServiceTab();
   renderSalesTab();
-  renderMarketScreen();
+  renderStockBoard(latestSnapshot);
+  renderMarketScreen(latestSnapshot);
 }
 
 function updateLastUpdated() {
@@ -560,6 +565,71 @@ function renderSalesTab() {
   }
 }
 
+function renderStockBoard(snapshot) {
+  const grid = document.getElementById("stockgrid");
+  const ticker = document.getElementById("ticker");
+  if (!grid && !ticker) return;
+
+  const snap = snapshot || latestSnapshot || computeMarketSnapshot();
+  if (!snap) {
+    if (grid) grid.innerHTML = "";
+    if (ticker) ticker.textContent = "";
+    return;
+  }
+
+  const formatValue = (v) => (v === null || v === undefined ? "—" : v);
+  const formatAvg = (mins) => {
+    if (mins === null || mins === undefined || mins === 0) return "—";
+    return formatDuration(mins * 60);
+  };
+  const salesOnWay = salesPickups.filter((p) => p.status === "ON_THE_WAY").length;
+
+  const stockRow = (label, value) => `
+    <div class="stockrow">
+      <div class="stockk">${escapeHtml(label)}</div>
+      <div class="stockv">${escapeHtml(value)}</div>
+    </div>
+  `;
+
+  if (grid) {
+    const serviceCard = `
+      <div class="stockcard">
+        <h3>Service</h3>
+        ${stockRow("Active", formatValue(snap.SERVICE_ACTIVE))}
+        ${stockRow("Waiting", formatValue(snap.SERVICE_WAITING))}
+        ${stockRow("Completed", formatValue(snap.SERVICE_COMPLETED_TODAY))}
+        ${stockRow("Avg Cycle", formatAvg(snap.SERVICE_AVG_CYCLE_MIN))}
+      </div>
+    `;
+
+    const salesCard = `
+      <div class="stockcard">
+        <h3>Sales</h3>
+        ${stockRow("Active", formatValue(snap.SALES_ACTIVE))}
+        ${stockRow("On the way", formatValue(salesOnWay))}
+        ${stockRow("Completed", formatValue(snap.SALES_COMPLETED_TODAY))}
+        ${stockRow("Avg Driver", formatAvg(snap.SALES_AVG_DRIVER_MIN))}
+      </div>
+    `;
+
+    grid.innerHTML = `${serviceCard}${salesCard}`;
+  }
+
+  if (ticker) {
+    const items = [
+      `Service Active ${formatValue(snap.SERVICE_ACTIVE)}`,
+      `Waiting ${formatValue(snap.SERVICE_WAITING)}`,
+      `Completed ${formatValue(snap.SERVICE_COMPLETED_TODAY)}`,
+      `Avg Cycle ${formatAvg(snap.SERVICE_AVG_CYCLE_MIN)}`,
+      `Sales Active ${formatValue(snap.SALES_ACTIVE)}`,
+      `On the way ${formatValue(salesOnWay)}`,
+      `Completed ${formatValue(snap.SALES_COMPLETED_TODAY)}`,
+      `Avg Driver ${formatAvg(snap.SALES_AVG_DRIVER_MIN)}`
+    ];
+    ticker.innerHTML = items.map((item) => `<span class="ticker__item">${escapeHtml(item)}</span>`).join("");
+  }
+}
+
 function renderTab(tab) {
   if (tab === "store") {
     renderStoreOverview();
@@ -568,7 +638,7 @@ function renderTab(tab) {
   } else if (tab === "sales") {
     renderSalesTab();
   } else if (tab === "market") {
-    renderMarketScreen();
+    renderMarketScreen(latestSnapshot || computeMarketSnapshot());
   }
 }
 
@@ -735,8 +805,8 @@ function computeMarketSnapshot() {
   };
 }
 
-function renderMarketScreen() {
-  const snapshot = computeMarketSnapshot();
+function renderMarketScreen(snapshotOverride) {
+  const snapshot = snapshotOverride || computeMarketSnapshot();
   const previous = previousMarketSnapshot;
 
   // Render ticker tape
