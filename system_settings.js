@@ -2,7 +2,7 @@
 // Requires: ./supabaseClient.js + ./auth.js (requireAuth / wireSignOut)
 
 import { supabase } from "./supabaseClient.js";
-import { requireAuth, wireSignOut } from "./auth.js?v=20260105e";
+import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
 
 let storeId = null;
 let healthInterval = null;

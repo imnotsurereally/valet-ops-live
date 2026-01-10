@@ -1,5 +1,9 @@
 // auth.js (FULL FILE REPLACEMENT) — Supabase v1 compatible
 import { supabase } from "./supabaseClient.js";
+import { applyDensityFromStorage, wireShellInteractions, injectSvgIcons } from "./ui_shell.js";
+
+// Apply saved density immediately to reduce flash before auth completes
+applyDensityFromStorage();
 
 const ROUTES = {
   dispatcher: "dispatcher.html",
@@ -168,6 +172,11 @@ async function renderScreenContext(profile, pageKey) {
     }
   }
 
+  // Expose store_name on profile for topbar identity line
+  if (profile && storeName) {
+    profile.store_name = storeName;
+  }
+
   // Build context string
   const contextParts = [storeName, screenLabel, roleLabel, userLabel].filter(Boolean);
   contextEl.textContent = contextParts.join("  •  ");
@@ -210,6 +219,7 @@ function isEmployeeAllowedOnPage(effectiveRole, currentPage) {
 
 export async function requireAuth({ page } = {}) {
   const currentPage = page || pageKeyFromPath();
+  const pageKey = document.body?.dataset?.page || currentPage || "";
 
   // ✅ Supabase v1 session check
   const session = supabase.auth.session();
@@ -267,6 +277,11 @@ export async function requireAuth({ page } = {}) {
 
   // Render screen context (after auth success, before returning)
   await renderScreenContext(profile, currentPage);
+
+  // Apply shell polish (density, icons, RBAC, topbar)
+  applyDensityFromStorage();
+  injectSvgIcons();
+  wireShellInteractions({ profile, pageKey });
 
   // Special case: sales_history is owner/manager ONLY (enforced here and in sales_history.js)
   if (currentPage === "sales_history") {
