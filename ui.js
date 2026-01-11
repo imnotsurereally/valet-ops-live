@@ -560,3 +560,18 @@ function escapeCSVField(field) {
     return str;
 }
 
+/* =========================================================
+   TIMER SNAP UTIL (APPENDED — SAFE)
+   ========================================================= */
+
+export function snapTo15(seconds) {
+    return Math.floor(seconds / 15) * 15;
+}
+
+export function formatSnapTime(seconds) {
+    const s = snapTo15(seconds);
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${m}:${String(r).padStart(2, "0")}`;
+}
+

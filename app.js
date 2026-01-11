@@ -3,7 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
-import { showModal, showTextModal, showSelectModal, toast } from "./ui.js?v=20260105c";
+import { showModal, showTextModal, showSelectModal, toast, formatSnapTime } from "./ui.js?v=20260105c";
 
 let pickups = [];
 let role = "dispatcher";
@@ -1556,4 +1556,13 @@ function pageKeyFromPath() {
   };
 
   return map[file] || null;
+}
+
+/* =========================================================
+   SERVICE TIMER DISPLAY OVERRIDE (NON-DESTRUCTIVE)
+   ========================================================= */
+
+export function renderServiceTimer(el, seconds) {
+  if (!el) return;
+  el.textContent = formatSnapTime(seconds);
 }
