@@ -2245,3 +2245,60 @@ input:focus,select:focus,textarea:focus{
   .stockgrid{ grid-template-columns: 1fr; }
 }
 
+/* =========================================================
+   DEMO HARDENING THEME EXTENSION (APPENDED — SAFE)
+   ========================================================= */
+
+/* True black baseline */
+html, body {
+  background: #050608;
+  color: #ffffff;
+}
+
+/* Sidebar hover-expand (CSS only, no JS risk) */
+.side-nav {
+  width: 56px;
+  transition: width 180ms ease;
+  overflow: hidden;
+}
+
+.side-nav:hover {
+  width: 220px;
+}
+
+.side-nav__brand-text,
+.side-link__label {
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 120ms ease;
+}
+
+.side-nav:hover .side-nav__brand-text,
+.side-nav:hover .side-link__label {
+  opacity: 1;
+}
+
+/* Calm hover states */
+.side-link:hover,
+tbody tr:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* De-pill buttons */
+.btn {
+  border-radius: 4px !important;
+}
+
+/* Timer severity colors */
+.timer-green { color: #4ade80; }
+.timer-yellow { color: #facc15; }
+.timer-orange { color: #fb923c; }
+.timer-red { color: #f87171; }
+
+/* Screen context header */
+.screen-context {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+

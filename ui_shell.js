@@ -85,3 +85,13 @@ export function injectSvgIcons() {
     if (svg) iconWrap.innerHTML = svg;
   });
 }
+
+/* =========================================================
+   SCREEN CONTEXT INJECTOR (SAFE)
+   ========================================================= */
+
+export function injectScreenContext({ store, screen, role, user }) {
+  const el = document.getElementById("screen-context");
+  if (!el) return;
+  el.textContent = `${store} • ${screen} • ${role} • ${user || role}`;
+}

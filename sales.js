@@ -3,7 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
-import { showModal, showTextModal, showSelectModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105c";
+import { showModal, showTextModal, showSelectModal, toast, downloadCSV, copyTSV, formatSnapTime } from "./ui.js?v=20260105c";
 
 let salesPickups = [];
 let pageRole = null; // "sales_manager" or "sales_driver"
@@ -908,6 +908,15 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
+}
+
+/* =========================================================
+   SALES TIMER DISPLAY OVERRIDE (NON-DESTRUCTIVE)
+   ========================================================= */
+
+export function renderSalesTimer(el, seconds) {
+  if (!el) return;
+  el.textContent = formatSnapTime(seconds);
 }
 
 /* ---------- STARTUP ---------- */
