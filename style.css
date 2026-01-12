@@ -3008,3 +3008,121 @@ body.public-login .btn.btn-ghost {
   opacity: 0.55;
   line-height: 1.5;
 }
+
+/* =========================================================
+   MINIMAL PRE-LOGIN SURFACES (LANDING + LOGIN ONLY)
+   ========================================================= */
+.public-landing,
+.public-login {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.public-landing .secure-entry,
+.public-login .prelogin-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 64px 18px;
+}
+
+.public-landing .secure-card,
+.public-login .prelogin-card {
+  width: min(460px, 100%);
+  border: 1px solid rgba(255,255,255,0.24);
+  background: rgba(255,255,255,0.04);
+  padding: 28px;
+  border-radius: 0;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+}
+
+.public-landing .secure-brand,
+.public-login .secure-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+  margin-bottom: 16px;
+}
+
+.public-landing .secure-mark,
+.public-login .secure-mark {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,0.48);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.public-landing .secure-company,
+.public-login .secure-company {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  opacity: 0.9;
+}
+
+.public-landing .secure-product,
+.public-login .secure-product {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.public-landing .secure-descriptor {
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  opacity: 0.86;
+  margin-bottom: 18px;
+}
+
+.public-landing .secure-action {
+  margin-top: 10px;
+}
+
+.public-login .prelogin-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin: 6px 0 6px;
+}
+
+.public-login .prelogin-sub {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-bottom: 18px;
+  letter-spacing: 0.01em;
+}
+
+.public-login .prelogin-form {
+  display: grid;
+  gap: 14px;
+}
+
+.public-login .prelogin-actions {
+  margin-top: 6px;
+}
+
+.public-login .prelogin-foot {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.public-login .prelogin-back {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.public-login .input-group {
+  display: grid;
+  gap: 6px;
+}
