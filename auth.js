@@ -22,7 +22,7 @@ const ROUTES = {
 
 // 🚫 V0.912: employees should NOT have "home/index" access
 const EMPLOYEE_ALLOWED_EXTRA = {
-  dispatcher: new Set(["history"]) // dispatcher employee can use history
+  dispatcher: new Set(["history", "customersms"]) // dispatcher employee can use history and customer SMS
 };
 
 function normalizeRole(profile) {
@@ -53,6 +53,7 @@ function pageKeyFromPath() {
     "sales_history.html": "sales_history",
     "executive.html": "executive",
     "system_settings.html": "system_settings",
+    "customersms.html": "customersms",
     "login.html": "login"
   };
 
@@ -97,7 +98,8 @@ function setBodyRoleClasses(effectiveRole, currentPage) {
     "role-sales_history",   // underscore variant
     "role-executive",
     "role-system_settings",
-    "role-system-settings"  // hyphen variant
+    "role-system-settings",  // hyphen variant
+    "role-customersms"
   ];
 
   known.forEach((c) => document.body.classList.remove(c));
@@ -263,6 +265,14 @@ export async function requireAuth({ page } = {}) {
     if (effectiveRole !== "owner" && effectiveRole !== "manager") {
       hardRedirect(routeForRole(effectiveRole));
       return { ok: false, reason: "system_settings_restricted" };
+    }
+  }
+
+  // Special case: customersms is dispatcher + owner/manager ONLY
+  if (currentPage === "customersms") {
+    if (effectiveRole !== "dispatcher" && effectiveRole !== "owner" && effectiveRole !== "manager") {
+      hardRedirect(routeForRole(effectiveRole));
+      return { ok: false, reason: "customersms_restricted" };
     }
   }
 

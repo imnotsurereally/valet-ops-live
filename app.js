@@ -1120,13 +1120,19 @@ function renderActiveRow(p, now) {
         <td class="cell-tag"><span class="pill-blue">${escapeHtml(p.tag_number)}</span></td>
         <td class="cell-customer"><span class="pill-blue">${escapeHtml(p.customer_name)}</span></td>
         <td>
-          <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
-          ${washBtns}
-          ${rewashDialogHtml}
+          <div class="ctl-group ctl-status">
+            <div class="ctl-label">STATUS / LOCATION</div>
+            <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
+            ${washBtns}
+            ${rewashDialogHtml}
+          </div>
         </td>
         <td>
-          <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
-          ${valetBtns}
+          <div class="ctl-group ctl-keys">
+            <div class="ctl-label">KEYS WITH</div>
+            <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
+            ${valetBtns}
+          </div>
         </td>
         <td><span class="timer ${valetClass}">${valetLabelTime}</span></td>
         <td class="dispatcher-only">

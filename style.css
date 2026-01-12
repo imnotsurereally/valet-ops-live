@@ -5,6 +5,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root {
+  /* Accent blue - works on both dark and light */
+  --accent-blue: #2D6BFF;
+  
+  /* Dark theme (default) */
   --bg: #000000;
   --surface-1: #000000;
   --surface-2: #050505;
@@ -35,6 +39,24 @@
   --pad-2: 14px;
   --pad-3: 18px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg: #FFFFFF;
+  --surface-1: #FFFFFF;
+  --surface-2: #FAFAFA;
+  --surface-3: #F5F5F5;
+  --border: #E5E5E5;
+  --border-2: #D4D4D4;
+  --text: #1A1A1A;
+  --text-2: #525252;
+  --text-3: #737373;
+  --focus: rgba(0, 0, 0, .15);
+  --hover-bg: rgba(0, 0, 0, .04);
+  --active-bg: rgba(0, 0, 0, .06);
+  --hairline: rgba(0, 0, 0, .10);
+  --hairline-2: rgba(0, 0, 0, .16);
 }
 
 /* soften default selection */
@@ -733,24 +755,37 @@ textarea:focus {
   pointer-events: none !important;
 }
 
-/* Active Pickups highlight — SAFE VERSION (no overlay pseudo-element) */
-.section-active .table-wrapper {
-  border-width: 1px;
-  border-color: rgba(45, 107, 255, .70);
-  background: rgba(45, 107, 255, .10) !important;
+/* Active Pickups highlight — Clean left rail + subtle tint */
+.section-active {
   position: relative;
-  animation: pulseBlueStrong .85s ease-in-out infinite;
+  padding-left: 8px;
+  border-left: 3px solid var(--accent-blue);
+  background: rgba(45, 107, 255, 0.04);
 }
 
-.section-active .table-wrapper::before {
-  content: "";
-  position: absolute;
-  left: -1px;
-  top: -1px;
-  bottom: -1px;
-  width: 4px;
-  border-radius: 12px;
-  background: rgba(45, 107, 255, .95);
+[data-theme="light"] .section-active {
+  background: rgba(45, 107, 255, 0.06);
+}
+
+.section-active .table-wrapper {
+  border-width: 1px;
+  border-color: var(--border);
+  background: transparent !important;
+  position: relative;
+}
+
+/* Optional subtle pulse on rail */
+@keyframes railPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.section-active {
+  animation: railPulse 3s ease-in-out infinite;
 }
 
 .table-wrapper.small {
@@ -2163,6 +2198,29 @@ input:focus,select:focus,textarea:focus{
 }
 .topbar__chip.is-active{ border-color: rgba(255,255,255,.55); color:#fff; }
 
+/* Theme toggle buttons */
+.theme-toggle {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--hover-bg);
+  border-color: var(--hairline);
+  color: var(--text);
+}
+
+.theme-toggle.is-active {
+  background: var(--active-bg);
+  border-color: var(--accent-blue);
+  color: var(--text);
+}
+
 /* Badges (square, calm) */
 .badge{
   display:inline-flex; align-items:center;
@@ -3499,6 +3557,41 @@ body.role-wallboard .section-subtitle,
 body.role-keymachine .section-subtitle,
 body.role-carwash .section-subtitle {
   display: none;
+}
+
+/* ================= DISPATCHER CONTROL GROUPS ================= */
+
+.role-dispatcher .ctl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+}
+
+.role-dispatcher .ctl-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-3);
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.role-dispatcher .ctl-status,
+.role-dispatcher .ctl-keys {
+  min-height: 60px;
+}
+
+.role-dispatcher .ctl-status .status-badge,
+.role-dispatcher .ctl-keys .status-badge {
+  margin-bottom: 0.3rem;
+}
+
+/* Improve button/chip readability */
+.role-dispatcher .wash-buttons .btn,
+.role-dispatcher .valet-grid .btn {
+  min-height: 32px;
+  padding: 0.4rem 0.7rem;
 }
 
 /* ================= FINAL FLAT LOCK ================= */
