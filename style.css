@@ -2302,3 +2302,197 @@ tbody tr:hover {
   margin-bottom: 0.5rem;
 }
 
+/* =========================================================
+   PUBLIC LANDING + LOGIN (PRE-LOGIN ONLY)
+   ========================================================= */
+
+.public-landing,
+.public-login {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.landing {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 18px;
+}
+
+.landing-card {
+  width: min(760px, 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.02);
+  padding: 28px;
+}
+
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 18px;
+}
+
+.landing-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,0.45);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.landing-company {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  opacity: 0.92;
+}
+
+.landing-product {
+  font-size: 13px;
+  opacity: 0.72;
+  margin-top: 3px;
+}
+
+.landing-copy {
+  margin-top: 10px;
+}
+
+.landing-headline {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+
+.landing-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.74;
+  line-height: 1.5;
+}
+
+.landing-actions {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.landing-foot {
+  margin-top: 18px;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+/* Button polish for pre-login pages */
+.public-landing .btn,
+.public-login .btn {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  background: transparent !important;
+  color: #fff !important;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.public-landing .btn:hover,
+.public-login .btn:hover {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.45) !important;
+}
+
+.public-landing .btn:active,
+.public-login .btn:active {
+  transform: translateY(1px);
+}
+
+.public-landing .btn.btn-primary,
+.public-login .btn.btn-primary {
+  background: rgba(255,255,255,0.10) !important;
+  border-color: rgba(255,255,255,0.60) !important;
+}
+
+/* LOGIN LAYOUT (fixes “raw bars at top”) */
+.login-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 18px;
+}
+
+.login-card {
+  width: min(440px, 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.02);
+  padding: 22px;
+}
+
+.login-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  font-size: 13px;
+  opacity: 0.70;
+  margin-bottom: 18px;
+}
+
+.login-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #fff;
+  opacity: 0.85;
+}
+
+.login-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.public-login input.input-text {
+  width: 100%;
+  border-radius: 0 !important;
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.public-login input.input-text:focus {
+  outline: none !important;
+  border-color: rgba(255,255,255,0.55) !important;
+}
+
+/* Make labels readable on pre-login */
+.public-login label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+/* Ensure no sidebar/topbar accidentally affects pre-login */
+.public-login .app-shell,
+.public-landing .app-shell {
+  display: block !important;
+}
+

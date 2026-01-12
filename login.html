@@ -34,37 +34,42 @@
   </script>
 </head>
 
-<body>
+<body class="public-login">
   <noscript>
     <div class="login-wrap">
-      <div class="login-title">Valet Ops Live</div>
-      <div class="login-error" style="display:block;">
-        This app requires JavaScript to sign in.
+      <div class="login-card">
+        <div class="login-title">Valet Ops Live</div>
+        <div class="login-error" style="display:block;">
+          This app requires JavaScript to sign in.
+        </div>
       </div>
     </div>
   </noscript>
 
   <div class="login-wrap">
-    <div class="login-title">Valet Ops Live</div>
-    <div class="login-sub">Sign in (email + password)</div>
+    <div class="login-card">
+      <div class="login-title">Valet Ops Live</div>
+      <div class="login-sub">Sign in (email + password)</div>
 
-    <form id="login-form">
-      <div class="input-group">
-        <label for="login-email">Email</label>
-        <input id="login-email" class="input-text" type="email" autocomplete="username" required />
-      </div>
+      <form id="login-form">
+        <div class="input-group">
+          <label for="login-email">Email</label>
+          <input id="login-email" class="input-text" type="email" autocomplete="username" required />
+        </div>
 
-      <div class="input-group" style="margin-top: 0.6rem;">
-        <label for="login-password">Password</label>
-        <input id="login-password" class="input-text" type="password" autocomplete="current-password" required />
-      </div>
+        <div class="input-group" style="margin-top: 0.75rem;">
+          <label for="login-password">Password</label>
+          <input id="login-password" class="input-text" type="password" autocomplete="current-password" required />
+        </div>
 
-      <div class="login-actions">
-        <button class="btn btn-primary" type="submit">Sign in</button>
-      </div>
+        <div class="login-actions">
+          <button class="btn btn-primary" type="submit">Sign in</button>
+          <a class="btn" href="landing.html" style="opacity:0.85;">Back</a>
+        </div>
 
-      <div id="login-error" class="login-error"></div>
-    </form>
+        <div id="login-error" class="login-error"></div>
+      </form>
+    </div>
   </div>
 </body>
 
