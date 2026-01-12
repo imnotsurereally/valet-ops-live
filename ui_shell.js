@@ -1,4 +1,4 @@
-// ui_shell.js — shared shell: sidebar + topbar + density + nav RBAC + active link + icons
+// ui_shell.js — shared shell: sidebar + topbar + nav RBAC + active link + icons
 export const ICONS = {
   dispatcher: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 2l4 8-4 12-4-12 4-8z"/><path d="M12 10l6-2-6 2-6-2 6 2z"/></svg>`,
   keymachine: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M7 14a5 5 0 1 1 4.6 3H10l-2 2H6v-2l2-2h1"/><path d="M15 11h2"/></svg>`,
@@ -12,17 +12,6 @@ export const ICONS = {
   settings: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.5-2.3.7a7.6 7.6 0 0 0-1.7-1L15 4h-6l-.5 3a7.6 7.6 0 0 0-1.7 1L4.5 7.3l-2 3.5 2 1.2a8 8 0 0 0 .1 2l-2 1.2 2 3.5 2.3-.7a7.6 7.6 0 0 0 1.7 1L9 20h6l.5-3a7.6 7.6 0 0 0 1.7-1l2.3.7 2-3.5-2-1.2z"/></svg>`,
   home: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v11h12V10"/></svg>`
 };
-
-export function applyDensityFromStorage() {
-  const saved = localStorage.getItem("ui_density") || "dense";
-  document.documentElement.dataset.density = saved;
-}
-
-export function setDensity(mode) {
-  const m = (mode === "comfort") ? "comfort" : "dense";
-  localStorage.setItem("ui_density", m);
-  document.documentElement.dataset.density = m;
-}
 
 export function wireShellInteractions({ profile, pageKey }) {
   // Sidebar expand: REAL expand (grid column change) via JS
@@ -63,17 +52,6 @@ export function wireShellInteractions({ profile, pageKey }) {
   const store = (profile?.store_name || "").trim();
   const el = document.getElementById("topbar-who");
   if (el) el.textContent = store ? `${store} • ${who}` : who;
-
-  // Density toggle buttons
-  const denseBtn = document.getElementById("density-dense");
-  const comfortBtn = document.getElementById("density-comfort");
-  if (denseBtn && comfortBtn) {
-    const cur = document.documentElement.dataset.density || "dense";
-    denseBtn.classList.toggle("is-active", cur === "dense");
-    comfortBtn.classList.toggle("is-active", cur === "comfort");
-    denseBtn.onclick = () => { setDensity("dense"); denseBtn.classList.add("is-active"); comfortBtn.classList.remove("is-active"); };
-    comfortBtn.onclick = () => { setDensity("comfort"); comfortBtn.classList.add("is-active"); denseBtn.classList.remove("is-active"); };
-  }
 }
 
 export function injectSvgIcons() {
@@ -86,12 +64,3 @@ export function injectSvgIcons() {
   });
 }
 
-/* =========================================================
-   SCREEN CONTEXT INJECTOR (SAFE)
-   ========================================================= */
-
-export function injectScreenContext({ store, screen, role, user }) {
-  const el = document.getElementById("screen-context");
-  if (!el) return;
-  el.textContent = `${store} • ${screen} • ${role} • ${user || role}`;
-}
