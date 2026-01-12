@@ -47,11 +47,17 @@ export function wireShellInteractions({ profile, pageKey }) {
   // Service access (keep visible for now; auth.js already redirects)
   // (Optional: tighten later per role matrix)
 
-  // Topbar identity line
-  const who = (profile?.display_name || "").trim() || (role ? role.toUpperCase() : "USER");
+  // Topbar identity line - Single canonical form: "Optima Ops · <Store Name> · <Role>"
+  const roleDisplay = (profile?.operational_role || profile?.role || "").toLowerCase().trim();
+  const roleFormatted = roleDisplay ? roleDisplay.charAt(0).toUpperCase() + roleDisplay.slice(1).replace(/_/g, " ") : "";
   const store = (profile?.store_name || "").trim();
   const el = document.getElementById("topbar-who");
-  if (el) el.textContent = store ? `${store} • ${who}` : who;
+  if (el) {
+    const parts = [];
+    if (store) parts.push(store);
+    if (roleFormatted) parts.push(roleFormatted);
+    el.textContent = parts.length > 0 ? parts.join(" · ") : "";
+  }
 }
 
 export function injectSvgIcons() {
