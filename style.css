@@ -3151,3 +3151,388 @@ body.public-login .btn.btn-ghost {
   display: grid;
   gap: 6px;
 }
+
+/* ================= SYSTEM HARDENING LAYER ================= */
+
+/* System Tokens */
+:root {
+  --s-1: 6px;
+  --s-2: 10px;
+  --s-3: 14px;
+  --s-4: 18px;
+  
+  --fs-screen-title: 15px;
+  --fs-section-title: 13px;
+  --fs-table-header: 11px;
+  --fs-body: 13px;
+  --fs-meta: 12px;
+  
+  --lh-tight: 1.2;
+  --lh-normal: 1.35;
+  --lh-relaxed: 1.5;
+}
+
+/* Global Flat Enforcement */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+.card,
+.panel,
+.section,
+.table-wrapper,
+.kpi-card,
+.market-tile,
+.market-detail,
+.new-pickup-form,
+.sales-card,
+.inline-dialog,
+.note-pill,
+.timer,
+.stockcard,
+.frame,
+.feature,
+.use,
+.security__card,
+.ticker {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Typography Scale */
+.section-title {
+  font-size: var(--fs-section-title);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: var(--lh-tight);
+}
+
+.section-subtitle {
+  font-size: var(--fs-meta);
+  color: var(--text-2);
+  line-height: var(--lh-normal);
+}
+
+/* Spacing System */
+.section {
+  margin-bottom: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border);
+}
+
+.section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.section-header {
+  margin-bottom: var(--s-2);
+}
+
+/* Table System - Global Standard */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-body);
+}
+
+thead th {
+  font-size: var(--fs-table-header);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  padding: var(--s-2) var(--s-2);
+  font-weight: 500;
+  text-align: left;
+}
+
+tbody td {
+  border-bottom: 1px solid var(--border);
+  padding: var(--s-2) var(--s-2);
+  color: var(--text);
+  line-height: var(--lh-normal);
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* Time columns right-aligned */
+th[class*="time"],
+td[class*="time"],
+th:last-child,
+td:last-child {
+  text-align: right;
+}
+
+/* Primary column emphasis */
+tbody td:first-child {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Empty states */
+.empty {
+  padding: var(--s-3) var(--s-2);
+  font-size: var(--fs-meta);
+  color: var(--text-3);
+  text-align: center;
+  font-style: italic;
+}
+
+/* Dividers - Thin, deliberate */
+hr,
+.divider {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: var(--s-3) 0;
+}
+
+/* Flat backgrounds - no gradients, no shadows */
+.table-wrapper,
+.section,
+.card,
+.panel {
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.table-wrapper:first-child,
+.section:first-child {
+  border-top: none;
+}
+
+/* ================= ROLE AUTHORITY STYLING ================= */
+
+/* Wallboard - Broadcast Screen */
+body.role-wallboard {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.role-wallboard table tbody tr {
+  height: 48px;
+}
+
+body.role-wallboard thead th,
+body.role-wallboard tbody td {
+  font-size: 14px;
+  padding: var(--s-3) var(--s-2);
+}
+
+body.role-wallboard tbody tr:hover {
+  background: transparent !important;
+  cursor: default !important;
+}
+
+body.role-wallboard tbody tr {
+  cursor: default !important;
+}
+
+body.role-wallboard tbody tr * {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+body.role-wallboard .section-title {
+  font-size: 16px;
+}
+
+/* Suppress secondary columns visually on wallboard */
+body.role-wallboard th:nth-child(n+4),
+body.role-wallboard td:nth-child(n+4) {
+  opacity: 0.7;
+}
+
+/* Dispatcher - Command Center */
+body.role-dispatcher .section-active {
+  border-top-width: 2px;
+  border-top-color: rgba(45, 107, 255, 0.4);
+}
+
+body.role-dispatcher .section-active .section-title {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* De-emphasize Stage/Completed */
+body.role-dispatcher .section-staged,
+body.role-dispatcher .section-completed {
+  opacity: 0.85;
+}
+
+body.role-dispatcher .section-staged .section-title,
+body.role-dispatcher .section-completed .section-title {
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+/* Key Machine & Car Wash - Tight, Repetitive */
+body.role-keymachine .section,
+body.role-carwash .section {
+  margin-bottom: var(--s-2);
+  padding-top: var(--s-2);
+}
+
+body.role-keymachine .app-header,
+body.role-carwash .app-header {
+  padding: var(--s-1) var(--s-2);
+  border-bottom-width: 1px;
+}
+
+body.role-keymachine .section-title,
+body.role-carwash .section-title {
+  font-size: var(--fs-section-title);
+}
+
+body.role-keymachine table,
+body.role-carwash table {
+  font-size: var(--fs-body);
+}
+
+/* Service Advisor & Loan Car - Kiosk-like */
+body.role-serviceadvisor .app-main,
+body.role-loancar .app-main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: var(--s-4);
+}
+
+body.role-serviceadvisor .section,
+body.role-loancar .section {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+body.role-serviceadvisor .app-header,
+body.role-loancar .app-header {
+  text-align: center;
+}
+
+body.role-serviceadvisor .header-right,
+body.role-loancar .header-right {
+  justify-content: center;
+}
+
+/* Sales - Distinct but Same System */
+body.role-sales_manager .section-title,
+body.role-sales_driver .section-title {
+  font-size: var(--fs-section-title);
+  font-weight: 600;
+}
+
+body.role-sales_manager .section,
+body.role-sales_driver .section {
+  margin-bottom: var(--s-3);
+}
+
+/* ================= IDENTITY HARDENING ================= */
+
+/* Topbar is the single source of identity - displays as: "Optima Ops · <Store Name> · <Role>" */
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.topbar__title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.topbar__who {
+  font-size: var(--fs-meta);
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.topbar__left:has(.topbar__who:not(:empty)) .topbar__title::after {
+  content: " · ";
+  color: var(--text-2);
+  font-weight: 400;
+  margin: 0 var(--s-1);
+}
+
+/* Remove any duplicate brand headers */
+.app-header .brand {
+  display: none !important;
+}
+
+.app-header .subtitle {
+  display: none !important;
+}
+
+/* Screen context should not appear */
+.screen-context {
+  display: none !important;
+}
+
+/* Page title should show PURPOSE only */
+.app-header .section-title {
+  font-size: var(--fs-screen-title);
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+/* ================= PROTOTYPE NOISE REMOVAL ================= */
+
+/* Suppress debug labels */
+#build-stamp {
+  display: none !important;
+}
+
+/* Remove explanatory text that forces "ignore this" */
+.section-subtitle {
+  opacity: 0.7;
+}
+
+/* Keep only essential UI - remove secondary explanatory text */
+body.role-wallboard .section-subtitle,
+body.role-keymachine .section-subtitle,
+body.role-carwash .section-subtitle {
+  display: none;
+}
+
+/* ================= FINAL FLAT LOCK ================= */
+
+/* Ensure no rounded corners anywhere */
+button,
+.btn,
+input,
+select,
+textarea,
+.pill,
+.chip,
+.badge,
+.status-badge,
+.timer,
+.note-pill {
+  border-radius: 0 !important;
+}
+
+/* No floating panels */
+.modal {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* No box shadows */
+* {
+  box-shadow: none !important;
+}
+
+/* Flat dividers only */
+.table-wrapper::before,
+.table-wrapper::after,
+.section::before,
+.section::after {
+  display: none !important;
+}
