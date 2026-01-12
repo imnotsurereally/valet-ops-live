@@ -1,9 +1,6 @@
 // auth.js (FULL FILE REPLACEMENT) — Supabase v1 compatible
 import { supabase } from "./supabaseClient.js";
-import { applyDensityFromStorage, wireShellInteractions, injectSvgIcons } from "./ui_shell.js";
-
-// Apply saved density immediately to reduce flash before auth completes
-applyDensityFromStorage();
+import { wireShellInteractions, injectSvgIcons } from "./ui_shell.js";
 
 const ROUTES = {
   dispatcher: "dispatcher.html",
@@ -111,44 +108,9 @@ function setBodyRoleClasses(effectiveRole, currentPage) {
 }
 
 /**
- * Render screen context line at top of page
- * Format: "{STORE_NAME}  •  {SCREEN_LABEL}  •  {ROLE_LABEL}  •  {USER_LABEL}"
+ * Resolve store name once for topbar identity
  */
-async function renderScreenContext(profile, pageKey) {
-  const contextEl = document.getElementById("screen-context");
-  if (!contextEl) return;
-
-  // Screen label mapping
-  const screenLabels = {
-    home: "Home",
-    dispatcher: "Dispatcher",
-    keymachine: "Key Machine",
-    carwash: "Car Wash",
-    serviceadvisor: "Service Advisor",
-    loancar: "Loan Car",
-    wallboard: "Wallboard",
-    history: "History",
-    sales_manager: "Sales Manager",
-    sales_driver: "Sales Driver",
-    sales_history: "Sales History",
-    executive: "Executive Console",
-    system_settings: "System Settings"
-  };
-
-  const screenLabel = screenLabels[pageKey] || pageKey || "Unknown";
-
-  // Role label (pretty-case operational_role, fallback to role)
-  const opRole = profile?.operational_role || "";
-  const baseRole = profile?.role || "";
-  const roleForLabel = opRole || baseRole;
-  const roleLabel = roleForLabel
-    .split(/[-_]/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-
-  // User label (display_name if exists, else role label)
-  const userLabel = profile?.display_name || roleLabel;
-
+async function hydrateStoreName(profile) {
   // Store name (cached)
   let storeName = "Store";
   if (profile?.store_id) {
@@ -177,9 +139,7 @@ async function renderScreenContext(profile, pageKey) {
     profile.store_name = storeName;
   }
 
-  // Build context string
-  const contextParts = [storeName, screenLabel, roleLabel, userLabel].filter(Boolean);
-  contextEl.textContent = contextParts.join("  •  ");
+  return storeName;
 }
 
 function routeForRole(role) {
@@ -275,11 +235,10 @@ export async function requireAuth({ page } = {}) {
   // ✅ Apply BOTH user role + page role classes
   setBodyRoleClasses(effectiveRole, currentPage);
 
-  // Render screen context (after auth success, before returning)
-  await renderScreenContext(profile, currentPage);
+  // Resolve store name for topbar identity
+  await hydrateStoreName(profile);
 
-  // Apply shell polish (density, icons, RBAC, topbar)
-  applyDensityFromStorage();
+  // Apply shell polish (icons, RBAC, topbar)
   injectSvgIcons();
   wireShellInteractions({ profile, pageKey });
 

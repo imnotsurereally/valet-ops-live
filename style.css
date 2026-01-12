@@ -2021,22 +2021,6 @@ hr,
   --red:#E23B3B;
 }
 
-/* Density */
-:root[data-density="dense"]{
-  --topbar-h: 42px;
-  --fs-2: 14px;
-  --fs-3: 12px;
-  --pad-2: 8px;
-  --pad-3: 12px;
-}
-:root[data-density="comfort"]{
-  --topbar-h: 48px;
-  --fs-2: 15px;
-  --fs-3: 13px;
-  --pad-2: 10px;
-  --pad-3: 14px;
-}
-
 /* Global typography */
 html,body{ background:var(--bg)!important; color:var(--fg)!important; }
 body{
@@ -3120,6 +3104,47 @@ body.public-login .btn.btn-ghost {
   color: rgba(255,255,255,0.75);
   text-decoration: none;
   padding: 4px 0;
+}
+
+/* =========================================================
+   GLOBAL FLAT OVERRIDES (NO CARDS / ROUNDED PANELS)
+   ========================================================= */
+.card,
+.panel,
+.section,
+.table-wrapper,
+.kpi-card,
+.market-tile,
+.market-detail,
+.new-pickup-form,
+.sales-card,
+.inline-dialog,
+.note-pill,
+.timer,
+.stockcard,
+.frame,
+.feature,
+.use,
+.security__card,
+.ticker {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.section {
+  padding: 18px 0 !important;
+  margin-bottom: 1.2rem !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+.section:first-of-type {
+  border-top: none !important;
+}
+
+.table-wrapper {
+  border-top: 1px solid var(--border) !important;
 }
 
 .public-login .input-group {
