@@ -48,8 +48,18 @@
 
   <div class="login-wrap">
     <div class="login-card">
-      <div class="login-title">Valet Ops Live</div>
-      <div class="login-sub">Sign in (email + password)</div>
+      <div class="login-brandrow">
+        <div class="login-mark" aria-label="Optima">O</div>
+        <div class="login-brandtext">
+          <div class="login-company">OPTIMA DEALER SERVICES</div>
+          <div class="login-product">Valet Ops Live</div>
+        </div>
+      </div>
+
+      <div class="login-title">Secure sign in</div>
+      <div class="login-sub">
+        This system is restricted to authorized dealership staff.
+      </div>
 
       <form id="login-form">
         <div class="input-group">
@@ -62,12 +72,21 @@
           <input id="login-password" class="input-text" type="password" autocomplete="current-password" required />
         </div>
 
+        <div class="login-row">
+          <div class="login-meta">Use your dealership-issued credentials.</div>
+          <a class="login-meta" href="landing.html" style="text-decoration:none;color:rgba(255,255,255,0.70);">Back</a>
+        </div>
+
         <div class="login-actions">
           <button class="btn btn-primary" type="submit">Sign in</button>
-          <a class="btn" href="landing.html" style="opacity:0.85;">Back</a>
+          <a class="btn btn-ghost" href="mailto:info@optimadealerservices.co?subject=Valet%20Ops%20Live%20Access%20Request">Request access</a>
         </div>
 
         <div id="login-error" class="login-error"></div>
+
+        <div class="login-foot">
+          Internal operations software. Unauthorized access is prohibited.
+        </div>
       </form>
     </div>
   </div>
