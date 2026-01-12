@@ -44,6 +44,11 @@ export function wireShellInteractions({ profile, pageKey }) {
     el.style.display = (isOwner || isSalesMgr || isSalesDriver) ? "" : "none";
   });
 
+  // SMS access (dispatcher + owner/manager)
+  document.querySelectorAll('[data-sms-only="1"]').forEach(el => {
+    el.style.display = (isOwner || isDispatcher) ? "" : "none";
+  });
+
   // Service access (keep visible for now; auth.js already redirects)
   // (Optional: tighten later per role matrix)
 
@@ -58,6 +63,12 @@ export function wireShellInteractions({ profile, pageKey }) {
     if (roleFormatted) parts.push(roleFormatted);
     el.textContent = parts.length > 0 ? parts.join(" · ") : "";
   }
+
+  // Wire theme toggle
+  wireThemeToggle();
+  
+  // Apply theme from storage on load
+  applyThemeFromStorage();
 }
 
 export function injectSvgIcons() {
@@ -68,5 +79,85 @@ export function injectSvgIcons() {
     const svg = ICONS[key];
     if (svg) iconWrap.innerHTML = svg;
   });
+}
+
+/* ========== THEME SYSTEM ========== */
+
+export function applyThemeFromStorage() {
+  let theme = "dark";
+  try {
+    const stored = localStorage.getItem("ui_theme");
+    if (stored === "light" || stored === "dark") {
+      theme = stored;
+    }
+  } catch (e) {
+    // Default to dark
+  }
+  setTheme(theme);
+}
+
+export function setTheme(mode) {
+  if (mode !== "dark" && mode !== "light") {
+    mode = "dark";
+  }
+  document.documentElement.setAttribute("data-theme", mode);
+  try {
+    localStorage.setItem("ui_theme", mode);
+  } catch (e) {
+    // Ignore storage errors
+  }
+  updateThemeToggleUI(mode);
+}
+
+function updateThemeToggleUI(currentTheme) {
+  const darkBtn = document.getElementById("theme-dark");
+  const lightBtn = document.getElementById("theme-light");
+  
+  if (darkBtn) {
+    darkBtn.classList.toggle("is-active", currentTheme === "dark");
+  }
+  if (lightBtn) {
+    lightBtn.classList.toggle("is-active", currentTheme === "light");
+  }
+}
+
+export function wireThemeToggle() {
+  let topbarRight = document.querySelector(".topbar__right");
+  if (!topbarRight) {
+    // Create topbar__right if it doesn't exist
+    const topbar = document.querySelector(".topbar");
+    if (!topbar) return;
+    topbarRight = document.createElement("div");
+    topbarRight.className = "topbar__right";
+    topbar.appendChild(topbarRight);
+  }
+
+  // Remove existing theme toggles if any
+  const existingDark = document.getElementById("theme-dark");
+  const existingLight = document.getElementById("theme-light");
+  if (existingDark) existingDark.remove();
+  if (existingLight) existingLight.remove();
+
+  // Create Dark button
+  const darkBtn = document.createElement("button");
+  darkBtn.id = "theme-dark";
+  darkBtn.className = "theme-toggle";
+  darkBtn.textContent = "Dark";
+  darkBtn.addEventListener("click", () => setTheme("dark"));
+
+  // Create Light button
+  const lightBtn = document.createElement("button");
+  lightBtn.id = "theme-light";
+  lightBtn.className = "theme-toggle";
+  lightBtn.textContent = "Light";
+  lightBtn.addEventListener("click", () => setTheme("light"));
+
+  // Insert at the beginning of topbar__right
+  topbarRight.insertBefore(lightBtn, topbarRight.firstChild);
+  topbarRight.insertBefore(darkBtn, topbarRight.firstChild);
+
+  // Update UI to reflect current theme
+  const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+  updateThemeToggleUI(currentTheme);
 }
 
