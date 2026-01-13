@@ -2519,6 +2519,115 @@ tbody tr:hover {
   margin-bottom: 6px;
 }
 
+/* LOGIN V4 (OPTIMA HERO) */
+.login-v4 {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: #050506;
+}
+
+.login-v4 .login-hero {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,0.12), rgba(0,0,0,0.2) 45%, rgba(0,0,0,0.85) 75%),
+    radial-gradient(circle at 50% 70%, rgba(255,255,255,0.08), rgba(0,0,0,0.82) 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.92), rgba(0,0,0,0.98));
+  filter: blur(0.2px);
+  z-index: 0;
+}
+
+.login-v4 .login-stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  gap: 26px;
+  padding: 56px 20px 72px;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.login-v4 .login-brand {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.login-v4 .login-brand__logo {
+  width: min(320px, 82vw);
+  height: auto;
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,0.6));
+}
+
+.login-v4 .login-brand__title {
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.login-v4 .login-brand__tagline {
+  font-size: clamp(12px, 1.6vw, 14px);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.login-v4 .login-card {
+  width: min(460px, 92vw);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(10,10,12,0.8);
+  box-shadow: 0 28px 60px rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  padding: 26px 26px 22px;
+  text-align: left;
+}
+
+.login-v4 .login-card__brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255,255,255,0.8);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.login-v4 .login-card__mini-logo {
+  width: 26px;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
+}
+
+.login-v4 .login-card__divider {
+  border: 0;
+  height: 1px;
+  margin: 16px 0 18px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+}
+
+.login-v4 .login-card__title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.login-v4 .login-field {
+  margin-bottom: 14px;
+}
+
+.login-v4 .login-actions {
+  margin-top: 18px;
+}
+
+.login-v4 .login-foot {
+  margin-top: 18px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
 /* Ensure no sidebar/topbar accidentally affects pre-login */
 .public-login .app-shell,
 .public-landing .app-shell {
