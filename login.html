@@ -1,74 +1,107 @@
-<!doctype html>
-<html lang="en">
+"use client";
 
-<head>
-  <meta charset="utf-8" />
-  <title>Valet Ops Live — Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+import React from "react";
 
-  <link rel="stylesheet" href="style.css?v=20260110a" />
+export default function LoginPage() {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
-  <!-- Supabase v1 global -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  <!-- Auth gate + login wiring -->
-  <script type="module">
-    /*
-      V0.912 LOGIN RULES
-      - If NOT logged in → show login form
-      - If logged in → redirect immediately to allowed screen
-      - Do NOT wire login form if redirect happens
-    */
+    try {
+      // TODO: wire to your existing auth call.
+      // If your previous page already had a submit handler, port it here.
+      // For now, just no-op.
+      await new Promise((r) => setTimeout(r, 250));
+    } catch (err) {
+      setError("Sign in failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    // Cache-bust to avoid GitHub Pages stale auth.js
-    import { requireAuth, wireLoginForm } from "./auth.js?v=20260110a";
+  return (
+    <div className="relative min-h-screen bg-black text-white">
+      {/* Background image (NO white haze) */}
+      <div className="absolute inset-0">
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      const auth = await requireAuth({ page: "login" });
-
-      // Only wire the form if we stayed on the login page
-      if (auth?.ok) {
-        wireLoginForm();
-      }
-    });
-  </script>
-</head>
-
-<body class="public-login login-v4">
-  <div class="login-hero" aria-hidden="true"></div>
-
-  <main class="login-stage" role="main">
-    <div class="login-logo-large">
-      <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" class="login-logo-large__img" />
-    </div>
-    <section class="login-card" aria-label="Secure sign in">
-      <div class="login-card__brand-row">
-        <span class="login-card__brand-text">OPTIMA DEALER SERVICES</span>
+      <img
+        src="/branding/login-bg.png"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+        draggable={false}
+      />
+        {/* Hard black vignette to match the reference look */}
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 [background:radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.55)_55%,rgba(0,0,0,0.9)_100%)]" />
       </div>
-      <hr class="login-card__divider" />
-      <div class="login-card__title">Secure sign in</div>
 
-      <form id="login-form" class="login-card__form">
-        <div class="login-field">
-          <label for="login-email">Email</label>
-          <input id="login-email" class="input-text" type="email" autocomplete="username" required />
+      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-12">
+        {/* Large logo at top */}
+        <div className="mb-10 flex items-center justify-center">
+
+          <img
+            src="/branding/logo.png"
+            alt="Optima Dealer Services"
+            className="h-auto w-[680px] max-w-[92vw] select-none"
+            draggable={false}
+          />
         </div>
 
-        <div class="login-field">
-          <label for="login-password">Password</label>
-          <input id="login-password" class="input-text" type="password" autocomplete="current-password" required />
-        </div>
+        {/* Glass login card */}
+        <section className="w-full max-w-[560px]">
+          <div className="rounded-none border border-white/20 bg-black/55 backdrop-blur-[2px]">
+            <div className="border-b border-white/15 px-10 py-6">
+              <h1 className="text-3xl font-semibold tracking-tight">Secure sign in</h1>
+            </div>
 
-        <div class="login-actions">
-          <button class="btn btn-primary" type="submit">Sign in</button>
-        </div>
+            <form onSubmit={handleSubmit} className="px-10 py-8">
+              <label className="block text-sm text-white/70">Email</label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                autoComplete="email"
+                className="mt-2 w-full border border-white/15 bg-black/60 px-4 py-3 text-white outline-none focus:border-white/35"
+              />
 
-        <div id="login-error" class="login-error"></div>
+              <div className="mt-6">
+                <label className="block text-sm text-white/70">Password</label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  autoComplete="current-password"
+                  className="mt-2 w-full border border-white/15 bg-black/60 px-4 py-3 text-white outline-none focus:border-white/35"
+                />
+              </div>
 
-        <div class="login-foot">Use your dealership-issued credentials.</div>
-      </form>
-    </section>
-  </main>
-</body>
+              {error ? (
+                <p className="mt-4 text-sm text-white/80">{
+                  error
+                }</p>
+              ) : null}
 
-</html>
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-8 inline-flex items-center justify-center border border-white/25 bg-white/10 px-6 py-3 font-medium tracking-wide hover:bg-white/15 disabled:opacity-60"
+              >
+                {loading ? "Signing in..." : "Sign in"}
+              </button>
+
+              <p className="mt-8 text-sm text-white/45">
+                Use your dealership-issued credentials.
+              </p>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
