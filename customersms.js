@@ -52,6 +52,9 @@ document.addEventListener("DOMContentLoaded", () => {
     wireSignOut();
     wireForm();
     populateTemplates();
+    
+    // Render sent log on load
+    renderSentLog();
   })();
 });
 
@@ -137,11 +140,23 @@ function wireForm() {
 
     try {
       // Replace {name} placeholder in message
-      const finalMessage = message.replace(/{name}/g, name || "Customer");
+      let finalMessage = message.replace(/{name}/g, name || "Customer");
+
+      // Append signature automatically
+      const signature = "\n\nValet Team\nOptima Dealer Services\nFletcher Jones Motorcars\nNewport Beach";
+      finalMessage = finalMessage + signature;
 
       await sendSms(phone, finalMessage);
 
       toast("SMS sent successfully", "success");
+
+      // Add to sent log
+      addToSentLog({
+        timestamp: new Date().toISOString(),
+        phone: phone,
+        name: name || "Unknown",
+        message: message // Store original message without signature
+      });
 
       // Clear form
       templateSelect.value = "";
@@ -151,6 +166,9 @@ function wireForm() {
 
       // Show status
       showStatus("SMS sent successfully", "success");
+
+      // Render sent log
+      renderSentLog();
     } catch (error) {
       console.error("SMS send error:", error);
       toast("Failed to send SMS: " + (error.message || "Unknown error"), "error");
@@ -176,4 +194,105 @@ function showStatus(message, type) {
   setTimeout(() => {
     statusSection.style.display = "none";
   }, 5000);
+}
+
+/* ---------- SENT LOG (localStorage-backed) ---------- */
+
+function addToSentLog(entry) {
+  try {
+    const logKey = "customersms_log";
+    let log = [];
+    
+    // Load existing log
+    const stored = localStorage.getItem(logKey);
+    if (stored) {
+      try {
+        log = JSON.parse(stored);
+      } catch (e) {
+        log = [];
+      }
+    }
+
+    // Add new entry at the beginning
+    log.unshift(entry);
+
+    // Keep only last 25 entries
+    if (log.length > 25) {
+      log = log.slice(0, 25);
+    }
+
+    // Save back to localStorage
+    localStorage.setItem(logKey, JSON.stringify(log));
+  } catch (e) {
+    console.warn("Failed to save to sent log:", e);
+  }
+}
+
+function getSentLog() {
+  try {
+    const logKey = "customersms_log";
+    const stored = localStorage.getItem(logKey);
+    if (!stored) return [];
+    
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      return [];
+    }
+  } catch (e) {
+    return [];
+  }
+}
+
+function renderSentLog() {
+  const logContainer = document.getElementById("sms-sent-log");
+  if (!logContainer) return;
+
+  const log = getSentLog();
+  
+  if (log.length === 0) {
+    logContainer.innerHTML = '<div class="empty">No messages sent yet.</div>';
+    return;
+  }
+
+  const logHtml = log.map((entry) => {
+    const date = new Date(entry.timestamp);
+    const timeStr = date.toLocaleString();
+    
+    // Mask phone except last 4 digits
+    const phoneMasked = entry.phone.length > 4 
+      ? "***" + entry.phone.slice(-4)
+      : "***";
+    
+    // Preview first ~120 chars of message
+    const messagePreview = entry.message.length > 120
+      ? entry.message.substring(0, 120) + "..."
+      : entry.message;
+
+    return `
+      <div style="padding: 0.75rem; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <div style="font-weight: 600;">${escapeHtml(entry.name || "Unknown")}</div>
+          <div style="font-size: 0.75rem; color: var(--text-2);">${timeStr}</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-2); margin-bottom: 0.25rem;">
+          To: ${escapeHtml(phoneMasked)}
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text);">
+          ${escapeHtml(messagePreview)}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  logContainer.innerHTML = logHtml;
+}
+
+function escapeHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
