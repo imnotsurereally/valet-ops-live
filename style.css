@@ -755,16 +755,14 @@ textarea:focus {
   pointer-events: none !important;
 }
 
-/* Active Pickups highlight — Clean left rail + subtle tint */
+/* Active Pickups highlight — No blue tint (only dispatcher gets white border) */
 .section-active {
   position: relative;
-  padding-left: 8px;
-  border-left: 3px solid var(--accent-blue);
-  background: rgba(45, 107, 255, 0.04);
+  background: transparent;
 }
 
 [data-theme="light"] .section-active {
-  background: rgba(45, 107, 255, 0.06);
+  background: transparent;
 }
 
 .section-active .table-wrapper {
@@ -872,9 +870,10 @@ td.cell-customer {
   border: none;
   background: transparent;
   border-radius: 0;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
   white-space: nowrap;
+  font-size: 13px;
 }
 
 /* Status badge */
@@ -1653,7 +1652,7 @@ body.role-loancar button[data-action^="toggle-"] {
 }
 
 /* =========================================================
-   OPTIMA OPS — ELITE BLACK & WHITE UI SYSTEM (FULL)
+   OPTIMA DEALER SERVICES — ELITE BLACK & WHITE UI SYSTEM (FULL)
    ========================================================= */
 :root {
   --black: #000;
@@ -3248,15 +3247,17 @@ body.public-login .btn.btn-ghost {
 
 /* Typography Scale */
 .section-title {
-  font-size: var(--fs-section-title);
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 800;
   letter-spacing: 0.01em;
   line-height: var(--lh-tight);
+  color: var(--text);
 }
 
 .section-subtitle {
-  font-size: var(--fs-meta);
+  font-size: 12px;
   color: var(--text-2);
+  opacity: 0.70;
   line-height: var(--lh-normal);
 }
 
@@ -3284,10 +3285,11 @@ table {
 }
 
 thead th {
-  font-size: var(--fs-table-header);
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-3);
+  opacity: 0.70;
   border-bottom: 1px solid var(--border);
   padding: var(--s-2) var(--s-2);
   font-weight: 500;
@@ -3479,7 +3481,7 @@ body.role-sales_driver .section {
 
 /* ================= IDENTITY HARDENING ================= */
 
-/* Topbar is the single source of identity - displays as: "Optima Ops · <Store Name> · <Role>" */
+/* Topbar is the single source of identity - displays as: "Optima Dealer Services · <Store Name> · <Role>" */
 .topbar__left {
   display: flex;
   align-items: center;
@@ -3705,7 +3707,7 @@ body {
 }
 
 .section-header {
-  border-bottom: 1px solid var(--line) !important;
+  border-bottom: none !important;
   padding-bottom: 0.5rem !important;
   margin-bottom: 0.5rem !important;
 }
@@ -3713,32 +3715,31 @@ body {
 .table-wrapper {
   background: transparent !important;
   border: 0 !important;
-  border-top: 1px solid var(--line) !important;
+  border-top: none !important;
   border-radius: 0 !important;
 }
 
-/* Dispatcher Active Pickups: White pulsing border + better blue */
+/* Dispatcher Active Pickups: Thick white pulsing border ONLY (no blue tint) */
 body.role-dispatcher .section.section-active {
-  border: 1px solid rgba(255, 255, 255, 0.55) !important;
-  background: var(--accentBlueTint) !important;
+  border: 2px solid rgba(255, 255, 255, 0.35) !important;
+  background: transparent !important;
   position: relative;
-  padding-left: 18px !important; /* Override left padding from old styles */
-  border-left: 1px solid rgba(255, 255, 255, 0.55) !important; /* Override left border */
-  animation: pulseBorderWhite 2s ease-in-out infinite;
+  padding-left: 18px !important;
+  animation: pulseBorderWhiteThick 2s ease-in-out infinite;
 }
 
-@keyframes pulseBorderWhite {
+@keyframes pulseBorderWhiteThick {
   0%, 100% {
-    border-color: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.35);
   }
   50% {
     border-color: rgba(255, 255, 255, 0.85);
   }
 }
 
-/* Better blue accent for active section */
+/* Active section title - no blue color, just white */
 body.role-dispatcher .section.section-active .section-title {
-  color: var(--accentBlue) !important;
+  color: var(--text) !important;
   font-weight: 700 !important;
 }
 
@@ -3915,13 +3916,9 @@ tbody tr:hover {
   background: var(--hover) !important;
 }
 
-/* Accent rail + tint for primary sections (clean blue, not muddy) */
+/* Remove blue tint from active sections (only dispatcher gets white border) */
 .section-active {
-  box-shadow: inset 3px 0 0 var(--accentBlue) !important;
-  background: var(--accentBlueTint) !important;
-  border-left: 3px solid var(--accentBlue) !important;
-  /* Override any old muddy blue backgrounds */
-  background: var(--accentBlueTint) !important;
+  background: transparent !important;
 }
 
 /* Pulsing hairline border animation */
@@ -3934,10 +3931,11 @@ tbody tr:hover {
   }
 }
 
-/* ONE pulsing border per screen - Dispatcher Active Pickups */
+/* ONE pulsing border per screen - Dispatcher Active Pickups (thick white only) */
 body.role-dispatcher .section.section-active {
-  animation: optimaPulse 1.1s ease-in-out infinite !important;
-  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+  animation: pulseBorderWhiteThick 2s ease-in-out infinite !important;
+  border: 2px solid rgba(255, 255, 255, 0.35) !important;
+  background: transparent !important;
 }
 
 /* ONE pulsing border per screen - Wallboard Active Pickups */
@@ -3953,8 +3951,23 @@ body.role-sales-manager .section.section-active {
   border: 1px solid rgba(255, 255, 255, 0.20) !important;
 }
 
-/* Light theme pulse adjustment */
-html[data-theme="light"] body.role-dispatcher .section.section-active,
+/* Light theme pulse adjustment for dispatcher (thick white border) */
+@keyframes pulseBorderWhiteThickLight {
+  0%, 100% {
+    border-color: rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    border-color: rgba(0, 0, 0, 0.85);
+  }
+}
+
+html[data-theme="light"] body.role-dispatcher .section.section-active {
+  animation: pulseBorderWhiteThickLight 2s ease-in-out infinite !important;
+  border: 2px solid rgba(0, 0, 0, 0.35) !important;
+  background: transparent !important;
+}
+
+/* Other roles keep their pulse (wallboard, sales manager) */
 html[data-theme="light"] body.role-wallboard .section.section-active,
 html[data-theme="light"] body.role-sales_manager .section.section-active,
 html[data-theme="light"] body.role-sales-manager .section.section-active {
@@ -3970,7 +3983,6 @@ html[data-theme="light"] body.role-sales-manager .section.section-active {
   }
 }
 
-html[data-theme="light"] body.role-dispatcher .section.section-active,
 html[data-theme="light"] body.role-wallboard .section.section-active,
 html[data-theme="light"] body.role-sales_manager .section.section-active,
 html[data-theme="light"] body.role-sales-manager .section.section-active {

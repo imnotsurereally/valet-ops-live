@@ -53,7 +53,7 @@ export function wireShellInteractions({ profile, pageKey }) {
   // Service access (keep visible for now; auth.js already redirects)
   // (Optional: tighten later per role matrix)
 
-  // Topbar identity line - Single canonical form: "Optima Ops · <Store Name> · <Role>"
+  // Topbar identity line - Single canonical form: "Optima Dealer Services · <Store Name> · <Role>"
   const roleDisplay = (profile?.operational_role || profile?.role || "").toLowerCase().trim();
   const roleFormatted = roleDisplay ? roleDisplay.charAt(0).toUpperCase() + roleDisplay.slice(1).replace(/_/g, " ") : "";
   const store = (profile?.store_name || "").trim();
@@ -64,6 +64,21 @@ export function wireShellInteractions({ profile, pageKey }) {
     if (roleFormatted) parts.push(roleFormatted);
     el.textContent = parts.length > 0 ? parts.join(" · ") : "";
   }
+
+  // Update topbar title to "Optima Dealer Services"
+  const topbarTitle = document.querySelector(".topbar__title");
+  if (topbarTitle) {
+    topbarTitle.textContent = "Optima Dealer Services";
+  }
+
+  // Update sidebar brand text to "Optima Dealer Services"
+  const sidebarBrandText = document.querySelector(".side-nav__brand-text");
+  if (sidebarBrandText) {
+    sidebarBrandText.textContent = "Optima Dealer Services";
+  }
+
+  // Ensure logo appears on all pages
+  ensureLogoOnAllPages();
 
   // Wire theme toggle
   wireThemeToggle();
@@ -204,5 +219,23 @@ export function wireThemeToggle() {
   // Update UI to reflect current theme
   const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
   updateThemeToggleUI(currentTheme);
+}
+
+/* ========== LOGO INJECTION ========== */
+
+function ensureLogoOnAllPages() {
+  const appHeader = document.querySelector(".app-header");
+  if (!appHeader) return;
+
+  // Check if logo already exists
+  const existingLogo = appHeader.querySelector("img.logo");
+  if (existingLogo) return;
+
+  // Create and inject logo as first element
+  const logo = document.createElement("img");
+  logo.src = "assets/optima-logo.jpg";
+  logo.alt = "Optima Dealer Services";
+  logo.className = "logo";
+  appHeader.insertBefore(logo, appHeader.firstChild);
 }
 
