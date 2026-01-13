@@ -53,16 +53,14 @@ export function wireShellInteractions({ profile, pageKey }) {
   // Service access (keep visible for now; auth.js already redirects)
   // (Optional: tighten later per role matrix)
 
-  // Topbar identity line - Single canonical form: "Optima Dealer Services · <Store Name> · <Role>"
+  // Topbar identity line - show user/role only (store lives in brand row)
   const roleDisplay = (profile?.operational_role || profile?.role || "").toLowerCase().trim();
   const roleFormatted = roleDisplay ? roleDisplay.charAt(0).toUpperCase() + roleDisplay.slice(1).replace(/_/g, " ") : "";
   const store = (profile?.store_name || "").trim();
   const el = document.getElementById("topbar-who");
   if (el) {
-    const parts = [];
-    if (store) parts.push(store);
-    if (roleFormatted) parts.push(roleFormatted);
-    el.textContent = parts.length > 0 ? parts.join(" · ") : "";
+    // Avoid duplicating store: brand row already shows it
+    el.textContent = roleFormatted || "";
   }
 
   // Render inline brand row with logo + name + store
@@ -86,7 +84,7 @@ export function wireShellInteractions({ profile, pageKey }) {
 
     const brandStore = document.createElement("span");
     brandStore.className = "brand-store";
-    brandStore.textContent = store || "Newport Service Valet";
+    brandStore.textContent = store ? `· ${store}` : "· Newport Service Valet";
 
     brandRow.appendChild(logo);
     brandRow.appendChild(brandName);
