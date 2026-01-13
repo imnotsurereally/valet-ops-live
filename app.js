@@ -1008,8 +1008,8 @@ function setCount(id, value) {
 function renderStagedRow(p) {
   return `
     <tr>
-      <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
+      <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
       <td>${formatTime(p.created_at)}</td>
       <td>
         <button class="btn small dispatcher-only" data-action="activate-from-staged" data-id="${p.id}">
@@ -1052,21 +1052,21 @@ function renderActiveRow(p, now) {
 
   const washBtns = `
     <div class="wash-buttons">
-      <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected optima-selected" : ""}"
+      <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected optima-selected opt-pill-selected" : ""}"
         data-action="car-wash-area" data-id="${p.id}">In wash</button>
-      <button class="btn small ${currentWash === "ON_RED_LINE" ? "selected optima-selected" : ""}"
+      <button class="btn small ${currentWash === "ON_RED_LINE" ? "selected optima-selected opt-pill-selected" : ""}"
         data-action="car-red-line" data-id="${p.id}">On redline</button>
     </div>
     <div class="wash-buttons">
-      <button class="btn small ${currentWash === "DUSTY" ? "selected optima-selected pulse-orange" : ""}"
+      <button class="btn small ${currentWash === "DUSTY" ? "selected optima-selected opt-pill-selected pulse-orange" : ""}"
         data-action="wash-dusty" data-id="${p.id}">Dusty</button>
-      <button class="btn small keymachine-only ${p.status === "KEYS_IN_MACHINE" ? "selected optima-selected" : ""}"
+      <button class="btn small keymachine-only ${p.status === "KEYS_IN_MACHINE" ? "selected optima-selected opt-pill-selected" : ""}"
         data-action="keys-machine" data-id="${p.id}">Key machine</button>
     </div>
     <div class="wash-buttons">
-      <button class="btn small ${needsRewashPending || needsRewashNo ? "selected optima-selected wash-needs pulse-blue" : ""} ${sendToWash ? "selected optima-selected pulse-orange" : ""}"
+      <button class="btn small ${needsRewashPending || needsRewashNo ? "selected optima-selected opt-pill-selected wash-needs pulse-blue" : ""} ${sendToWash ? "selected optima-selected opt-pill-selected pulse-orange" : ""}"
         data-action="wash-needs-rewash" data-id="${p.id}">${sendToWash ? "Send to wash" : "Needs rewash"}</button>
-      <button class="btn small ${keyCarMissing ? "selected optima-selected pulse-red" : ""}"
+      <button class="btn small ${keyCarMissing ? "selected optima-selected opt-pill-selected opt-pulse-red" : ""}"
         data-action="key-car-missing" data-id="${p.id}">Key/car missing</button>
     </div>
   `;
@@ -1095,7 +1095,7 @@ function renderActiveRow(p, now) {
   const valetBtns = `
     <div class="valet-grid">
       ${valetNames.map((name) => `
-        <button class="btn small ${currentValet === name ? "selected optima-selected" : ""}" 
+        <button class="btn small ${currentValet === name ? "selected optima-selected opt-pill-selected" : ""}" 
           data-action="with-valet" 
           data-valet-name="${escapeHtml(name)}" 
           data-id="${p.id}">${escapeHtml(name)}</button>
@@ -1109,7 +1109,7 @@ function renderActiveRow(p, now) {
     notesHtml += '<div class="notes-list">';
     notesPieces.forEach((note, idx) => {
       const isLatest = idx === notesPieces.length - 1;
-      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"}">${escapeHtml(note)}</span>`;
+      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"} opt-pill-note">${escapeHtml(note)}</span>`;
     });
     notesHtml += '</div>';
   }
@@ -1117,12 +1117,12 @@ function renderActiveRow(p, now) {
   if (role === "dispatcher") {
     return `
       <tr>
-        <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-        <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
+        <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+        <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
         <td>
           <div class="ctl-group ctl-status">
             <div class="ctl-label">STATUS / LOCATION</div>
-            <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
+            <div class="status-badge opt-pill">${escapeHtml(washSelectedLabel)}</div>
             ${washBtns}
             ${rewashDialogHtml}
           </div>
@@ -1130,11 +1130,11 @@ function renderActiveRow(p, now) {
         <td>
           <div class="ctl-group ctl-keys">
             <div class="ctl-label">KEYS WITH</div>
-            <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
+            <div class="status-badge opt-pill">${escapeHtml(valetSelectedLabel)}</div>
             ${valetBtns}
           </div>
         </td>
-        <td><span class="timer ${valetClass} optima-link optima-time">${valetLabelTime}</span></td>
+        <td><span class="timer ${valetClass} optima-link optima-time opt-pill">${valetLabelTime}</span></td>
         <td class="dispatcher-only">
           <button class="btn small dispatcher-only" data-action="waiting-customer" data-id="${p.id}">
             Move to staged
@@ -1142,7 +1142,7 @@ function renderActiveRow(p, now) {
         </td>
         <td>${notesHtml}</td>
         <td>
-          <span class="timer ${masterClass} optima-link optima-time">${masterLabel}</span>
+          <span class="timer ${masterClass} optima-link optima-time opt-pill">${masterLabel}</span>
           ${pqiEnabled
         ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
         : ""
@@ -1154,21 +1154,21 @@ function renderActiveRow(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
+      <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
       <td>
-        <div class="status-badge">${escapeHtml(washSelectedLabel)}</div>
+        <div class="status-badge opt-pill">${escapeHtml(washSelectedLabel)}</div>
         ${washBtns}
         ${rewashDialogHtml}
       </td>
       <td>
-        <div class="status-badge">${escapeHtml(valetSelectedLabel)}</div>
+        <div class="status-badge opt-pill">${escapeHtml(valetSelectedLabel)}</div>
         ${valetBtns}
       </td>
-      <td><span class="timer ${valetClass} optima-link optima-time">${valetLabelTime}</span></td>
+      <td><span class="timer ${valetClass} optima-link optima-time opt-pill">${valetLabelTime}</span></td>
       <td>${notesHtml}</td>
       <td>
-        <span class="timer ${masterClass} optima-link optima-time">${masterLabel}</span>
+        <span class="timer ${masterClass} optima-link optima-time opt-pill">${masterLabel}</span>
         ${pqiEnabled
       ? '<span class="pqi-badge" style="margin-left:0.3rem;font-size:0.7rem;color:#9ca3af;">PQI</span>'
       : ""
@@ -1194,12 +1194,12 @@ function renderActiveRowWallboard(p, now) {
 
   return `
     <tr>
-      <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
+      <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
       <td><span class="status-badge">${escapeHtml(statusLabel)}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
-      <td><span class="timer ${valetClass} optima-link optima-time">${valetLabelTime}</span></td>
-      <td><span class="timer ${masterClass} optima-link optima-time">${masterLabel}</span></td>
+      <td><span class="timer ${valetClass} optima-link optima-time opt-pill">${valetLabelTime}</span></td>
+      <td><span class="timer ${masterClass} optima-link optima-time opt-pill">${masterLabel}</span></td>
     </tr>
   `;
 }
@@ -1219,10 +1219,10 @@ function renderWaitingRow(p, now) {
 
     return `
       <tr>
-        <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-        <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
+        <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+        <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
         <td>${escapeHtml(deliveredBy)}</td>
-        <td><span class="timer ${waitingClass} optima-link optima-time">${waitingLabel}</span></td>
+        <td><span class="timer ${waitingClass} optima-link optima-time opt-pill">${waitingLabel}</span></td>
       </tr>
     `;
   }
@@ -1245,18 +1245,18 @@ function renderWaitingRow(p, now) {
     notesHtml += '<div class="notes-list">';
     notesPieces.forEach((note, idx) => {
       const isLatest = idx === notesPieces.length - 1;
-      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"}">${escapeHtml(note)}</span>`;
+      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"} opt-pill-note">${escapeHtml(note)}</span>`;
     });
     notesHtml += '</div>';
   }
 
   return `
     <tr>
-      <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
+      <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
-      <td><span class="timer ${stagedClass} optima-link optima-time">${stagedLabel}</span></td>
-      <td><span class="timer ${masterClass} optima-link optima-time">${masterLabel}</span></td>
+      <td><span class="timer ${stagedClass} optima-link optima-time opt-pill">${stagedLabel}</span></td>
+      <td><span class="timer ${masterClass} optima-link optima-time opt-pill">${masterLabel}</span></td>
       <td>${notesHtml}</td>
       <td>
         <button class="btn small dispatcher-only" data-action="customer-picked-up" data-id="${p.id}">
@@ -1282,16 +1282,16 @@ function renderCompletedRow(p, now) {
     notesHtml += '<div class="notes-list">';
     notesPieces.forEach((note, idx) => {
       const isLatest = idx === notesPieces.length - 1;
-      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"}">${escapeHtml(note)}</span>`;
+      notesHtml += `<span class="note-pill ${isLatest ? "latest" : "old"} opt-pill-note">${escapeHtml(note)}</span>`;
     });
     notesHtml += '</div>';
   }
 
   return `
     <tr>
-      <td class="cell-tag"><span class="pill-blue optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="pill-blue optima-link">${escapeHtml(p.customer_name)}</span></td>
-      <td>${masterLabel}</td>
+      <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
+      <td><span class="timer opt-pill">${masterLabel}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td>${formatTime(p.created_at)}</td>
       <td>${formatTime(p.completed_at)}</td>
