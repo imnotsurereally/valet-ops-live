@@ -4144,38 +4144,11 @@ body.public-login.login-v3 .login-card-v3 {
   margin-top: 140px; /* clears the big top logo */
 }
 
-body.public-login.login-v3 .login-card-v3__header {
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.14);
-  margin-bottom: 14px;
-}
-
-body.public-login.login-v3 .login-card-v3__mark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-body.public-login.login-v3 .login-card-v3__mark img {
-  width: 26px;
-  height: 26px;
-  object-fit: cover;
-  border: 1px solid rgba(255,255,255,0.30);
-}
-
-body.public-login.login-v3 .login-card-v3__marktext {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  opacity: 0.92;
-  white-space: nowrap;
-}
-
 body.public-login.login-v3 .login-card-v3__title {
   font-size: 26px;
   font-weight: 900;
   letter-spacing: -0.01em;
-  margin: 14px 0 14px;
+  margin: 0 0 14px;
 }
 
 body.public-login.login-v3 .login-card-v3__form {
