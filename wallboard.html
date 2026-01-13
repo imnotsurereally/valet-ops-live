@@ -144,30 +144,34 @@
 
     <main class="app-main">
       <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
+        <div class="topbar">
+          <div class="topbar__left">
+            <div class="topbar__title">Optima Ops</div>
+            <div class="topbar__who text-muted text-small" id="topbar-who"></div>
+          </div>
+          <div class="topbar__right">
+            <button id="toggle-theme" class="btn small">🌓 Theme</button>
+          </div>
         </div>
-      </div>
 
-        <header class="app-header">
-          <div class="titles">
-            <div class="section-title">Wallboard</div>
-          </div>
+        <div class="container">
+          <header class="app-header">
+            <div class="titles">
+              <h1 class="section-title">Wallboard</h1>
+            </div>
 
-          <!-- No signout on wallboard (TV display). If you want it, use Home. -->
-          <div class="header-right">
-          </div>
-        </header>
+            <!-- No signout on wallboard (TV display). If you want it, use Home. -->
+            <div class="header-right">
+            </div>
+          </header>
 
-        <main class="app-main wallboard-main">
+          <main class="wallboard-main">
           <!-- ACTIVE -->
           <section class="section">
             <div class="section-header">
               <div>
-                <div class="section-title">Active Pickups</div>
-                <div class="section-subtitle">Oldest first. Color-coded by time.</div>
+                <h2 class="section-title">Active Pickups</h2>
+                <p class="section-subtitle">Oldest first. Color-coded by time.</p>
               </div>
             </div>
 
@@ -196,8 +200,8 @@
           <section class="section">
             <div class="section-header">
               <div>
-                <div class="section-title">Waiting for Customer</div>
-                <div class="section-subtitle">Cars ready out front</div>
+                <h2 class="section-title">Waiting for Customer</h2>
+                <p class="section-subtitle">Cars ready out front</p>
               </div>
             </div>
 
@@ -219,7 +223,8 @@
               </table>
             </div>
           </section>
-        </main>
+          </main>
+        </div>
       </div>
     </main>
   </div>

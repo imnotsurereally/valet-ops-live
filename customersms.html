@@ -112,32 +112,35 @@
 
     <main class="app-main">
       <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
+        <div class="topbar">
+          <div class="topbar__left">
+            <div class="topbar__title">Optima Ops</div>
+            <div class="topbar__who text-muted text-small" id="topbar-who"></div>
+          </div>
+          <div class="topbar__right">
+            <button id="toggle-theme" class="btn small">🌓 Theme</button>
+          </div>
         </div>
-        <div class="topbar__right"></div>
-      </div>
 
-        <header class="app-header">
-          <div class="titles">
-            <div class="section-title">Customer SMS</div>
-          </div>
+        <div class="container">
+          <header class="app-header">
+            <div class="titles">
+              <h1 class="section-title">Customer SMS</h1>
+            </div>
 
-          <div class="header-right">
-            <button id="signout-btn" class="btn small">Sign out</button>
-          </div>
-        </header>
+            <div class="header-right">
+              <button id="signout-btn" class="btn small">Sign out</button>
+            </div>
+          </header>
 
-        <main class="app-main">
+          <main>
           <section class="section">
             <div class="section-header">
               <div>
-                <div class="section-title">Send Customer SMS</div>
-                <div class="section-subtitle">
+                <h2 class="section-title">Send Customer SMS</h2>
+                <p class="section-subtitle">
                   Select a template, enter customer name and phone, then send.
-                </div>
+                </p>
               </div>
             </div>
 
@@ -178,7 +181,8 @@
             </div>
             <div id="sms-status" class="status-badge"></div>
           </section>
-        </main>
+          </main>
+        </div>
       </div>
     </main>
   </div>

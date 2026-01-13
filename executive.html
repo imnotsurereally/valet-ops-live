@@ -106,47 +106,49 @@
 
         <main class="app-main">
             <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
-        </div>
-      </div>
-
-                <section class="stockboard">
-                  <div class="stockgrid" id="stockgrid"></div>
-                  <div class="ticker" aria-label="Live ticker">
-                    <div class="ticker__inner" id="ticker"></div>
-                  </div>
-                </section>
-
-                <header class="app-header">
-                    <div class="titles">
-                        <div class="section-title">Executive</div>
+                <div class="topbar">
+                    <div class="topbar__left">
+                        <div class="topbar__title">Optima Ops</div>
+                        <div class="topbar__who text-muted text-small" id="topbar-who"></div>
                     </div>
-
-                    <div class="header-right">
-                        <button id="signout-btn" class="btn small">Sign out</button>
+                    <div class="topbar__right">
+                        <button id="toggle-theme" class="btn small">🌓 Theme</button>
                     </div>
-                </header>
+                </div>
 
-                <main class="app-main">
+                <div class="container">
+                    <section class="stockboard">
+                        <div class="stockgrid" id="stockgrid"></div>
+                        <div class="ticker" aria-label="Live ticker">
+                            <div class="ticker__inner" id="ticker"></div>
+                        </div>
+                    </section>
+
+                    <header class="app-header">
+                        <div class="titles">
+                            <h1 class="section-title">Executive</h1>
+                        </div>
+
+                        <div class="header-right">
+                            <button id="signout-btn" class="btn small">Sign out</button>
+                        </div>
+                    </header>
+
+                    <main>
                     <section class="section">
                         <div class="section-header">
                             <div>
-                                <div class="section-title">Executive Console</div>
-                                <div class="section-subtitle">Real-time analytics dashboard</div>
+                                <h2 class="section-title">Executive Console</h2>
+                                <p class="section-subtitle">Real-time analytics dashboard</p>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <span id="last-updated" style="font-size: 0.7rem; color: #9ca3af;">Last updated:
-                                    —</span>
+                            <div class="flex items-center gap-2">
+                                <span id="last-updated" class="text-muted text-small">Last updated: —</span>
                                 <button id="refresh-btn" class="btn small">Refresh</button>
                             </div>
                         </div>
 
                         <!-- Tab buttons -->
-                        <div class="tab-row"
-                            style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #2b2e3a;">
+                        <div class="tab-row flex flex-row gap-2 mb-2" style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
                             <button class="tab-btn btn" data-tab="store">Store Overview</button>
                             <button class="tab-btn btn" data-tab="service">Service</button>
                             <button class="tab-btn btn" data-tab="sales">Sales</button>
@@ -216,8 +218,8 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 1.5rem;">
-                                <h3 class="section-title" style="margin-bottom: 0.5rem;">Breakdown by Status</h3>
+                            <div class="mt-2">
+                                <h3 class="section-title mb-1">Breakdown by Status</h3>
                                 <div class="table-wrapper">
                                     <table>
                                         <thead>
@@ -235,8 +237,8 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 1.5rem;">
-                                <h3 class="section-title" style="margin-bottom: 0.5rem;">Breakdown by Location</h3>
+                            <div class="mt-2">
+                                <h3 class="section-title mb-1">Breakdown by Location</h3>
                                 <div class="table-wrapper">
                                     <table>
                                         <thead>
@@ -254,8 +256,8 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 1.5rem;">
-                                <h3 class="section-title" style="margin-bottom: 0.5rem;">Top Valets Today</h3>
+                            <div class="mt-2">
+                                <h3 class="section-title mb-1">Top Valets Today</h3>
                                 <div class="table-wrapper">
                                     <table>
                                         <thead>
@@ -291,8 +293,8 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 1.5rem;">
-                                <h3 class="section-title" style="margin-bottom: 0.5rem;">Breakdown by Status</h3>
+                            <div class="mt-2">
+                                <h3 class="section-title mb-1">Breakdown by Status</h3>
                                 <div class="table-wrapper">
                                     <table>
                                         <thead>
@@ -310,8 +312,8 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 1.5rem;">
-                                <h3 class="section-title" style="margin-bottom: 0.5rem;">By Salesperson Today</h3>
+                            <div class="mt-2">
+                                <h3 class="section-title mb-1">By Salesperson Today</h3>
                                 <div class="table-wrapper">
                                     <table>
                                         <thead>
@@ -329,8 +331,8 @@
                                 </div>
                             </div>
 
-                            <div style="margin-top: 1.5rem;">
-                                <h3 class="section-title" style="margin-bottom: 0.5rem;">By Driver Today</h3>
+                            <div class="mt-2">
+                                <h3 class="section-title mb-1">By Driver Today</h3>
                                 <div class="table-wrapper">
                                     <table>
                                         <thead>
@@ -363,7 +365,8 @@
                             <div id="market-detail" class="market-detail"></div>
                         </div>
                     </section>
-                </main>
+                    </main>
+                </div>
             </div>
         </main>
     </div>

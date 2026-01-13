@@ -107,31 +107,35 @@
 
     <main class="app-main">
       <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
+        <div class="topbar">
+          <div class="topbar__left">
+            <div class="topbar__title">Optima Ops</div>
+            <div class="topbar__who text-muted text-small" id="topbar-who"></div>
+          </div>
+          <div class="topbar__right">
+            <button id="toggle-theme" class="btn small">🌓 Theme</button>
+          </div>
         </div>
-      </div>
 
-        <header class="app-header">
-          <div class="titles">
-            <div class="section-title">History</div>
-          </div>
+        <div class="container">
+          <header class="app-header">
+            <div class="titles">
+              <h1 class="section-title">History</h1>
+            </div>
 
-          <div class="header-right">
-            <button id="signout-btn" class="btn small">Sign out</button>
-          </div>
-        </header>
+            <div class="header-right">
+              <button id="signout-btn" class="btn small">Sign out</button>
+            </div>
+          </header>
 
-        <main class="app-main">
+          <main>
           <section class="section">
             <div class="section-header">
               <div>
-                <div class="section-title">History Browser</div>
-                <div class="section-subtitle">
+                <h2 class="section-title">History Browser</h2>
+                <p class="section-subtitle">
                   Filter by date, search tag/customer, and review notes + timeline.
-                </div>
+                </p>
               </div>
             </div>
 
@@ -146,7 +150,7 @@
                 <input id="history-search" class="input-text" placeholder="Tag # or customer name" />
               </div>
 
-              <div class="input-group" style="align-self:flex-end;">
+              <div class="input-group flex items-center" style="justify-content: flex-end;">
                 <button class="btn btn-primary" id="history-apply">Apply</button>
               </div>
             </form>
@@ -155,22 +159,22 @@
           <section class="section section-completed" id="history-completed">
             <div class="section-header">
               <div>
-                <div class="section-title">
+                <h2 class="section-title">
                   Completed Results
                   <span class="section-count" id="count-completed">0</span>
-                </div>
-                <div class="section-subtitle">
+                </h2>
+                <p class="section-subtitle">
                   Click Timeline to view event history. Notes show full log. Filtered by completed date.
-                </div>
+                </p>
               </div>
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                  <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">SIMPLE:</span>
+              <div class="flex flex-row gap-2" style="flex-wrap: wrap;">
+                <div class="flex items-center gap-2">
+                  <span class="text-muted text-small">SIMPLE:</span>
                   <button type="button" class="btn small" id="history-export-csv-simple">Download CSV</button>
                   <button type="button" class="btn small" id="history-export-tsv-simple">Copy TSV</button>
                 </div>
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                  <span style="font-size: 0.85rem; color: #9ca3af; margin-right: 0.25rem;">FULL:</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-muted text-small">FULL:</span>
                   <button type="button" class="btn small" id="history-export-csv-full">Download CSV</button>
                   <button type="button" class="btn small" id="history-export-tsv-full">Copy TSV</button>
                 </div>
@@ -192,13 +196,13 @@
           <section class="section" id="history-open">
             <div class="section-header">
               <div>
-                <div class="section-title">
+                <h2 class="section-title">
                   Open Ticket Results
                   <span class="section-count" id="count-active">0</span>
-                </div>
-                <div class="section-subtitle">
+                </h2>
+                <p class="section-subtitle">
                   Snapshot of matching tickets still open.
-                </div>
+                </p>
               </div>
             </div>
 
@@ -213,7 +217,8 @@
               </table>
             </div>
           </section>
-        </main>
+          </main>
+        </div>
       </div>
     </main>
   </div>

@@ -15,7 +15,6 @@
   <style>
     body {
       visibility: hidden;
-      background: #050608;
     }
 
     body.auth-ok {
@@ -179,38 +178,41 @@
 
     <main class="app-main">
       <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
+        <div class="topbar">
+          <div class="topbar__left">
+            <div class="topbar__title">Optima Ops</div>
+            <div class="topbar__who text-muted text-small" id="topbar-who"></div>
+          </div>
+          <div class="topbar__right">
+            <button id="toggle-theme" class="btn small">🌓 Theme</button>
+          </div>
         </div>
-      </div>
 
-        <header class="app-header">
-          <div class="titles">
-            <div class="section-title">Home</div>
-          </div>
+        <div class="container">
+          <header class="app-header">
+            <div class="titles">
+              <h1 class="section-title">Home</h1>
+            </div>
 
-          <div class="header-right">
-            <button id="signout-btn" class="btn small">Sign out</button>
-          </div>
-        </header>
+            <div class="header-right">
+              <button id="signout-btn" class="btn small">Sign out</button>
+            </div>
+          </header>
 
-        <main class="app-main app-main-center">
           <section class="section">
             <div class="section-header">
               <div>
-                <div class="section-title">Choose a Screen</div>
-                <div class="section-subtitle">
+                <h2 class="section-title">Choose a Screen</h2>
+                <p class="section-subtitle">
                   Owner/Manager router only. Employees are redirected to their screen.
-                </div>
+                </p>
               </div>
             </div>
 
             <div class="screen-links">
               <div class="service-section">
-                <h3 class="section-title">Service</h3>
-                <div class="section-buttons">
+                <h3 class="section-title text-small mb-2">Service</h3>
+                <div class="section-buttons flex flex-row gap-2" style="flex-wrap: wrap;">
                   <a class="btn btn-primary link-dispatcher" href="dispatcher.html">
                     Dispatcher Screen
                   </a>
@@ -249,11 +251,11 @@
                 </div>
               </div>
 
-              <div class="section-divider"></div>
+              <div class="section-divider" style="height: 1px; background: var(--border); margin: 2rem 0;"></div>
 
               <div class="sales-section">
-                <h3 class="section-title">Sales</h3>
-                <div class="section-buttons">
+                <h3 class="section-title text-small mb-2">Sales</h3>
+                <div class="section-buttons flex flex-row gap-2" style="flex-wrap: wrap;">
                   <a class="btn link-sales-manager" href="sales_manager.html">
                     Sales Manager
                   </a>
@@ -269,7 +271,7 @@
               </div>
             </div>
           </section>
-        </main>
+        </div>
       </div>
     </main>
   </div>

@@ -107,35 +107,39 @@
             </div>
         </nav>
 
-        <main class="app-main layout-grid">
+        <main class="app-main">
             <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
-        </div>
-      </div>
-
-                <header class="app-header">
-                    <div class="titles">
-                        <div class="section-title">Sales Manager</div>
+                <div class="topbar">
+                    <div class="topbar__left">
+                        <div class="topbar__title">Optima Ops</div>
+                        <div class="topbar__who text-muted text-small" id="topbar-who"></div>
                     </div>
-
-                    <div class="header-right">
-                        <button id="signout-btn" class="btn small">Sign out</button>
+                    <div class="topbar__right">
+                        <button id="toggle-theme" class="btn small">🌓 Theme</button>
                     </div>
-                </header>
+                </div>
 
-                <main class="app-main layout-grid">
+                <div class="container">
+                    <header class="app-header">
+                        <div class="titles">
+                            <h1 class="section-title">Sales Manager</h1>
+                        </div>
+
+                        <div class="header-right">
+                            <button id="signout-btn" class="btn small">Sign out</button>
+                        </div>
+                    </header>
+
+                    <div class="layout-grid">
                     <div class="layout-center">
                         <!-- New Sales Request form -->
                         <section class="section">
                             <div class="section-header">
                                 <div>
-                                    <div class="section-title">New Sales Request</div>
-                                    <div class="section-subtitle">
+                                    <h2 class="section-title">New Sales Request</h2>
+                                    <p class="section-subtitle">
                                         Create a new sales pickup request.
-                                    </div>
+                                    </p>
                                 </div>
                             </div>
 
@@ -204,7 +208,7 @@
                         </section>
 
                     </div>
-                </main>
+                </div>
             </div>
         </main>
     </div>
