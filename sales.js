@@ -652,17 +652,17 @@ function renderActiveTable() {
         // Manager view: no action buttons
         const desktopRow = `
           <tr data-pickup-id="${p.id}">
-            <td class="cell-tag"><span class="optima-link">${escapeHtml(p.stock_number || "")}</span></td>
+            <td class="cell-tag"><span class="optima-link opt-pill">${escapeHtml(p.stock_number || "")}</span></td>
             <td>${escapeHtml(p.salesperson_name || "")}</td>
             <td>${onTheWay ? "Yes" : "No"}</td>
-            <td class="driver-timer-cell">${driverTimer}</td>
+            <td class="driver-timer-cell"><span class="opt-pill driver-timer-pill">${driverTimer}</span></td>
             <td>
               <div class="notes-preview">
-                ${notesPreview ? `<div class="note-line latest">${escapeHtml(notesPreview)}</div>` : ""}
+                ${notesPreview ? `<div class="note-line latest opt-pill-note">${escapeHtml(notesPreview)}</div>` : ""}
                 <button class="btn small notes-button" data-action="add-note" data-pickup-id="${p.id}">Add note</button>
               </div>
             </td>
-            <td class="master-timer-cell">${masterTime}</td>
+            <td class="master-timer-cell"><span class="opt-pill master-timer-pill">${masterTime}</span></td>
             <td>
               <button class="btn small" data-action="cancel" data-pickup-id="${p.id}">Cancel</button>
             </td>
@@ -680,20 +680,20 @@ function renderActiveTable() {
 
         const desktopRow = `
           <tr data-pickup-id="${p.id}">
-            <td class="cell-tag"><span class="optima-link">${escapeHtml(p.stock_number || "")}</span></td>
+            <td class="cell-tag"><span class="optima-link opt-pill">${escapeHtml(p.stock_number || "")}</span></td>
             <td>${escapeHtml(p.salesperson_name || "")}</td>
             <td>
               ${onTheWayBtn}
               ${completeBtn}
             </td>
-            <td class="driver-timer-cell">${driverTimer}</td>
+            <td class="driver-timer-cell"><span class="opt-pill driver-timer-pill">${driverTimer}</span></td>
             <td>
               <div class="notes-preview">
-                ${notesPreview ? `<div class="note-line latest">${escapeHtml(notesPreview)}</div>` : ""}
+                ${notesPreview ? `<div class="note-line latest opt-pill-note">${escapeHtml(notesPreview)}</div>` : ""}
                 <button class="btn small notes-button" data-action="add-note" data-pickup-id="${p.id}">Add note</button>
               </div>
             </td>
-            <td class="master-timer-cell">${masterTime}</td>
+            <td class="master-timer-cell"><span class="opt-pill master-timer-pill">${masterTime}</span></td>
             <td>
               <button class="btn small" data-action="cancel" data-pickup-id="${p.id}">Cancel</button>
             </td>
@@ -704,14 +704,14 @@ function renderActiveTable() {
           <div class="sales-card" data-pickup-id="${p.id}">
             <div class="sales-card-header">
               <div class="sales-card-title">
-                <strong>${escapeHtml(p.stock_number || "")}</strong> - ${escapeHtml(p.salesperson_name || "")}
+                <span class="opt-pill">${escapeHtml(p.stock_number || "")}</span> - ${escapeHtml(p.salesperson_name || "")}
               </div>
             </div>
             <div style="margin-bottom: 0.5rem;">
-              <div>Driver Timer: <strong>${driverTimer}</strong></div>
-              <div>Master Time: <strong>${masterTime}</strong></div>
+              <div>Driver Timer: <span class="opt-pill">${driverTimer}</span></div>
+              <div>Master Time: <span class="opt-pill">${masterTime}</span></div>
             </div>
-            ${notesPreview ? `<div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #9ca3af;">${escapeHtml(notesPreview)}</div>` : ""}
+            ${notesPreview ? `<div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #9ca3af;" class="opt-pill-note">${escapeHtml(notesPreview)}</div>` : ""}
             <div class="sales-card-actions">
               ${onTheWayBtn}
               ${completeBtn}
@@ -783,10 +783,10 @@ function renderCompletedTable() {
 
       return `
         <tr>
-          <td class="cell-tag"><span class="optima-link">${escapeHtml(p.stock_number || "")}</span></td>
+          <td class="cell-tag"><span class="optima-link opt-pill">${escapeHtml(p.stock_number || "")}</span></td>
           <td>${escapeHtml(p.salesperson_name || "")}</td>
           <td>${escapeHtml(finalStatus)}</td>
-          <td>${escapeHtml(timeStr)}</td>
+          <td><span class="opt-pill">${escapeHtml(timeStr)}</span></td>
           <td>
             <button class="btn small" data-timeline-id="${p.id}" disabled>Timeline</button>
           </td>
@@ -874,15 +874,15 @@ function updateTimers() {
     // Update driver timer if ON_THE_WAY
     if (p.status === "ON_THE_WAY" && p.on_the_way_at) {
       const timer = formatTimer(new Date(p.on_the_way_at));
-      const timerCell = row.querySelector(".driver-timer-cell");
-      if (timerCell) timerCell.textContent = timer;
+      const timerEl = row.querySelector(".driver-timer-pill") || row.querySelector(".driver-timer-cell");
+      if (timerEl) timerEl.textContent = timer;
     }
 
     // Update master time
     if (p.requested_at) {
       const timer = formatTimer(new Date(p.requested_at));
-      const masterTimeCell = row.querySelector(".master-timer-cell");
-      if (masterTimeCell) masterTimeCell.textContent = timer;
+      const masterEl = row.querySelector(".master-timer-pill") || row.querySelector(".master-timer-cell");
+      if (masterEl) masterEl.textContent = timer;
     }
   });
 }

@@ -65,10 +65,35 @@ export function wireShellInteractions({ profile, pageKey }) {
     el.textContent = parts.length > 0 ? parts.join(" · ") : "";
   }
 
-  // Update topbar title to "Optima Dealer Services"
+  // Render inline brand row with logo + name + store
+  const topbarLeft = document.querySelector(".topbar__left");
   const topbarTitle = document.querySelector(".topbar__title");
-  if (topbarTitle) {
-    topbarTitle.textContent = "Optima Dealer Services";
+  if (topbarLeft && topbarTitle) {
+    const existingBrand = topbarLeft.querySelector(".brand-left");
+    if (existingBrand) existingBrand.remove();
+
+    const brandRow = document.createElement("div");
+    brandRow.className = "brand-left";
+
+    const logo = document.createElement("img");
+    logo.className = "brand-logo";
+    logo.src = "assets/optima-logo-new.jpg";
+    logo.alt = "Optima Dealer Services";
+
+    const brandName = document.createElement("span");
+    brandName.className = "brand-name";
+    brandName.textContent = "Optima Dealer Services";
+
+    const brandStore = document.createElement("span");
+    brandStore.className = "brand-store";
+    brandStore.textContent = store || "Newport Service Valet";
+
+    brandRow.appendChild(logo);
+    brandRow.appendChild(brandName);
+    brandRow.appendChild(brandStore);
+
+    topbarTitle.textContent = "";
+    topbarTitle.appendChild(brandRow);
   }
 
   // Update sidebar brand text to "Optima Dealer Services"
@@ -76,9 +101,6 @@ export function wireShellInteractions({ profile, pageKey }) {
   if (sidebarBrandText) {
     sidebarBrandText.textContent = "Optima Dealer Services";
   }
-
-  // Ensure logo appears on all pages
-  ensureLogoOnAllPages();
 
   // Wire theme toggle
   wireThemeToggle();

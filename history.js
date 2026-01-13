@@ -176,13 +176,13 @@ function renderCompletedRow(p) {
 
   return `
     <tr>
-      <td class="cell-tag"><span class="optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="optima-link">${escapeHtml(p.customer_name)}</span></td>
-      <td>${masterLabel}</td>
+      <td class="cell-tag"><span class="optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
+      <td><span class="opt-pill">${masterLabel}</span></td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td>${formatTime(p.created_at)}</td>
       <td>${formatTime(p.completed_at)}</td>
-      <td>${notes || ""}</td>
+      <td>${notes ? `<span class="opt-pill-note">${notes}</span>` : ""}</td>
       <td>
         <button class="btn small" data-action="view-timeline" data-id="${p.id}">Timeline</button>
       </td>
@@ -201,12 +201,12 @@ function renderOpenRow(p) {
 
   return `
     <tr>
-      <td class="cell-tag"><span class="optima-link">${escapeHtml(p.tag_number)}</span></td>
-      <td class="cell-customer"><span class="optima-link">${escapeHtml(p.customer_name)}</span></td>
+      <td class="cell-tag"><span class="optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
       <td>${escapeHtml(p.status || "")}</td>
       <td>${escapeHtml(deliveredBy)}</td>
-      <td>${escapeHtml(lastNote)}</td>
-      <td>${masterLabel}</td>
+      <td>${lastNote ? `<span class="opt-pill-note">${escapeHtml(lastNote)}</span>` : ""}</td>
+      <td><span class="opt-pill">${masterLabel}</span></td>
       <td>
         <button class="btn small" data-action="view-timeline" data-id="${p.id}">Timeline</button>
       </td>
