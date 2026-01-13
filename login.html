@@ -34,20 +34,27 @@
   </script>
 </head>
 
-<body class="public-login login-v3">
+<body class="public-login login-v4">
   <div class="login-hero" aria-hidden="true"></div>
 
   <main class="login-stage" role="main">
-    <header class="login-brand-top" aria-label="Optima Dealer Services">
-      <div class="login-brand-top__logo">
+    <header class="login-hero-brand" aria-label="Optima Dealer Services">
+      <div class="login-hero-brand__logo">
         <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" />
       </div>
+      <div class="login-hero-brand__name">OPTIMA DEALER SERVICES</div>
+      <div class="login-hero-brand__tagline">STAFF MANAGEMENT & LOGISTICS FOR AUTO DEALERSHIPS</div>
     </header>
 
-    <section class="login-card-v3" aria-label="Secure sign in">
-      <div class="login-card-v3__title">Secure sign in</div>
+    <section class="login-card" aria-label="Secure sign in">
+      <div class="login-card__brand-row">
+        <img src="assets/optima-logo.jpg" alt="Optima" class="login-card__mini-logo" />
+        <span class="login-card__brand-text">OPTIMA DEALER SERVICES</span>
+      </div>
+      <hr class="login-card__divider" />
+      <div class="login-card__title">Secure sign in</div>
 
-      <form id="login-form" class="login-card-v3__form">
+      <form id="login-form" class="login-card__form">
         <div class="login-field">
           <label for="login-email">Email</label>
           <input id="login-email" class="input-text" type="email" autocomplete="username" required />
@@ -58,13 +65,13 @@
           <input id="login-password" class="input-text" type="password" autocomplete="current-password" required />
         </div>
 
-        <div class="login-actions-v3">
+        <div class="login-actions">
           <button class="btn btn-primary" type="submit">Sign in</button>
         </div>
 
         <div id="login-error" class="login-error"></div>
 
-        <div class="login-foot-v3">Use your dealership-issued credentials.</div>
+        <div class="login-foot">Use your dealership-issued credentials.</div>
       </form>
     </section>
   </main>
