@@ -3830,3 +3830,218 @@ tbody tr:hover {
   color: var(--chipText) !important;
   border: 1px solid var(--line) !important;
 }
+
+/* ================= OPTIMA THEME + LANES (OVERRIDE LAYER) ================= */
+
+/* Theme tokens on html root */
+html {
+  --bg: #000;
+  --panel: rgba(255, 255, 255, 0.02);
+  --panel2: rgba(255, 255, 255, 0.00);
+  --text: #fff;
+  --muted: rgba(255, 255, 255, 0.70);
+  --line: rgba(255, 255, 255, 0.14);
+  --line2: rgba(255, 255, 255, 0.22);
+  --hover: rgba(255, 255, 255, 0.05);
+  --accentBlue: #3B82F6;
+  --accentBlueTint: rgba(59, 130, 246, 0.06);
+  --warn: #F59E0B;
+  --danger: #EF4444;
+}
+
+/* Light theme tokens */
+html[data-theme="light"] {
+  --bg: #fff;
+  --panel: rgba(0, 0, 0, 0.03);
+  --panel2: rgba(0, 0, 0, 0.00);
+  --text: #000;
+  --muted: rgba(0, 0, 0, 0.60);
+  --line: rgba(0, 0, 0, 0.12);
+  --line2: rgba(0, 0, 0, 0.18);
+  --hover: rgba(0, 0, 0, 0.04);
+  --accentBlue: #2563EB;
+  --accentBlueTint: rgba(37, 99, 235, 0.08);
+  --warn: #D97706;
+  --danger: #DC2626;
+}
+
+/* Force all major surfaces to use tokens (100% theme coverage) */
+html,
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.app-shell,
+.app-main,
+.app-main__inner,
+.side-nav,
+.side-nav__inner,
+.topbar {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Panel containers use var(--panel) */
+.table-wrapper,
+.new-pickup-form,
+.card,
+.panel {
+  background: var(--panel) !important;
+}
+
+/* Lane frames: subtle section borders (square, not rounded) */
+.section {
+  border: 1px solid var(--line) !important;
+  background: var(--panel2) !important;
+  border-radius: 0 !important;
+  padding: 18px !important;
+  margin-bottom: 1.2rem !important;
+}
+
+.section-header {
+  border-bottom: 1px solid var(--line) !important;
+  padding-bottom: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Table styling */
+table thead th {
+  color: var(--muted) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+tbody tr:hover {
+  background: var(--hover) !important;
+}
+
+/* Accent rail + tint for primary sections (clean blue, not muddy) */
+.section-active {
+  box-shadow: inset 3px 0 0 var(--accentBlue) !important;
+  background: var(--accentBlueTint) !important;
+  border-left: 3px solid var(--accentBlue) !important;
+  /* Override any old muddy blue backgrounds */
+  background: var(--accentBlueTint) !important;
+}
+
+/* Pulsing hairline border animation */
+@keyframes optimaPulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.60);
+  }
+}
+
+/* ONE pulsing border per screen - Dispatcher Active Pickups */
+body.role-dispatcher .section.section-active {
+  animation: optimaPulse 1.1s ease-in-out infinite !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+}
+
+/* ONE pulsing border per screen - Wallboard Active Pickups */
+body.role-wallboard .section.section-active {
+  animation: optimaPulse 1.1s ease-in-out infinite !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+}
+
+/* ONE pulsing border per screen - Sales Manager Active Requests */
+body.role-sales_manager .section.section-active,
+body.role-sales-manager .section.section-active {
+  animation: optimaPulse 1.1s ease-in-out infinite !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+}
+
+/* Light theme pulse adjustment */
+html[data-theme="light"] body.role-dispatcher .section.section-active,
+html[data-theme="light"] body.role-wallboard .section.section-active,
+html[data-theme="light"] body.role-sales_manager .section.section-active,
+html[data-theme="light"] body.role-sales-manager .section.section-active {
+  border-color: rgba(0, 0, 0, 0.20) !important;
+}
+
+@keyframes optimaPulseLight {
+  0%, 100% {
+    border-color: rgba(0, 0, 0, 0.20);
+  }
+  50% {
+    border-color: rgba(0, 0, 0, 0.60);
+  }
+}
+
+html[data-theme="light"] body.role-dispatcher .section.section-active,
+html[data-theme="light"] body.role-wallboard .section.section-active,
+html[data-theme="light"] body.role-sales_manager .section.section-active,
+html[data-theme="light"] body.role-sales-manager .section.section-active {
+  animation: optimaPulseLight 1.1s ease-in-out infinite !important;
+}
+
+/* Dispatcher chip overlap fix - Status/Location + Keys With */
+.role-dispatcher .wash-buttons,
+.role-dispatcher .valet-grid,
+.role-dispatcher .keys-buttons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px 10px !important;
+  align-items: center !important;
+}
+
+.role-dispatcher .wash-buttons .btn,
+.role-dispatcher .valet-grid .btn,
+.role-dispatcher .keys-buttons .btn {
+  white-space: nowrap !important;
+  padding: 6px 10px !important;
+  min-height: 28px !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+}
+
+/* Override grid layout for valet-grid to allow wrapping */
+.role-dispatcher .valet-grid {
+  display: flex !important;
+  grid-template-columns: none !important;
+}
+
+/* Chip/button color tokens */
+.btn.danger,
+.btn-danger {
+  background: rgba(var(--danger-rgb, 239, 68, 68), 0.10) !important;
+  border-color: var(--danger) !important;
+  color: var(--text) !important;
+}
+
+.btn.warn,
+.btn-warn {
+  background: rgba(var(--warn-rgb, 245, 158, 11), 0.10) !important;
+  border-color: var(--warn) !important;
+  color: var(--text) !important;
+}
+
+/* Inputs and form elements use theme */
+input,
+select,
+textarea {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accentBlue) !important;
+  outline: none !important;
+}
+
+/* Ensure all text elements use theme colors */
+h1, h2, h3, h4, h5, h6,
+p, span, label, a, li,
+td, th {
+  color: var(--text) !important;
+}
+
+small,
+.muted {
+  color: var(--muted) !important;
+}
