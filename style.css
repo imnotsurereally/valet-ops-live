@@ -4048,15 +4048,15 @@ small,
 
 /* =========================
    LOGIN (V3) — PREMIUM HERO
-   Scoped: body.public-login
+   Scoped: body.public-login.login-v3
    ========================= */
 
-body.public-login {
+body.public-login.login-v3 {
   background: #000 !important;
   color: #fff !important;
 }
 
-body.public-login .login-stage {
+body.public-login.login-v3 .login-stage {
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -4066,7 +4066,7 @@ body.public-login .login-stage {
 }
 
 /* HERO BACKGROUND LAYERS */
-body.public-login .login-hero {
+body.public-login.login-v3 .login-hero {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -4075,7 +4075,7 @@ body.public-login .login-hero {
 }
 
 /* Vignette + spotlight */
-body.public-login .login-hero::before {
+body.public-login.login-v3 .login-hero::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -4087,7 +4087,7 @@ body.public-login .login-hero::before {
 }
 
 /* "Car" feel using your logo as a large blurred watermark */
-body.public-login .login-hero::after {
+body.public-login.login-v3 .login-hero::after {
   content: "";
   position: absolute;
   inset: -10%;
@@ -4102,7 +4102,7 @@ body.public-login .login-hero::after {
 }
 
 /* Subtle grain */
-body.public-login .login-stage::before {
+body.public-login.login-v3 .login-stage::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -4116,7 +4116,7 @@ body.public-login .login-stage::before {
 }
 
 /* TOP HERO LOGO (BIG) */
-body.public-login .login-brand-top {
+body.public-login.login-v3 .login-brand-top {
   position: fixed;
   top: 34px;
   left: 50%;
@@ -4128,14 +4128,14 @@ body.public-login .login-brand-top {
   pointer-events: none;
 }
 
-body.public-login .login-brand-top__logo img {
+body.public-login.login-v3 .login-brand-top__logo img {
   width: min(980px, 92vw);
   height: auto;
   opacity: 0.95;
 }
 
 /* LOGIN CARD */
-body.public-login .login-card-v3 {
+body.public-login.login-v3 .login-card-v3 {
   width: min(520px, 92vw);
   border: 1px solid rgba(255,255,255,0.22);
   background: rgba(0,0,0,0.55);
@@ -4144,26 +4144,26 @@ body.public-login .login-card-v3 {
   margin-top: 140px; /* clears the big top logo */
 }
 
-body.public-login .login-card-v3__header {
+body.public-login.login-v3 .login-card-v3__header {
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(255,255,255,0.14);
   margin-bottom: 14px;
 }
 
-body.public-login .login-card-v3__mark {
+body.public-login.login-v3 .login-card-v3__mark {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-body.public-login .login-card-v3__mark img {
+body.public-login.login-v3 .login-card-v3__mark img {
   width: 26px;
   height: 26px;
   object-fit: cover;
   border: 1px solid rgba(255,255,255,0.30);
 }
 
-body.public-login .login-card-v3__marktext {
+body.public-login.login-v3 .login-card-v3__marktext {
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.14em;
@@ -4171,20 +4171,20 @@ body.public-login .login-card-v3__marktext {
   white-space: nowrap;
 }
 
-body.public-login .login-card-v3__title {
+body.public-login.login-v3 .login-card-v3__title {
   font-size: 26px;
   font-weight: 900;
   letter-spacing: -0.01em;
   margin: 14px 0 14px;
 }
 
-body.public-login .login-card-v3__form {
+body.public-login.login-v3 .login-card-v3__form {
   display: grid;
   gap: 14px;
 }
 
 /* Fields */
-body.public-login .login-field label {
+body.public-login.login-v3 .login-field label {
   display: block;
   font-size: 12px;
   opacity: 0.78;
@@ -4192,7 +4192,7 @@ body.public-login .login-field label {
   letter-spacing: 0.02em;
 }
 
-body.public-login input.input-text {
+body.public-login.login-v3 input.input-text {
   width: 100%;
   border-radius: 0 !important;
   background: rgba(0,0,0,0.75) !important;
@@ -4202,20 +4202,20 @@ body.public-login input.input-text {
   font-size: 13px;
 }
 
-body.public-login input.input-text:focus {
+body.public-login.login-v3 input.input-text:focus {
   outline: none !important;
   border-color: rgba(255,255,255,0.55) !important;
 }
 
 /* Actions */
-body.public-login .login-actions-v3 {
+body.public-login.login-v3 .login-actions-v3 {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 4px;
 }
 
-body.public-login .btn {
+body.public-login.login-v3 .btn {
   border-radius: 0 !important;
   border: 1px solid rgba(255,255,255,0.22) !important;
   background: transparent !important;
@@ -4231,29 +4231,29 @@ body.public-login .btn {
   transition: background .12s ease, border-color .12s ease, transform .06s ease;
 }
 
-body.public-login .btn:hover {
+body.public-login.login-v3 .btn:hover {
   background: rgba(255,255,255,0.06) !important;
   border-color: rgba(255,255,255,0.45) !important;
 }
 
-body.public-login .btn:active {
+body.public-login.login-v3 .btn:active {
   transform: translateY(1px);
 }
 
-body.public-login .btn.btn-primary {
+body.public-login.login-v3 .btn.btn-primary {
   background: rgba(255,255,255,0.10) !important;
   border-color: rgba(255,255,255,0.62) !important;
 }
 
 /* Errors + footer */
-body.public-login .login-error {
+body.public-login.login-v3 .login-error {
   font-size: 12px;
   opacity: 0.9;
   border-left: 2px solid rgba(255,255,255,0.35);
   padding-left: 10px;
 }
 
-body.public-login .login-foot-v3 {
+body.public-login.login-v3 .login-foot-v3 {
   font-size: 12px;
   opacity: 0.65;
   margin-top: 2px;
@@ -4261,7 +4261,7 @@ body.public-login .login-foot-v3 {
 
 /* Small screens: reduce top logo spacing */
 @media (max-width: 700px) {
-  body.public-login .login-brand-top { top: 18px; }
-  body.public-login .login-card-v3 { margin-top: 110px; }
-  body.public-login .login-card-v3__title { font-size: 22px; }
+  body.public-login.login-v3 .login-brand-top { top: 18px; }
+  body.public-login.login-v3 .login-card-v3 { margin-top: 110px; }
+  body.public-login.login-v3 .login-card-v3__title { font-size: 22px; }
 }
