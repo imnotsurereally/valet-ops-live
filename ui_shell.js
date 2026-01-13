@@ -233,7 +233,7 @@ function ensureLogoOnAllPages() {
 
   // Create and inject logo as first element
   const logo = document.createElement("img");
-  logo.src = "assets/optima-logo.jpg";
+  logo.src = "assets/optima-logo-new.jpg";
   logo.alt = "Optima Dealer Services";
   logo.className = "logo";
   appHeader.insertBefore(logo, appHeader.firstChild);

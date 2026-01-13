@@ -652,7 +652,7 @@ function renderActiveTable() {
         // Manager view: no action buttons
         const desktopRow = `
           <tr data-pickup-id="${p.id}">
-            <td class="cell-tag">${escapeHtml(p.stock_number || "")}</td>
+            <td class="cell-tag"><span class="optima-link">${escapeHtml(p.stock_number || "")}</span></td>
             <td>${escapeHtml(p.salesperson_name || "")}</td>
             <td>${onTheWay ? "Yes" : "No"}</td>
             <td class="driver-timer-cell">${driverTimer}</td>
@@ -680,7 +680,7 @@ function renderActiveTable() {
 
         const desktopRow = `
           <tr data-pickup-id="${p.id}">
-            <td class="cell-tag">${escapeHtml(p.stock_number || "")}</td>
+            <td class="cell-tag"><span class="optima-link">${escapeHtml(p.stock_number || "")}</span></td>
             <td>${escapeHtml(p.salesperson_name || "")}</td>
             <td>
               ${onTheWayBtn}
@@ -783,7 +783,7 @@ function renderCompletedTable() {
 
       return `
         <tr>
-          <td class="cell-tag">${escapeHtml(p.stock_number || "")}</td>
+          <td class="cell-tag"><span class="optima-link">${escapeHtml(p.stock_number || "")}</span></td>
           <td>${escapeHtml(p.salesperson_name || "")}</td>
           <td>${escapeHtml(finalStatus)}</td>
           <td>${escapeHtml(timeStr)}</td>

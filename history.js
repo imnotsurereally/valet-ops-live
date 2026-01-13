@@ -176,8 +176,8 @@ function renderCompletedRow(p) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="optima-link">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="optima-link">${escapeHtml(p.customer_name)}</span></td>
       <td>${masterLabel}</td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td>${formatTime(p.created_at)}</td>
@@ -201,8 +201,8 @@ function renderOpenRow(p) {
 
   return `
     <tr>
-      <td class="cell-tag">${escapeHtml(p.tag_number)}</td>
-      <td class="cell-customer">${escapeHtml(p.customer_name)}</td>
+      <td class="cell-tag"><span class="optima-link">${escapeHtml(p.tag_number)}</span></td>
+      <td class="cell-customer"><span class="optima-link">${escapeHtml(p.customer_name)}</span></td>
       <td>${escapeHtml(p.status || "")}</td>
       <td>${escapeHtml(deliveredBy)}</td>
       <td>${escapeHtml(lastNote)}</td>

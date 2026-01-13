@@ -4107,7 +4107,7 @@ body.public-login.login-v3 .login-hero::after {
   content: "";
   position: absolute;
   inset: -15%;
-  background-image: url("assets/optima-logo.jpg");
+  background-image: url("assets/optima-logo-new.jpg");
   background-repeat: no-repeat;
   background-position: center 50%;
   background-size: min(1600px, 150vw);
@@ -4640,4 +4640,173 @@ body.public-login.login-v4 .login-foot {
     font-size: 20px;
     margin-bottom: 20px;
   }
+}
+
+/* =========================================================
+   OPTIMA FINAL COLOR SYSTEM + PILL SYSTEM + PULSES
+   ========================================================= */
+
+/* 1) OPTIMA COLOR TOKENS */
+:root {
+  --optima-blue: #0253B5;
+  --optima-blue-soft: #0A63D8;
+  --optima-red: #F61811;
+  --optima-orange: #D44A04;
+}
+
+/* 2) BLUE LINKING PILL SYSTEM (global) */
+.optima-link {
+  background: rgba(2, 83, 181, 0.18) !important;
+  border: 1px solid rgba(2, 83, 181, 0.70) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 0 !important;
+  display: inline-block;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.optima-link.optima-time {
+  background: rgba(2, 83, 181, 0.12) !important;
+  border-color: rgba(2, 83, 181, 0.65) !important;
+}
+
+.optima-selected {
+  background: rgba(10, 99, 216, 0.22) !important;
+  border-color: rgba(10, 99, 216, 0.85) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+/* Apply blue linking to existing pill classes */
+.pill-blue,
+.cell-tag .pill-blue,
+.cell-customer .pill-blue {
+  background: rgba(2, 83, 181, 0.18) !important;
+  border: 1px solid rgba(2, 83, 181, 0.70) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Timer badges with blue linking */
+.timer.optima-link,
+.timer.optima-time {
+  background: rgba(2, 83, 181, 0.12) !important;
+  border-color: rgba(2, 83, 181, 0.65) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+/* Selected state for buttons */
+.btn.selected.optima-selected,
+.btn.active.optima-selected,
+.wash-buttons .btn.selected.optima-selected,
+.keys-buttons .btn.selected.optima-selected,
+.valet-grid .btn.selected.optima-selected {
+  background: rgba(10, 99, 216, 0.22) !important;
+  border-color: rgba(10, 99, 216, 0.85) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+/* 3) ACTIVE PICKUPS: THICK PULSING WHITE BORDER ONLY (dispatcher) */
+@keyframes optimaActivePulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.90);
+  }
+}
+
+body.role-dispatcher .section.section-active {
+  border: 2px solid rgba(255, 255, 255, 0.80) !important;
+  animation: optimaActivePulse 1.05s ease-in-out infinite !important;
+  background: transparent !important;
+}
+
+/* Remove blue wash from Active Pickups globally */
+.section-active {
+  background: transparent !important;
+}
+
+body.role-dispatcher .section-active .table-wrapper {
+  background: transparent !important;
+}
+
+/* 4) FLASH STATES (obvious pulses) */
+@keyframes optimaPulseBlue {
+  0%, 100% {
+    background: rgba(2, 83, 181, 0.18);
+    border-color: rgba(2, 83, 181, 0.70);
+  }
+  50% {
+    background: rgba(2, 83, 181, 0.32);
+    border-color: rgba(2, 83, 181, 0.95);
+  }
+}
+
+@keyframes optimaPulseOrange {
+  0%, 100% {
+    background: rgba(212, 74, 4, 0.20);
+    border-color: rgba(212, 74, 4, 0.75);
+  }
+  50% {
+    background: rgba(212, 74, 4, 0.38);
+    border-color: rgba(212, 74, 4, 0.95);
+  }
+}
+
+@keyframes optimaPulseRed {
+  0%, 100% {
+    background: rgba(246, 24, 17, 0.25);
+    border-color: rgba(246, 24, 17, 0.85);
+  }
+  50% {
+    background: rgba(246, 24, 17, 0.45);
+    border-color: rgba(246, 24, 17, 1.0);
+  }
+}
+
+.pulse-blue {
+  animation: optimaPulseBlue 0.85s ease-in-out infinite !important;
+  border: 1px solid var(--optima-blue) !important;
+  background: rgba(2, 83, 181, 0.18) !important;
+}
+
+.pulse-orange {
+  animation: optimaPulseOrange 0.85s ease-in-out infinite !important;
+  border: 1px solid var(--optima-orange) !important;
+  background: rgba(212, 74, 4, 0.20) !important;
+}
+
+.pulse-red {
+  animation: optimaPulseRed 0.70s ease-in-out infinite !important;
+  border: 1px solid var(--optima-red) !important;
+  background: rgba(246, 24, 17, 0.25) !important;
+}
+
+/* Hook pulses to state elements */
+.btn.selected[data-action="wash-dusty"],
+.wash-buttons .btn.selected[data-action="wash-dusty"] {
+  animation: optimaPulseOrange 0.85s ease-in-out infinite !important;
+  border-color: var(--optima-orange) !important;
+  background: rgba(212, 74, 4, 0.20) !important;
+}
+
+.btn.selected[data-action="wash-needs-rewash"],
+.wash-buttons .btn.selected[data-action="wash-needs-rewash"],
+.inline-dialog.pulse-blue {
+  animation: optimaPulseBlue 0.85s ease-in-out infinite !important;
+  border-color: var(--optima-blue) !important;
+  background: rgba(2, 83, 181, 0.18) !important;
+}
+
+.btn.selected[data-action="key-car-missing"],
+.wash-buttons .btn.selected[data-action="key-car-missing"] {
+  animation: optimaPulseRed 0.70s ease-in-out infinite !important;
+  border-color: var(--optima-red) !important;
+  background: rgba(246, 24, 17, 0.25) !important;
 }
