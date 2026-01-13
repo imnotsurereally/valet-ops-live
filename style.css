@@ -4339,18 +4339,18 @@ body.public-login.login-v4 .topbar {
   display: none !important;
 }
 
-/* HERO BACKGROUND LAYER (z-index 0) */
+/* HERO BACKGROUND LAYER (z-index 0) - TRUE BLACK */
 body.public-login.login-v4 .login-hero {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: #000;
+  background: #000 !important;
   overflow: hidden;
 }
 
 /* Optional: Real car photo background (only if assets/login-bg.jpg exists) */
-/* If the file doesn't exist, gradients-only will be used (premium, clean) */
+/* If the file doesn't exist, true black will be used */
 body.public-login.login-v4 .login-hero {
   background-image: url("assets/login-bg.jpg");
   background-size: cover;
@@ -4358,19 +4358,10 @@ body.public-login.login-v4 .login-hero {
   background-repeat: no-repeat;
 }
 
-/* VIGNETTE OVERLAY (z-index 1) - Dark radial vignette + center spotlight */
-/* This provides the premium gradient-only look when no car photo is present */
+/* REMOVED: White haze overlay - now using true black background */
+/* VIGNETTE OVERLAY removed to eliminate white haze */
 body.public-login.login-v4 .login-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background:
-    radial-gradient(ellipse 1200px 700px at 50% 65%, rgba(255,255,255,0.12), transparent 60%),
-    radial-gradient(ellipse 1600px 1000px at 50% 20%, rgba(255,255,255,0.08), transparent 65%),
-    radial-gradient(ellipse 1400px 900px at 50% 95%, rgba(0,0,0,0.90), rgba(0,0,0,1));
-  opacity: 1;
-  pointer-events: none;
+  display: none;
 }
 
 /* MAIN STAGE (z-index 2+) */
@@ -4383,6 +4374,26 @@ body.public-login.login-v4 .login-stage {
   padding: 48px 18px;
   position: relative;
   z-index: 2;
+}
+
+/* LARGE CENTERED LOGO above login card */
+body.public-login.login-v4 .login-logo-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 3;
+}
+
+body.public-login.login-v4 .login-logo-large__img {
+  width: min(260px, 80%);
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 
 /* TOP HERO BRANDING - Hidden (only mini brand row inside card is shown) */
@@ -4436,20 +4447,19 @@ body.public-login.login-v4 .login-card {
   box-shadow: 0 30px 90px rgba(0,0,0,0.85);
 }
 
-/* MINI BRAND ROW inside card */
+/* MINI BRAND ROW inside card - now just text, more subtle */
 body.public-login.login-v4 .login-card__brand-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 14px;
   padding-bottom: 14px;
 }
 
+/* Mini logo removed - using large logo above card instead */
 body.public-login.login-v4 .login-card__mini-logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  opacity: 0.95;
+  display: none;
 }
 
 body.public-login.login-v4 .login-card__brand-text {
@@ -4458,7 +4468,7 @@ body.public-login.login-v4 .login-card__brand-text {
   letter-spacing: 0.10em;
   text-transform: uppercase;
   color: #fff;
-  opacity: 0.90;
+  opacity: 0.80;
 }
 
 body.public-login.login-v4 .login-card__divider {
@@ -4616,6 +4626,12 @@ body.public-login.login-v4 .login-foot {
 
 /* RESPONSIVE */
 @media (max-width: 700px) {
+  body.public-login.login-v4 .login-logo-large {
+    margin-bottom: 24px;
+  }
+  body.public-login.login-v4 .login-logo-large__img {
+    width: min(220px, 75%);
+  }
   body.public-login.login-v4 .login-card { 
     margin-top: 0;
     padding: 28px 22px;
