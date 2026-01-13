@@ -5,8 +5,9 @@ export const ICONS = {
   carwash: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg>`,
   wallboard: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>`,
   history: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>`,
+  customersms: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/><path d="M7 9h10M7 13h6"/></svg>`,
   sales_manager: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M8 7V5h8v2"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>`,
-  sales_driver: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>`,
+  sales_driver: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M5 12h12M13 6l6 6-6 6"/></svg>`,
   sales_history: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>`,
   executive: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 16l6-6 4 4 6-8"/><path d="M20 6v6h-6"/></svg>`,
   settings: `<svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.5-2.3.7a7.6 7.6 0 0 0-1.7-1L15 4h-6l-.5 3a7.6 7.6 0 0 0-1.7 1L4.5 7.3l-2 3.5 2 1.2a8 8 0 0 0 .1 2l-2 1.2 2 3.5 2.3-.7a7.6 7.6 0 0 0 1.7 1L9 20h6l.5-3a7.6 7.6 0 0 0 1.7-1l2.3.7 2-3.5-2-1.2z"/></svg>`,
@@ -69,6 +70,41 @@ export function wireShellInteractions({ profile, pageKey }) {
   
   // Apply theme from storage on load
   applyThemeFromStorage();
+  
+  // Inject Customer SMS link for dispatcher + owner/manager
+  injectCustomerSmsLink(isOwner, isDispatcher);
+}
+
+function injectCustomerSmsLink(isOwner, isDispatcher) {
+  // Only show for dispatcher + owner/manager
+  if (!isOwner && !isDispatcher) return;
+  
+  // Find the Service group
+  const serviceGroup = document.querySelector('.side-nav__group');
+  if (!serviceGroup) return;
+  
+  // Check if link already exists
+  if (document.querySelector('.side-link[data-page="customersms"]')) return;
+  
+  // Find the History link to insert after
+  const historyLink = document.querySelector('.side-link[data-page="history"]');
+  if (!historyLink) return;
+  
+  // Create Customer SMS link
+  const smsLink = document.createElement('a');
+  smsLink.className = 'side-link';
+  smsLink.href = 'customersms.html';
+  smsLink.setAttribute('data-page', 'customersms');
+  smsLink.setAttribute('data-sms-only', '1');
+  smsLink.innerHTML = `
+    <div class="side-link__icon">
+      ${ICONS.customersms}
+    </div>
+    <div class="side-link__label">Customer SMS</div>
+  `;
+  
+  // Insert after History link
+  historyLink.parentNode.insertBefore(smsLink, historyLink.nextSibling);
 }
 
 export function injectSvgIcons() {
