@@ -74,8 +74,21 @@ function wireForm() {
   const phoneInput = document.getElementById("sms-phone");
   const messageTextarea = document.getElementById("sms-message");
   const sendBtn = document.getElementById("sms-send-btn");
+  const clearBtn = document.getElementById("sms-clear-btn");
 
   if (!form || !templateSelect || !nameInput || !phoneInput || !messageTextarea || !sendBtn) return;
+
+  // Clear button
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      templateSelect.value = "";
+      nameInput.value = "";
+      phoneInput.value = "";
+      messageTextarea.value = "";
+      const statusSection = document.getElementById("sms-status-section");
+      if (statusSection) statusSection.style.display = "none";
+    });
+  }
 
   // Update message when template changes
   templateSelect.addEventListener("change", () => {

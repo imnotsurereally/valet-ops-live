@@ -129,7 +129,16 @@ export function applyThemeFromStorage() {
   } catch (e) {
     // Default to dark
   }
+  // Set on documentElement immediately
+  document.documentElement.setAttribute("data-theme", theme);
   setTheme(theme);
+}
+
+// Apply theme on DOMContentLoaded (before any rendering)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", applyThemeFromStorage);
+} else {
+  applyThemeFromStorage();
 }
 
 export function setTheme(mode) {
