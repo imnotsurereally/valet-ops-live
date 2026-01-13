@@ -4045,3 +4045,571 @@ small,
 .muted {
   color: var(--muted) !important;
 }
+
+/* =========================
+   LOGIN (V3) — PREMIUM HERO
+   Scoped: body.public-login.login-v3
+   ========================= */
+
+body.public-login.login-v3 {
+  background: #000 !important;
+  color: #fff !important;
+  overflow-x: hidden;
+}
+
+body.public-login.login-v3 .login-stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 18px;
+  position: relative;
+  z-index: 2;
+}
+
+/* HERO BACKGROUND LAYERS */
+body.public-login.login-v3 .login-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: #000;
+  overflow: hidden;
+}
+
+/* Vignette + spotlight for car-like feel */
+body.public-login.login-v3 .login-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 1200px 700px at 50% 65%, rgba(255,255,255,0.12), transparent 60%),
+    radial-gradient(ellipse 1600px 1000px at 50% 20%, rgba(255,255,255,0.08), transparent 65%),
+    radial-gradient(ellipse 1400px 900px at 50% 95%, rgba(0,0,0,0.90), rgba(0,0,0,1));
+  opacity: 1;
+}
+
+/* Large blurred logo watermark - car background feel */
+body.public-login.login-v3 .login-hero::after {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  background-image: url("assets/optima-logo.jpg");
+  background-repeat: no-repeat;
+  background-position: center 50%;
+  background-size: min(1600px, 150vw);
+  filter: blur(2.5px);
+  opacity: 0.20;
+  transform: scale(1.05);
+  mask-image: radial-gradient(ellipse 100% 80% at 50% 55%, rgba(0,0,0,0.90), rgba(0,0,0,0.30) 65%, transparent 85%);
+}
+
+/* Subtle grain texture overlay */
+body.public-login.login-v3 .login-stage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 2px);
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+}
+
+/* TOP HERO LOGO (BIG) */
+body.public-login.login-v3 .login-brand-top {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  width: min(980px, 92vw);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+body.public-login.login-v3 .login-brand-top__logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+body.public-login.login-v3 .login-brand-top__logo img {
+  width: min(980px, 92vw);
+  height: auto;
+  opacity: 0.98;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+
+/* LOGIN CARD - Translucent with visible border */
+body.public-login.login-v3 .login-card-v3 {
+  width: min(520px, 92vw);
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: none;
+  padding: 32px 28px;
+  margin-top: 180px;
+  position: relative;
+  z-index: 3;
+}
+
+/* Internal logo inside card (if needed) */
+body.public-login.login-v3 .login-card-v3__logo {
+  display: none; /* Hidden by default, can be shown if logo needed inside card */
+}
+
+/* Title - Strong and prominent */
+body.public-login.login-v3 .login-card-v3__title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+  text-align: center;
+  color: #fff;
+}
+
+body.public-login.login-v3 .login-card-v3__form {
+  display: grid;
+  gap: 18px;
+}
+
+/* Fields */
+body.public-login.login-v3 .login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.public-login.login-v3 .login-field label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 0;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: #fff;
+}
+
+body.public-login.login-v3 input.input-text {
+  width: 100%;
+  border-radius: 0 !important;
+  background: rgba(0,0,0,0.80) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  padding: 14px 14px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+body.public-login.login-v3 input.input-text:focus {
+  outline: none !important;
+  border-color: rgba(255,255,255,0.60) !important;
+  background: rgba(0,0,0,0.85) !important;
+}
+
+body.public-login.login-v3 input.input-text::placeholder {
+  color: rgba(255,255,255,0.45);
+  opacity: 1;
+}
+
+/* Actions */
+body.public-login.login-v3 .login-actions-v3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+body.public-login.login-v3 .login-actions-v3 .btn {
+  width: 100%;
+}
+
+body.public-login.login-v3 .btn {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.08) !important;
+  color: #fff !important;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, border-color .15s ease, transform .08s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+body.public-login.login-v3 .btn:hover {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.50) !important;
+}
+
+body.public-login.login-v3 .btn:active {
+  transform: translateY(1px);
+  background: rgba(255,255,255,0.10) !important;
+}
+
+body.public-login.login-v3 .btn.btn-primary {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.65) !important;
+}
+
+body.public-login.login-v3 .btn.btn-primary:hover {
+  background: rgba(255,255,255,0.16) !important;
+  border-color: rgba(255,255,255,0.75) !important;
+}
+
+/* Errors + footer */
+body.public-login.login-v3 .login-error {
+  font-size: 12px;
+  opacity: 0.95;
+  border-left: 2px solid rgba(255,255,255,0.40);
+  padding-left: 12px;
+  margin-top: 4px;
+  color: #fff;
+  min-height: 20px;
+}
+
+body.public-login.login-v3 .login-foot-v3 {
+  font-size: 12px;
+  opacity: 0.70;
+  margin-top: 16px;
+  text-align: center;
+  color: rgba(255,255,255,0.70);
+  letter-spacing: 0.01em;
+}
+
+/* Small screens: reduce top logo spacing */
+@media (max-width: 700px) {
+  body.public-login.login-v3 .login-brand-top { 
+    top: 24px; 
+  }
+  body.public-login.login-v3 .login-card-v3 { 
+    margin-top: 140px;
+    padding: 28px 22px;
+  }
+  body.public-login.login-v3 .login-card-v3__title { 
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  body.public-login.login-v3 .login-brand-top__logo img {
+    width: min(90vw, 600px);
+  }
+}
+
+/* =========================
+   LOGIN HERO V4 — PREMIUM CAR BACKGROUND
+   Scoped: body.public-login.login-v4
+   ========================= */
+
+body.public-login.login-v4 {
+  background: #000 !important;
+  color: #fff !important;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Disable app-shell/topbar/sidebar styles on login page */
+body.public-login.login-v4 .app-shell,
+body.public-login.login-v4 .app-header,
+body.public-login.login-v4 .side-nav,
+body.public-login.login-v4 .topbar {
+  display: none !important;
+}
+
+/* HERO BACKGROUND LAYER (z-index 0) */
+body.public-login.login-v4 .login-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: #000;
+  overflow: hidden;
+}
+
+/* Optional: Real car photo background (only if assets/login-bg.jpg exists) */
+/* If the file doesn't exist, gradients-only will be used (premium, clean) */
+body.public-login.login-v4 .login-hero {
+  background-image: url("assets/login-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* VIGNETTE OVERLAY (z-index 1) - Dark radial vignette + center spotlight */
+/* This provides the premium gradient-only look when no car photo is present */
+body.public-login.login-v4 .login-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(ellipse 1200px 700px at 50% 65%, rgba(255,255,255,0.12), transparent 60%),
+    radial-gradient(ellipse 1600px 1000px at 50% 20%, rgba(255,255,255,0.08), transparent 65%),
+    radial-gradient(ellipse 1400px 900px at 50% 95%, rgba(0,0,0,0.90), rgba(0,0,0,1));
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* MAIN STAGE (z-index 2+) */
+body.public-login.login-v4 .login-stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 18px;
+  position: relative;
+  z-index: 2;
+}
+
+/* TOP HERO BRANDING - Hidden (only mini brand row inside card is shown) */
+body.public-login.login-v4 .login-hero-brand {
+  display: none !important;
+}
+
+body.public-login.login-v4 .login-hero-brand__logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+body.public-login.login-v4 .login-hero-brand__logo img {
+  width: min(980px, 92vw);
+  height: auto;
+  opacity: 0.98;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+
+body.public-login.login-v4 .login-hero-brand__name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.95;
+  text-align: center;
+}
+
+body.public-login.login-v4 .login-hero-brand__tagline {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.85;
+  text-align: center;
+}
+
+/* LOGIN CARD - Centered, darker for better readability (z-index 3) */
+body.public-login.login-v4 .login-card {
+  width: min(520px, 92vw);
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: none;
+  padding: 32px 28px;
+  margin-top: 0;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.85);
+}
+
+/* MINI BRAND ROW inside card */
+body.public-login.login-v4 .login-card__brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+}
+
+body.public-login.login-v4 .login-card__mini-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
+body.public-login.login-v4 .login-card__brand-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.90;
+}
+
+body.public-login.login-v4 .login-card__divider {
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.20);
+  margin: 0 0 20px 0;
+}
+
+/* CARD TITLE */
+body.public-login.login-v4 .login-card__title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 24px;
+  text-align: center;
+  color: #fff;
+}
+
+/* FORM */
+body.public-login.login-v4 .login-card__form {
+  display: grid;
+  gap: 18px;
+}
+
+/* FIELDS */
+body.public-login.login-v4 .login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.public-login.login-v4 .login-field label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 0;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: #fff;
+}
+
+body.public-login.login-v4 input.input-text {
+  width: 100%;
+  border-radius: 0 !important;
+  background: rgba(0,0,0,0.85) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.20) !important;
+  padding: 14px 14px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+body.public-login.login-v4 input.input-text:focus {
+  outline: none !important;
+  border-color: rgba(255,255,255,0.55) !important;
+  background: rgba(0,0,0,0.90) !important;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+}
+
+body.public-login.login-v4 input.input-text::placeholder {
+  color: rgba(255,255,255,0.45);
+  opacity: 1;
+}
+
+/* CHROME AUTOFILL FIX - Keep inputs dark and premium */
+body.public-login.login-v4 input.input-text:-webkit-autofill,
+body.public-login.login-v4 input.input-text:-webkit-autofill:hover,
+body.public-login.login-v4 input.input-text:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.92) inset !important;
+  box-shadow: 0 0 0px 1000px rgba(0,0,0,0.92) inset !important;
+  caret-color: #fff !important;
+  border-color: rgba(255,255,255,0.20) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+body.public-login.login-v4 input.input-text:-webkit-autofill:focus {
+  border-color: rgba(255,255,255,0.55) !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.95) inset, 0 0 0 2px rgba(255,255,255,0.15) !important;
+  box-shadow: 0 0 0px 1000px rgba(0,0,0,0.95) inset, 0 0 0 2px rgba(255,255,255,0.15) !important;
+}
+
+/* ACTIONS */
+body.public-login.login-v4 .login-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+body.public-login.login-v4 .login-actions .btn {
+  width: 100%;
+}
+
+body.public-login.login-v4 .btn {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,255,255,0.20) !important;
+  background: rgba(0,0,0,0.85) !important;
+  color: #fff !important;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, border-color .15s ease, transform .08s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+body.public-login.login-v4 .btn:hover {
+  background: rgba(0,0,0,0.90) !important;
+  border-color: rgba(255,255,255,0.40) !important;
+}
+
+body.public-login.login-v4 .btn:active {
+  transform: translateY(1px);
+  background: rgba(0,0,0,0.88) !important;
+}
+
+body.public-login.login-v4 .btn.btn-primary {
+  background: rgba(0,0,0,0.90) !important;
+  border-color: rgba(255,255,255,0.35) !important;
+}
+
+body.public-login.login-v4 .btn.btn-primary:hover {
+  background: rgba(0,0,0,0.95) !important;
+  border-color: rgba(255,255,255,0.50) !important;
+}
+
+/* ERRORS + FOOTER */
+body.public-login.login-v4 .login-error {
+  font-size: 12px;
+  opacity: 0.95;
+  border-left: 2px solid rgba(255,255,255,0.40);
+  padding-left: 12px;
+  margin-top: 4px;
+  color: #fff;
+  min-height: 20px;
+}
+
+body.public-login.login-v4 .login-foot {
+  font-size: 12px;
+  opacity: 0.70;
+  margin-top: 16px;
+  text-align: center;
+  color: rgba(255,255,255,0.70);
+  letter-spacing: 0.01em;
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  body.public-login.login-v4 .login-card { 
+    margin-top: 0;
+    padding: 28px 22px;
+  }
+  body.public-login.login-v4 .login-card__title { 
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+}
