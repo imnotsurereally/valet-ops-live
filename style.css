@@ -4337,8 +4337,8 @@ body.public-login.login-v4 .login-hero {
   overflow: hidden;
 }
 
-/* Background image - prefer car image, fallback to logo watermark */
-/* Try car background first - if file doesn't exist, browser will show black */
+/* Optional: Real car photo background (only if assets/login-bg.jpg exists) */
+/* If the file doesn't exist, gradients-only will be used (premium, clean) */
 body.public-login.login-v4 .login-hero {
   background-image: url("assets/login-bg.jpg");
   background-size: cover;
@@ -4346,24 +4346,8 @@ body.public-login.login-v4 .login-hero {
   background-repeat: no-repeat;
 }
 
-/* Fallback logo watermark - always present but subtle */
-/* If login-bg.jpg exists, this adds subtle depth. If missing, this is the primary visual */
-body.public-login.login-v4 .login-hero::after {
-  content: "";
-  position: absolute;
-  inset: -15%;
-  background-image: url("assets/optima-logo.jpg");
-  background-repeat: no-repeat;
-  background-position: center 50%;
-  background-size: min(1600px, 150vw);
-  filter: blur(2.5px);
-  opacity: 0.20;
-  transform: scale(1.05);
-  mask-image: radial-gradient(ellipse 100% 80% at 50% 55%, rgba(0,0,0,0.90), rgba(0,0,0,0.30) 65%, transparent 85%);
-  z-index: 1;
-}
-
 /* VIGNETTE OVERLAY (z-index 1) - Dark radial vignette + center spotlight */
+/* This provides the premium gradient-only look when no car photo is present */
 body.public-login.login-v4 .login-hero::before {
   content: "";
   position: absolute;
@@ -4389,20 +4373,9 @@ body.public-login.login-v4 .login-stage {
   z-index: 2;
 }
 
-/* TOP HERO BRANDING - Large logo + text (z-index 3) */
+/* TOP HERO BRANDING - Hidden (only mini brand row inside card is shown) */
 body.public-login.login-v4 .login-hero-brand {
-  position: absolute;
-  top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  width: min(980px, 92vw);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  pointer-events: none;
+  display: none !important;
 }
 
 body.public-login.login-v4 .login-hero-brand__logo {
@@ -4438,17 +4411,17 @@ body.public-login.login-v4 .login-hero-brand__tagline {
   text-align: center;
 }
 
-/* LOGIN CARD - Centered, semi-transparent (z-index 3) */
+/* LOGIN CARD - Centered, darker for better readability (z-index 3) */
 body.public-login.login-v4 .login-card {
   width: min(520px, 92vw);
-  border: 1px solid rgba(255,255,255,0.20);
-  background: rgba(0,0,0,0.85);
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(0,0,0,0.88);
   backdrop-filter: none;
   padding: 32px 28px;
-  margin-top: 180px;
+  margin-top: 0;
   position: relative;
   z-index: 3;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.80);
+  box-shadow: 0 30px 90px rgba(0,0,0,0.85);
 }
 
 /* MINI BRAND ROW inside card */
@@ -4540,6 +4513,24 @@ body.public-login.login-v4 input.input-text::placeholder {
   opacity: 1;
 }
 
+/* CHROME AUTOFILL FIX - Keep inputs dark and premium */
+body.public-login.login-v4 input.input-text:-webkit-autofill,
+body.public-login.login-v4 input.input-text:-webkit-autofill:hover,
+body.public-login.login-v4 input.input-text:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.92) inset !important;
+  box-shadow: 0 0 0px 1000px rgba(0,0,0,0.92) inset !important;
+  caret-color: #fff !important;
+  border-color: rgba(255,255,255,0.20) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+body.public-login.login-v4 input.input-text:-webkit-autofill:focus {
+  border-color: rgba(255,255,255,0.55) !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.95) inset, 0 0 0 2px rgba(255,255,255,0.15) !important;
+  box-shadow: 0 0 0px 1000px rgba(0,0,0,0.95) inset, 0 0 0 2px rgba(255,255,255,0.15) !important;
+}
+
 /* ACTIONS */
 body.public-login.login-v4 .login-actions {
   display: flex;
@@ -4613,25 +4604,12 @@ body.public-login.login-v4 .login-foot {
 
 /* RESPONSIVE */
 @media (max-width: 700px) {
-  body.public-login.login-v4 .login-hero-brand { 
-    top: 24px; 
-    gap: 8px;
-  }
-  body.public-login.login-v4 .login-hero-brand__name {
-    font-size: 12px;
-  }
-  body.public-login.login-v4 .login-hero-brand__tagline {
-    font-size: 10px;
-  }
   body.public-login.login-v4 .login-card { 
-    margin-top: 140px;
+    margin-top: 0;
     padding: 28px 22px;
   }
   body.public-login.login-v4 .login-card__title { 
     font-size: 20px;
     margin-bottom: 20px;
-  }
-  body.public-login.login-v4 .login-hero-brand__logo img {
-    width: min(90vw, 600px);
   }
 }
