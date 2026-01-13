@@ -2,186 +2,279 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <title>Valet Ops Live – Customer SMS</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Customer SMS • Valet Ops</title>
 
-  <link rel="stylesheet" href="style.css?v=20260110a" />
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b0d10;
+            color: #fff;
+        }
 
-  <!-- Supabase v1 global -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
 
-  <!-- Customer SMS logic -->
-  <script type="module" src="customersms.js?v=20260110a"></script>
+        .card {
+            background: #12151b;
+            border: 1px solid #1f2430;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 22px;
+        }
+
+        .muted {
+            opacity: 0.7;
+            font-size: 13px;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #2a3040;
+            background: #0f131a;
+            color: #fff;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #2a3040;
+            background: #1a2030;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.primary {
+            background: #1e7f52;
+            border-color: #2fb97a;
+        }
+
+        button.danger {
+            background: #402025;
+            border-color: #a34755;
+        }
+
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .ok {
+            background: #143524;
+            border: 1px solid #2fb97a;
+        }
+
+        .err {
+            background: #3a1d22;
+            border: 1px solid #a34755;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .pill {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #1a2030;
+            border: 1px solid #2a3040;
+        }
+    </style>
 </head>
 
-<body data-page="customersms" class="role-customersms">
-  <div class="app-shell">
-    <nav class="side-nav" aria-label="Primary">
-      <div class="side-nav__inner">
-        <div class="side-nav__brand">
-          <div class="side-nav__logo">O</div>
-          <div class="side-nav__brand-text">Optima Ops</div>
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <div>
+                <h1>Customer SMS</h1>
+                <div class="muted">Dispatcher / GM only • Customer-facing messages</div>
+            </div>
+            <div class="row">
+                <div id="userBadge" class="pill">Checking access…</div>
+                <button id="logoutBtn">Logout</button>
+            </div>
         </div>
 
-        <div class="side-nav__group">
-          <div class="side-nav__group-title">Service</div>
-          <a class="side-link" href="dispatcher.html" data-page="dispatcher">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 2l4 8-4 12-4-12 4-8z"/><path d="M12 10l6-2-6 2-6-2 6 2z"/></svg>
+        <div class="card">
+            <label>Template</label>
+            <select id="template"></select>
+
+            <label>Customer name</label>
+            <input id="name" placeholder="Dan" />
+
+            <label>Customer phone</label>
+            <input id="phone" placeholder="+1949XXXXXXX" />
+
+            <label>Message</label>
+            <textarea id="message"></textarea>
+
+            <div class="row">
+                <button class="danger" id="clearBtn">Clear</button>
+                <button class="primary" id="sendBtn">Send SMS</button>
             </div>
-            <div class="side-link__label">Dispatcher</div>
-          </a>
-          <a class="side-link" href="keymachine.html" data-page="keymachine">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M7 14a5 5 0 1 1 4.6 3H10l-2 2H6v-2l2-2h1"/><path d="M15 11h2"/></svg>
-            </div>
-            <div class="side-link__label">Key Machine</div>
-          </a>
-          <a class="side-link" href="carwash.html" data-page="carwash">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg>
-            </div>
-            <div class="side-link__label">Car Wash</div>
-          </a>
-          <a class="side-link" href="wallboard.html" data-page="wallboard">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
-            </div>
-            <div class="side-link__label">Wallboard</div>
-          </a>
-          <a class="side-link" href="history.html" data-page="history">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>
-            </div>
-            <div class="side-link__label">History</div>
-          </a>
-          <a class="side-link" href="customersms.html" data-page="customersms" data-sms-only="1">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
-            </div>
-            <div class="side-link__label">Customer SMS</div>
-          </a>
+
+            <div id="status" style="display:none"></div>
         </div>
+    </div>
 
-        <div class="side-nav__group">
-          <div class="side-nav__group-title">Sales</div>
-          <a class="side-link" href="sales_manager.html" data-page="sales_manager" data-sales-only="1">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M8 7V5h8v2"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
-            </div>
-            <div class="side-link__label">Sales Manager</div>
-          </a>
-          <a class="side-link" href="sales_driver.html" data-page="sales_driver" data-sales-only="1">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>
-            </div>
-            <div class="side-link__label">Sales Driver</div>
-          </a>
-          <a class="side-link" href="sales_history.html" data-page="sales_history" data-sales-only="1">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 3v5h5"/></svg>
-            </div>
-            <div class="side-link__label">Sales History</div>
-          </a>
-        </div>
+    <script type="module">
+        import { supabase } from "./supabaseClient.js";
+        import { sendSms } from "./sms.js";
 
-        <div class="side-nav__group">
-          <div class="side-nav__group-title">Owner</div>
-          <a class="side-link" href="executive.html" data-page="executive" data-owner-only="1">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M4 16l6-6 4 4 6-8"/><path d="M20 6v6h-6"/></svg>
-            </div>
-            <div class="side-link__label">Executive</div>
-          </a>
-          <a class="side-link" href="system_settings.html" data-page="system_settings" data-owner-only="1">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.5-2.3.7a7.6 7.6 0 0 0-1.7-1L15 4h-6l-.5 3a7.6 7.6 0 0 0-1.7 1L4.5 7.3l-2 3.5 2 1.2a8 8 0 0 0 .1 2l-2 1.2 2 3.5 2.3-.7a7.6 7.6 0 0 0 1.7 1L9 20h6l.5-3a7.6 7.6 0 0 0 1.7-1l2.3.7 2-3.5-2-1.2z"/></svg>
-            </div>
-            <div class="side-link__label">Settings</div>
-          </a>
-          <a class="side-link" href="index.html" data-page="home">
-            <div class="side-link__icon">
-              <svg class="sb-ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v11h12V10"/></svg>
-            </div>
-            <div class="side-link__label">Home</div>
-          </a>
-        </div>
-      </div>
-    </nav>
+        /* ACCESS CONTROL — SIMPLE + SAFE FOR NOW
+           Replace emails later if you want.
+           This blocks everyone else automatically. */
+        const ALLOWED_EMAILS = [
+            "dispatcher@company.com",
+            "gm@company.com",
+            "owner@company.com"
+        ];
 
-    <main class="app-main">
-      <div class="app-main__inner">
-      <div class="topbar">
-        <div class="topbar__left">
-          <div class="topbar__title">Optima Ops</div>
-          <div class="topbar__who" id="topbar-who"></div>
-        </div>
-        <div class="topbar__right"></div>
-      </div>
+        const TEMPLATES = [
+            {
+                label: "Car ready",
+                text: "Hi {name} — your vehicle is ready for pickup. Please reply with your ETA. Thanks!"
+            },
+            {
+                label: "Missed call",
+                text: "Hi {name} — we tried calling but missed you. Reply here with a good time to reach you."
+            },
+            {
+                label: "Small delay",
+                text: "Hi {name} — small delay on our end. We’ll update you shortly. Thanks for your patience."
+            },
+            {
+                label: "Confirm location",
+                text: "Hi {name} — where are you currently parked so we can bring your vehicle to you?"
+            }
+        ];
 
-        <header class="app-header">
-          <div class="titles">
-            <div class="section-title">Customer SMS</div>
-          </div>
+        const el = id => document.getElementById(id);
+        const templateSel = el("template");
+        const nameEl = el("name");
+        const phoneEl = el("phone");
+        const msgEl = el("message");
+        const statusEl = el("status");
+        const userBadge = el("userBadge");
 
-          <div class="header-right">
-            <button id="signout-btn" class="btn small">Sign out</button>
-          </div>
-        </header>
+        function showStatus(type, msg) {
+            statusEl.className = "status " + type;
+            statusEl.textContent = msg;
+            statusEl.style.display = "block";
+        }
 
-        <main class="app-main">
-          <section class="section">
-            <div class="section-header">
-              <div>
-                <div class="section-title">Send Customer SMS</div>
-                <div class="section-subtitle">
-                  Select a template, enter customer name and phone, then send.
-                </div>
-              </div>
-            </div>
+        function normalizePhone(v) {
+            v = (v || "").replace(/[^\d+]/g, "");
+            if (!v.startsWith("+") && v.length === 10) v = "+1" + v;
+            if (!v.startsWith("+") && v.length === 11 && v.startsWith("1")) v = "+" + v;
+            return v;
+        }
 
-            <form class="new-pickup-form" id="sms-form" onsubmit="return false;">
-              <div class="input-group">
-                <label for="sms-template">Template</label>
-                <select id="sms-template" class="input-text" required>
-                  <option value="">Select a template...</option>
-                </select>
-              </div>
+        function renderTemplate() {
+            const t = TEMPLATES[templateSel.selectedIndex];
+            const name = nameEl.value || "there";
+            msgEl.value = t.text.replaceAll("{name}", name);
+        }
 
-              <div class="input-group">
-                <label for="sms-name">Customer Name</label>
-                <input id="sms-name" class="input-text" placeholder="e.g. Maria Lopez" required />
-              </div>
+        async function requireAccess() {
+            const { data } = await supabase.auth.getSession();
+            const session = data?.session;
+            if (!session?.user) {
+                location.href = "./login.html";
+                return;
+            }
+            const email = session.user.email.toLowerCase();
+            userBadge.textContent = email;
+            if (!ALLOWED_EMAILS.includes(email)) {
+                document.body.innerHTML = "<h2 style='padding:40px'>Access denied</h2>";
+            }
+        }
 
-              <div class="input-group">
-                <label for="sms-phone">Phone Number</label>
-                <input id="sms-phone" class="input-text" placeholder="+19494443388" required />
-              </div>
+        async function send() {
+            const to = normalizePhone(phoneEl.value);
+            if (!to.startsWith("+")) {
+                showStatus("err", "Invalid phone number");
+                return;
+            }
+            const body = msgEl.value.trim();
+            if (!body) {
+                showStatus("err", "Message is empty");
+                return;
+            }
+            try {
+                await sendSms(to, body);
+                showStatus("ok", "SMS sent successfully");
+            } catch (e) {
+                showStatus("err", e.message || "Send failed");
+            }
+        }
 
-              <div class="input-group" style="flex: 1 1 100%;">
-                <label for="sms-message">Message</label>
-                <textarea id="sms-message" class="input-text" rows="4" placeholder="Message will be auto-filled from template..." required></textarea>
-              </div>
+        el("sendBtn").onclick = send;
+        el("clearBtn").onclick = () => {
+            nameEl.value = "";
+            phoneEl.value = "";
+            msgEl.value = "";
+            statusEl.style.display = "none";
+        };
+        el("logoutBtn").onclick = async () => {
+            await supabase.auth.signOut();
+            location.href = "./login.html";
+        };
 
-              <div class="input-group" style="align-self: flex-end;">
-                <button type="submit" class="btn btn-primary" id="sms-send-btn">Send SMS</button>
-              </div>
-            </form>
-          </section>
+        // init
+        TEMPLATES.forEach(t => {
+            const o = document.createElement("option");
+            o.textContent = t.label;
+            templateSel.appendChild(o);
+        });
+        templateSel.onchange = renderTemplate;
+        nameEl.oninput = renderTemplate;
 
-          <section class="section" id="sms-status-section" style="display: none;">
-            <div class="section-header">
-              <div>
-                <div class="section-title">Status</div>
-              </div>
-            </div>
-            <div id="sms-status" class="status-badge"></div>
-          </section>
-        </main>
-      </div>
-    </main>
-  </div>
+        await requireAccess();
+        renderTemplate();
+    </script>
 </body>
 
 </html>
