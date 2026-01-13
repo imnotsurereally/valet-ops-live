@@ -34,53 +34,47 @@
   </script>
 </head>
 
-<body class="public-login">
-  <noscript>
-    <div class="prelogin-shell">
-      <div class="prelogin-card">
-        <div class="login-title">Valet Ops Live</div>
-        <div class="login-error" style="display:block;">
-          This app requires JavaScript to sign in.
-        </div>
-      </div>
-    </div>
-  </noscript>
+<body class="public-login login-v3">
+  <div class="login-hero" aria-hidden="true"></div>
 
-  <div class="prelogin-shell">
-    <div class="prelogin-card">
-      <div class="secure-brand">
-        <div class="secure-mark" aria-label="Optima">O</div>
-        <div class="secure-brandtext">
-          <div class="secure-company">OPTIMA DEALER SERVICES</div>
-          <div class="secure-product">Valet Ops Live</div>
+  <main class="login-stage" role="main">
+    <header class="login-brand-top" aria-label="Optima Dealer Services">
+      <div class="login-brand-top__logo">
+        <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" />
+      </div>
+    </header>
+
+    <section class="login-card-v3" aria-label="Secure sign in">
+      <div class="login-card-v3__header">
+        <div class="login-card-v3__mark">
+          <img src="assets/optima-logo.jpg" alt="Optima Dealer Services" />
+          <div class="login-card-v3__marktext">OPTIMA DEALER SERVICES</div>
         </div>
       </div>
 
-      <div class="prelogin-title">Secure sign in</div>
+      <div class="login-card-v3__title">Secure sign in</div>
 
-      <form id="login-form" class="prelogin-form">
-        <div class="input-group">
+      <form id="login-form" class="login-card-v3__form">
+        <div class="login-field">
           <label for="login-email">Email</label>
           <input id="login-email" class="input-text" type="email" autocomplete="username" required />
         </div>
 
-        <div class="input-group">
+        <div class="login-field">
           <label for="login-password">Password</label>
           <input id="login-password" class="input-text" type="password" autocomplete="current-password" required />
         </div>
 
-        <div class="prelogin-actions">
+        <div class="login-actions-v3">
           <button class="btn btn-primary" type="submit">Sign in</button>
         </div>
 
         <div id="login-error" class="login-error"></div>
 
-        <div class="prelogin-foot">
-          <span class="prelogin-note">Use your dealership-issued credentials.</span>
-        </div>
+        <div class="login-foot-v3">Use your dealership-issued credentials.</div>
       </form>
-    </div>
-  </div>
+    </section>
+  </main>
 </body>
 
 </html>
