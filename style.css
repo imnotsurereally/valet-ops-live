@@ -89,7 +89,7 @@
 
 html,
 body {
-  background: #000 !important;
+  background: var(--bg) !important;
 }
 
 body {
@@ -1674,16 +1674,7 @@ body.role-loancar button[data-action^="toggle-"] {
   --sb-expanded: 220px;
 }
 
-/* TRUE BLACK + WHITE TEXT */
-html,
-body,
-.app-shell,
-.app-main,
-.side-nav,
-.side-nav__inner {
-  background: var(--black) !important;
-  color: var(--white) !important;
-}
+/* TRUE BLACK + WHITE TEXT - REMOVED: Now using unified theme system */
 
 body,
 h1,
@@ -1813,9 +1804,9 @@ textarea,
 input,
 select,
 textarea {
-  background: #000 !important;
-  color: #fff !important;
-  border: 1px solid var(--border-white-soft) !important;
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
 }
 
 input:focus,
@@ -2097,9 +2088,9 @@ p,span,label,td,th{ color:var(--fg)!important; }
 /* Inputs */
 input,select,textarea{
   border-radius:0 !important;
-  background:#000 !important;
-  color:#fff !important;
-  border:1px solid var(--border) !important;
+  background:var(--panel) !important;
+  color:var(--text) !important;
+  border:1px solid var(--line) !important;
   padding: var(--pad-1) var(--pad-2);
 }
 input:focus,select:focus,textarea:focus{
@@ -2182,7 +2173,7 @@ input:focus,select:focus,textarea:focus{
   padding: 0 var(--pad-3);
   position: sticky;
   top: 0;
-  background: #000;
+  background: var(--bg);
   z-index: 10;
 }
 .topbar__left{ display:flex; align-items:center; gap:10px; min-width:0; }
@@ -2291,11 +2282,7 @@ input:focus,select:focus,textarea:focus{
    DEMO HARDENING THEME EXTENSION (APPENDED — SAFE)
    ========================================================= */
 
-/* True black baseline */
-html, body {
-  background: #050608;
-  color: #ffffff;
-}
+/* True black baseline - REMOVED: Now using unified theme system */
 
 /* Sidebar hover-expand (CSS only, no JS risk) */
 .side-nav {
@@ -3628,4 +3615,218 @@ textarea,
 .section::before,
 .section::after {
   display: none !important;
+}
+
+/* =========================================================
+   UNIFIED THEME SYSTEM + SECTION BORDERS + ACTIVE PULSE
+   ========================================================= */
+
+/* Remove all hard-coded black backgrounds - use variables */
+html,
+body,
+.app-shell,
+.app-main,
+.app-main__inner,
+.side-nav,
+.side-nav__inner,
+.topbar {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Unified theme tokens (highest precedence) */
+:root {
+  /* Core surfaces */
+  --bg: #000000;
+  --panel: #000000;
+  --panel2: #050505;
+  --text: #EAEAEA;
+  --muted: #A8A8A8;
+  --line: rgba(255, 255, 255, 0.16);
+  --hover: rgba(255, 255, 255, 0.04);
+  --chip: rgba(255, 255, 255, 0.08);
+  --chipText: #EAEAEA;
+  
+  /* Accents */
+  --accentBlue: #2D6BFF;
+  --accentBlueTint: rgba(45, 107, 255, 0.06);
+  --accentWarn: #F0A33A;
+  --accentDanger: #E23B3B;
+}
+
+/* Light theme */
+html[data-theme="light"] {
+  --bg: #FFFFFF;
+  --panel: #FFFFFF;
+  --panel2: #FAFAFA;
+  --text: #1A1A1A;
+  --muted: #525252;
+  --line: rgba(0, 0, 0, 0.16);
+  --hover: rgba(0, 0, 0, 0.04);
+  --chip: rgba(0, 0, 0, 0.08);
+  --chipText: #1A1A1A;
+  
+  --accentBlue: #2D6BFF;
+  --accentBlueTint: rgba(45, 107, 255, 0.08);
+  --accentWarn: #F0A33A;
+  --accentDanger: #E23B3B;
+}
+
+/* Apply theme to all major containers */
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.app-shell,
+.app-main,
+.app-main__inner {
+  background: var(--bg) !important;
+}
+
+.side-nav,
+.side-nav__inner {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.topbar {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Section borders everywhere (subtle, not big circles) */
+.section {
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background: var(--panel) !important;
+  padding: 18px !important;
+  margin-bottom: 1.2rem !important;
+}
+
+.section-header {
+  border-bottom: 1px solid var(--line) !important;
+  padding-bottom: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.table-wrapper {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+}
+
+/* Dispatcher Active Pickups: White pulsing border + better blue */
+body.role-dispatcher .section.section-active {
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  background: var(--accentBlueTint) !important;
+  position: relative;
+  padding-left: 18px !important; /* Override left padding from old styles */
+  border-left: 1px solid rgba(255, 255, 255, 0.55) !important; /* Override left border */
+  animation: pulseBorderWhite 2s ease-in-out infinite;
+}
+
+@keyframes pulseBorderWhite {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* Better blue accent for active section */
+body.role-dispatcher .section.section-active .section-title {
+  color: var(--accentBlue) !important;
+  font-weight: 700 !important;
+}
+
+/* Fix chip density: Status/Location + Valet names */
+.role-dispatcher .ctl-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.4rem !important;
+}
+
+.role-dispatcher .ctl-status,
+.role-dispatcher .ctl-keys {
+  min-height: auto !important;
+}
+
+.role-dispatcher .wash-buttons,
+.role-dispatcher .valet-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px 10px !important;
+  align-items: center !important;
+}
+
+.role-dispatcher .wash-buttons .btn,
+.role-dispatcher .valet-grid .btn {
+  white-space: nowrap !important;
+  min-height: 28px !important;
+  padding: 6px 10px !important;
+  flex-shrink: 0 !important;
+  width: auto !important; /* Override grid width: 100% */
+}
+
+.role-dispatcher .status-badge {
+  white-space: nowrap !important;
+  margin-bottom: 0.3rem !important;
+}
+
+/* Ensure inputs and other elements use theme */
+input,
+select,
+textarea {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accentBlue) !important;
+}
+
+/* Table styling with theme */
+table {
+  background: transparent !important;
+}
+
+thead th {
+  color: var(--muted) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+tbody td {
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+tbody tr:hover {
+  background: var(--hover) !important;
+}
+
+/* Buttons use theme */
+.btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--text) !important;
+}
+
+.btn:hover {
+  background: var(--hover) !important;
+  border-color: var(--line) !important;
+}
+
+/* Chips and badges */
+.pill-blue,
+.status-badge,
+.timer {
+  background: var(--chip) !important;
+  color: var(--chipText) !important;
+  border: 1px solid var(--line) !important;
 }
