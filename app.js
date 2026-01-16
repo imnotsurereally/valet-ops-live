@@ -617,10 +617,11 @@ function onTableClick(e) {
   const id = btn.getAttribute("data-id");
   const action = btn.getAttribute("data-action");
   if (!id || !action) return;
-  handleAction(id, action);
+  const valetName = btn.getAttribute("data-valet-name") || null;
+  handleAction(id, action, valetName);
 }
 
-async function handleAction(id, action) {
+async function handleAction(id, action, valetNameFromBtn = null) {
   // ✅ DOUBLE LOCK: even if a click slips through, wallboard can never mutate data
   if (role === "wallboard") return;
 
@@ -711,9 +712,8 @@ async function handleAction(id, action) {
 
     /* --- valets (dynamic) --- */
     case "with-valet":
-      const valetName = btn.getAttribute("data-valet-name");
-      if (valetName) {
-        setValetUpdates(updates, valetName, now);
+      if (valetNameFromBtn) {
+        setValetUpdates(updates, valetNameFromBtn, now);
       }
       break;
 
