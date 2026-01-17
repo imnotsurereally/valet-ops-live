@@ -1,4 +1,4 @@
-.PHONY: sb-status sb-start sb-stop sb-pull sb-reset sb-push
+.PHONY: sb-status sb-start sb-stop sb-pull sb-reset sb-push audit
 
 sb-status:
 	supabase status
@@ -17,3 +17,6 @@ sb-reset:
 
 sb-push:
 	supabase db push
+
+audit:
+	bash scripts/audit.sh
