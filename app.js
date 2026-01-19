@@ -325,10 +325,8 @@ function injectErrorsLink({ isOwner, isDispatcher }) {
 }
 
 function buildErrorsLinkHref(projectRef) {
-  const ref = projectRef || SUPABASE_PROJECT_REF;
-  const base = `https://supabase.com/dashboard/project/${ref}/editor/table/public.client_events`;
-  const query = "?filter=level%3Aeq%3Aerror&sort=created_at.desc";
-  return base + query;
+  // Use the explicit Supabase Studio URL for filtered client_events errors
+  return "https://supabase.com/dashboard/project/azsjlplgxhohpzuobxrj/editor/68393?schema=public&sort=created_at%3Adesc&filter=level%3Aeq%3Aerror&filter=created_at%3Agte%3A2026-01-17T00%3A00%3A00Z";
 }
 
 function toggleDebugStrip() {
