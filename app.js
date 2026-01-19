@@ -66,6 +66,7 @@ let lastWriteStatus = "—";
 let realtimeStatus = "disconnected";
 let loadPickupsInFlight = false;
 let loadPickupsQueued = false;
+let loadPickupsNullWarned = false;
 let realtimeDebounceTimer = null;
 let realtimeSubscription = null;
 
@@ -585,13 +586,44 @@ function setupForm() {
       insertData.notes_updated_at = nowIso;
     }
 
-    const { error } = await supabase.from("pickups").insert(insertData);
+    const timestamp = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("pickups")
+      .insert(insertData)
+      .select("id");
 
     if (error) {
-      console.error(error);
+      showBanner("error", "Create failed", error.message || "");
+      setDebugLastWrite("ERROR");
+      console.error("[OPS] Create failure", {
+        tag,
+        name,
+        staged,
+        storeId,
+        role,
+        timestamp,
+        error: error.message
+      });
       toast("Error creating ticket. Check console.", "error");
       return;
     }
+
+    if (!data || data.length === 0) {
+      showBanner("warn", "Create blocked (0 rows)", "Likely RLS/store context mismatch");
+      setDebugLastWrite("NO-OP");
+      console.warn("[OPS] Create blocked (0 rows)", {
+        tag,
+        name,
+        staged,
+        storeId,
+        role,
+        timestamp
+      });
+      return;
+    }
+
+    hideBanner();
+    setDebugLastWrite(`OK rows=${data.length}`);
 
     toast("Ticket created", "success");
 
@@ -860,6 +892,8 @@ async function loadPickups() {
   loadPickupsQueued = false;
 
   try {
+    const timestamp = new Date().toISOString();
+
     let q = supabase.from("pickups").select("*").order("created_at", {
       ascending: false
     });
@@ -869,11 +903,33 @@ async function loadPickups() {
     const { data, error } = await q;
 
     if (error) {
-      console.error(error);
+      showBanner("error", "Load failed", error.message || "");
+      console.error("[OPS] Load failure", {
+        storeId,
+        role,
+        timestamp,
+        error: error.message
+      });
       return;
     }
 
-    pickups = data || [];
+    if (data === null) {
+      pickups = [];
+      if (!loadPickupsNullWarned) {
+        loadPickupsNullWarned = true;
+        showBanner(
+          "warn",
+          "Load returned no data",
+          "Likely RLS/store context mismatch"
+        );
+        console.warn("[OPS] Load returned null data", { storeId, role, timestamp });
+      }
+    } else {
+      pickups = data;
+      loadPickupsNullWarned = false;
+      hideBanner();
+    }
+
     renderTables(false);
 
     // Track successful refresh
