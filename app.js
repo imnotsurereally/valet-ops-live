@@ -20,10 +20,22 @@ async function logPickupEvent({ pickupId, storeId, action, payload }) {
   if (!storeId || !pickupId) return;
 
   try {
-    // Get current user
-    const { data: userData } = await supabase.auth.getUser();
-    const actorUserId = userData?.user?.id ?? null;
-    const actorRole = pageKeyFromPath?.() ?? null;
+    // Get current user (compat: supabase-js v2 has auth.getUser(); v1 has auth.user())
+    let actorUserId = null;
+    try {
+      if (supabase?.auth?.getUser) {
+        const { data } = await supabase.auth.getUser();
+        actorUserId = data?.user?.id ?? null;
+      } else if (supabase?.auth?.user) {
+        const u = supabase.auth.user();
+        actorUserId = u?.id ?? null;
+      }
+    } catch {
+      // Logging must never break main flow
+    }
+
+    const actorRole =
+      (typeof pageKeyFromPath === "function" ? pageKeyFromPath() : null) ?? null;
 
     // Insert audit event
     const { error } = await supabase
