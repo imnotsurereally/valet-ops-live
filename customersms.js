@@ -4,6 +4,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
+import { initObservability, logClientEvent } from "./observability.js";
 import { sendSms } from "./sms.js";
 import { toast } from "./ui.js?v=20260105c";
 
@@ -48,6 +49,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // AUTH GATE (dispatcher + owner/manager only)
     const auth = await requireAuth({ page: "customersms" });
     if (!auth?.ok) return;
+
+    const storeId = auth?.profile?.store_id || null;
+    const page = "customersms";
+
+    // Observability (best effort; non-blocking)
+    initObservability({ storeId, page, role: page });
+    logClientEvent({
+      storeId,
+      page,
+      role: page,
+      level: "info",
+      eventType: "page_load",
+      message: "loaded",
+      context: {},
+    });
 
     wireSignOut();
     wireForm();

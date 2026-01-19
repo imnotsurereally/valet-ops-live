@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
+import { initObservability, logClientEvent } from "./observability.js";
 import { showModal, showTextModal, showSelectModal, toast, downloadCSV, copyTSV, formatSnapTime } from "./ui.js?v=20260105c";
 
 let salesPickups = [];
@@ -45,6 +46,18 @@ async function initSalesApp() {
 
   storeId = auth?.profile?.store_id || null;
   const userRole = auth?.effectiveRole || "";
+
+  // Observability (best effort; non-blocking)
+  initObservability({ storeId, page: currentPage, role: currentPage });
+  logClientEvent({
+    storeId,
+    page: currentPage,
+    role: currentPage,
+    level: "info",
+    eventType: "page_load",
+    message: "loaded",
+    context: {},
+  });
 
   // Role guard
   if (pageRole === "sales_manager") {

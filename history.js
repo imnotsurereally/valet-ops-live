@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
+import { initObservability, logClientEvent } from "./observability.js";
 import { showModal, toast, downloadCSV, copyTSV } from "./ui.js?v=20260105c";
 
 let storeId = null;
@@ -15,6 +16,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!auth?.ok) return;
 
     storeId = auth?.profile?.store_id || null;
+  const page = "history";
+
+  // Observability (best effort; non-blocking)
+  initObservability({ storeId, page, role: page });
+  logClientEvent({
+    storeId,
+    page,
+    role: page,
+    level: "info",
+    eventType: "page_load",
+    message: "loaded",
+    context: {},
+  });
 
     wireSignOut();
     wireControls();

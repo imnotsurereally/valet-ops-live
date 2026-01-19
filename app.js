@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
+import { initObservability, logClientEvent } from "./observability.js";
 import { showModal, showTextModal, showSelectModal, toast, formatSnapTime } from "./ui.js?v=20260105c";
 
 let pickups = [];
@@ -77,6 +78,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!auth?.ok) return; // redirected or blocked
 
     storeId = auth?.profile?.store_id || null;
+    const page = typeof pageKeyFromPath === "function" ? pageKeyFromPath() : null;
+
+    // Observability (best effort; non-blocking)
+    initObservability({ storeId, page, role: page });
+    logClientEvent({
+      storeId,
+      page,
+      role: page,
+      level: "info",
+      eventType: "page_load",
+      message: "loaded",
+      context: {},
+    });
 
     // Set role (screen role) from body class
     if (document.body.classList.contains("role-keymachine")) role = "keymachine";
