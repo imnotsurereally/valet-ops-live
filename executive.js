@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
+import { initObservability, logClientEvent } from "./observability.js";
 
 let storeId = null;
 let servicePickups = [];
@@ -33,6 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     storeId = auth?.profile?.store_id || null;
     const effectiveRole = auth?.effectiveRole || "";
+
+  // Observability (best effort; non-blocking)
+  initObservability({ storeId, page: currentPage, role: currentPage });
+  logClientEvent({
+    storeId,
+    page: currentPage,
+    role: currentPage,
+    level: "info",
+    eventType: "page_load",
+    message: "loaded",
+    context: {},
+  });
 
     // Role lock: only owner/manager allowed
     if (effectiveRole !== "owner" && effectiveRole !== "manager") {

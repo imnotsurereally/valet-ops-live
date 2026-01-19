@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
+import { initObservability, logClientEvent } from "./observability.js";
 import { toast, downloadCSV, copyTSV } from "./ui.js?v=20260105c";
 
 let salesPickups = [];
@@ -18,6 +19,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     storeId = auth?.profile?.store_id || null;
     const userRole = auth?.effectiveRole || "";
+
+  // Observability (best effort; non-blocking)
+  initObservability({ storeId, page: "sales_history", role: "sales_history" });
+  logClientEvent({
+    storeId,
+    page: "sales_history",
+    role: "sales_history",
+    level: "info",
+    eventType: "page_load",
+    message: "loaded",
+    context: {},
+  });
 
     // Role guard: ONLY owner/manager allowed
     const allowed = ["owner", "manager"];
