@@ -6,6 +6,8 @@ import { requireAuth, wireSignOut } from "./auth.js?v=20260110a";
 import { initObservability, logClientEvent } from "./observability.js";
 import { showModal, showTextModal, showSelectModal, toast, formatSnapTime } from "./ui.js?v=20260105c";
 
+const SUPABASE_PROJECT_REF = deriveProjectRef();
+
 let pickups = [];
 let role = "dispatcher";
 let severityMap = new Map(); // id -> severity for sound alerts
@@ -13,6 +15,12 @@ let pqiEnabled = false;
 let uiStateLoaded = false;
 let storeId = null;
 let valetNames = []; // Dynamic valet names from store_settings
+
+function deriveProjectRef() {
+  const url = supabase?.supabaseUrl || "";
+  const fromUrl = url.replace(/^https:\/\/|\.supabase\.co\/?$/g, "");
+  return fromUrl || "azsjlplgxhohpzuobxrj";
+}
 
 /* ---------- AUDIT LOGGING ---------- */
 
@@ -100,8 +108,13 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (document.body.classList.contains("role-loancar")) role = "loancar";
     else role = "dispatcher";
 
+    const effectiveRole = (auth?.profile?.role || auth?.profile?.operational_role || "").toLowerCase();
+    const isOwner = effectiveRole === "owner";
+    const isDispatcherScreen = role === "dispatcher";
+
     // Optional sign-out support if a button exists (id="signout-btn")
     wireSignOut();
+    injectErrorsLink({ isOwner, isDispatcher: isDispatcherScreen });
 
     // Ops reliability UI
     ensureOpsUI();
@@ -284,6 +297,38 @@ function setupDebugToggle() {
     toggleBtn.onclick = toggleDebugStrip;
     headerRight.insertBefore(toggleBtn, headerRight.firstChild);
   }
+}
+
+function injectErrorsLink({ isOwner, isDispatcher }) {
+  // Only dispatcher screen or owner role should see Errors link
+  if (!isOwner && !isDispatcher) return;
+
+  const headerRight = document.querySelector(".header-right");
+  if (!headerRight) return;
+
+  // Avoid duplicates if DOMContentLoaded runs more than once
+  if (headerRight.querySelector("#errors-link")) return;
+
+  // Require the existing History link to anchor placement
+  const historyLink = headerRight.querySelector('a[href="history.html"]');
+  if (!historyLink) return;
+
+  const errorsLink = document.createElement("a");
+  errorsLink.id = "errors-link";
+  errorsLink.className = "btn small dispatcher-only";
+  errorsLink.target = "_blank";
+  errorsLink.rel = "noopener noreferrer";
+  errorsLink.textContent = "Errors";
+  errorsLink.href = buildErrorsLinkHref(SUPABASE_PROJECT_REF);
+
+  historyLink.insertAdjacentElement("afterend", errorsLink);
+}
+
+function buildErrorsLinkHref(projectRef) {
+  const ref = projectRef || SUPABASE_PROJECT_REF;
+  const base = `https://supabase.com/dashboard/project/${ref}/editor/table/public.client_events`;
+  const query = "?filter=level%3Aeq%3Aerror&sort=created_at.desc";
+  return base + query;
 }
 
 function toggleDebugStrip() {
