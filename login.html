@@ -11,6 +11,21 @@
   <!-- Supabase v1 global -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
 
+  <style>
+    .compliance-footer {
+      margin-top: auto;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      padding: 16px 16px 16px;
+    }
+    .compliance-footer a {
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+    }
+    .compliance-footer a:hover { opacity: 0.9; }
+  </style>
+
   <!-- Auth gate + login wiring -->
   <script type="module">
     /*
@@ -68,6 +83,10 @@
         <div class="login-foot">Use your dealership-issued credentials.</div>
       </form>
     </section>
+    <footer class="compliance-footer" role="contentinfo">
+      Powered by Daniel V Corona — Independent Software Platform<br>
+      <a href="privacy/">Privacy</a> | <a href="terms/">Terms</a> | <a href="contact/">Contact</a>
+    </footer>
   </main>
 </body>
 

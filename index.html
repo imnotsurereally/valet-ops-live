@@ -71,6 +71,24 @@
     body.role-manager .link-system-settings {
       display: inline-flex;
     }
+
+    .app-main__inner {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .compliance-footer {
+      margin-top: auto;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      padding: 16px 16px 16px;
+    }
+    .compliance-footer a {
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+    }
+    .compliance-footer a:hover { opacity: 0.9; }
   </style>
 
   <!-- ✅ Auth gate: HOME is owner/manager-only. Employees get redirected to their screen. -->
@@ -270,6 +288,10 @@
             </div>
           </section>
         </main>
+        <footer class="compliance-footer" role="contentinfo">
+          Powered by Daniel V Corona — Independent Software Platform<br>
+          <a href="privacy/">Privacy</a> | <a href="terms/">Terms</a> | <a href="contact/">Contact</a>
+        </footer>
       </div>
     </main>
   </div>
