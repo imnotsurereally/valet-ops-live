@@ -7,6 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" href="style.css?v=20260110a" />
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .login-stage { flex: 1; }
+    .site-footer {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      padding: 24px 0 16px;
+    }
+    .site-footer a { color: rgba(255,255,255,0.65); text-decoration: none; }
+    .site-footer a:hover { color: rgba(255,255,255,0.85); }
+  </style>
 
   <!-- Supabase v1 global -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js"></script>
@@ -69,6 +81,10 @@
       </form>
     </section>
   </main>
+  <footer class="site-footer">
+    <div>Powered by Daniel V Corona — Independent Software Platform</div>
+    <div><a href="/privacy/">Privacy</a> | <a href="/terms/">Terms</a> | <a href="/contact/">Contact</a></div>
+  </footer>
 </body>
 
 </html>
