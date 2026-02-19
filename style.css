@@ -4903,3 +4903,156 @@ body.role-dispatcher .section-active .table-wrapper {
     background: rgba(246, 24, 17, 0.30);
   }
 }
+
+/* ========== RAW HOVER MENUS (STATUS / KEYS) ========== */
+.hoverctl {
+  position: relative;
+  display: inline-block;
+}
+
+.hoverpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 26px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  background: var(--chip, rgba(255, 255, 255, 0.06));
+  color: var(--chipText, var(--text));
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: none;
+  cursor: default;
+}
+
+.hoverpill.selected {
+  border-color: var(--accentBlue);
+  background: rgba(59, 130, 246, 0.16);
+  color: #fff;
+}
+
+.hovermenu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 190px;
+  padding: 6px;
+  background: var(--panel, rgba(12, 12, 14, 0.96));
+  border: 1px solid var(--line2, rgba(255, 255, 255, 0.14));
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.38);
+  display: none;
+  z-index: 60;
+}
+
+.hoverctl:hover .hovermenu {
+  display: block;
+}
+
+.hoveritem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px !important;
+  margin: 2px 0;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--text) !important;
+  font-size: 12px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.hoveritem:hover {
+  background: var(--hover) !important;
+  border-color: var(--line) !important;
+}
+
+.hoveritem.selected {
+  border-color: var(--accentBlue) !important;
+  background: rgba(59, 130, 246, 0.14) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.hoveritem.pulse-blue {
+  animation: optimaPulseBlue 0.85s ease-in-out infinite !important;
+  border-color: var(--optima-blue) !important;
+  background: rgba(2, 83, 181, 0.18) !important;
+  color: #fff !important;
+}
+
+.hoveritem.pulse-orange {
+  animation: optimaPulseOrange 0.85s ease-in-out infinite !important;
+  border-color: var(--optima-orange) !important;
+  background: rgba(212, 74, 4, 0.20) !important;
+  color: #fff !important;
+}
+
+.hoveritem.opt-pulse-red {
+  background: rgba(246, 24, 17, 0.22) !important;
+  border: 1px solid rgba(246, 24, 17, 0.95) !important;
+  box-shadow: 0 0 0 2px rgba(246, 24, 17, 0.22), 0 0 22px rgba(246, 24, 17, 0.35);
+  animation: pulseRedGlow 0.75s ease-in-out infinite;
+  color: #fff !important;
+}
+
+.flyout-row {
+  position: relative;
+}
+
+.flyout-anchor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  cursor: default;
+}
+
+.flyout {
+  position: absolute;
+  top: -6px;
+  left: calc(100% + 6px);
+  min-width: 170px;
+  padding: 6px;
+  background: var(--panel, rgba(12, 12, 14, 0.96));
+  border: 1px solid var(--line2, rgba(255, 255, 255, 0.14));
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.38);
+  display: none;
+  z-index: 65;
+}
+
+.flyout-anchor:hover + .flyout,
+.flyout:hover {
+  display: block;
+}
+
+.hovermenu .carat {
+  opacity: 0.8;
+  font-size: 12px;
+}
+
+body.role-serviceadvisor .hovermenu,
+body.role-loancar .hovermenu {
+  display: none !important;
+}
+
+body.role-serviceadvisor .hoverpill,
+body.role-loancar .hoverpill {
+  opacity: 0.8;
+}
+
+/* Compact rows and control groups */
+tbody td {
+  padding: 8px 8px !important;
+}
+
+.role-dispatcher .ctl-group {
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+}
+
+.role-dispatcher .ctl-status,
+.role-dispatcher .ctl-keys {
+  min-height: 0;
+}

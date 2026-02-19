@@ -1165,9 +1165,7 @@ function renderActiveRow(p, now) {
   const latestNote = notesPieces.length ? notesPieces[notesPieces.length - 1] : "";
   const olderNotes = notesPieces.slice(0, -1).slice(-4); // Last 4 older notes
 
-  const washSelectedLabel =
-    currentWash && currentWash !== "NONE" ? humanWashStatus(currentWash) : "—";
-  const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "—";
+  const valetSelectedLabel = currentValet ? `Keys with ${currentValet}` : "Keys with —";
 
   // Determine rewash state for inline dialog
   const needsRewashPending = currentWash === "NEEDS_REWASH_PENDING";
@@ -1175,56 +1173,79 @@ function renderActiveRow(p, now) {
   const sendToWash = currentWash === "SEND_TO_WASH";
   const keyCarMissing = currentWash === "KEY_CAR_MISSING";
 
-  const washBtns = `
-    <div class="wash-buttons">
-      <button class="btn small ${currentWash === "IN_WASH_AREA" ? "selected optima-selected opt-pill-selected" : ""}"
-        data-action="car-wash-area" data-id="${p.id}">In wash</button>
-      <button class="btn small ${currentWash === "ON_RED_LINE" ? "selected optima-selected opt-pill-selected" : ""}"
-        data-action="car-red-line" data-id="${p.id}">On redline</button>
-    </div>
-    <div class="wash-buttons">
-      <button class="btn small ${currentWash === "DUSTY" ? "selected optima-selected opt-pill-selected pulse-orange" : ""}"
-        data-action="wash-dusty" data-id="${p.id}">Dusty</button>
-      <button class="btn small keymachine-only ${p.status === "KEYS_IN_MACHINE" ? "selected optima-selected opt-pill-selected" : ""}"
-        data-action="keys-machine" data-id="${p.id}">Key machine</button>
-    </div>
-    <div class="wash-buttons">
-      <button class="btn small ${needsRewashPending || needsRewashNo ? "selected optima-selected opt-pill-selected wash-needs pulse-blue" : ""} ${sendToWash ? "selected optima-selected opt-pill-selected pulse-orange" : ""}"
-        data-action="wash-needs-rewash" data-id="${p.id}">${sendToWash ? "Send to wash" : "Needs rewash"}</button>
-      <button class="btn small ${keyCarMissing ? "selected optima-selected opt-pill-selected opt-pulse-red" : ""}"
-        data-action="key-car-missing" data-id="${p.id}">Key/car missing</button>
-    </div>
-  `;
+  const washStates = {
+    inWash: currentWash === "IN_WASH_AREA",
+    onRedLine: currentWash === "ON_RED_LINE",
+    dusty: currentWash === "DUSTY",
+    keyMachine: p.status === "KEYS_IN_MACHINE",
+    keyCarMissing,
+    rewashSelected: needsRewashPending || needsRewashNo || sendToWash
+  };
 
-  // Inline rewash dialog
-  let rewashDialogHtml = "";
-  if (needsRewashPending) {
-    rewashDialogHtml = `
-      <div class="inline-dialog pulse-blue" data-pickup-id="${p.id}">
-        <div class="dialog-content">
-          <div class="dialog-label">Rewash needed?</div>
-          <div class="dialog-buttons">
-            <button class="btn small" data-action="rewash-yes" data-id="${p.id}">Yes rewash</button>
-            <button class="btn small" data-action="rewash-no" data-id="${p.id}">Don't rewash</button>
+  let washDisplayLabel = "—";
+  if (washStates.keyMachine) washDisplayLabel = "Key machine";
+  else if (sendToWash) washDisplayLabel = "Send to wash";
+  else if (needsRewashPending || needsRewashNo) washDisplayLabel = "Needs rewash";
+  else if (washStates.inWash) washDisplayLabel = "In wash";
+  else if (washStates.onRedLine) washDisplayLabel = "On redline";
+  else if (washStates.dusty) washDisplayLabel = "Dusty";
+  else if (washStates.keyCarMissing) washDisplayLabel = "Key/car missing";
+  else if (currentWash && currentWash !== "NONE") washDisplayLabel = humanWashStatus(currentWash);
+
+  const washHasSelection = washStates.keyMachine || (currentWash && currentWash !== "NONE");
+  const washPillClasses = [
+    "hoverpill",
+    "opt-pill",
+    washHasSelection ? "selected" : "",
+    needsRewashPending || needsRewashNo ? "pulse-blue" : "",
+    sendToWash ? "pulse-orange" : "",
+    keyCarMissing ? "opt-pulse-red" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const washMenu = `
+    <div class="hoverctl">
+      <div class="${washPillClasses}">${escapeHtml(washDisplayLabel)}</div>
+      <div class="hovermenu">
+        <button class="hoveritem ${washStates.inWash ? "selected" : ""}" data-action="car-wash-area" data-id="${p.id}">In wash</button>
+        <button class="hoveritem ${washStates.onRedLine ? "selected" : ""}" data-action="car-red-line" data-id="${p.id}">On redline</button>
+        <button class="hoveritem ${washStates.dusty ? "selected" : ""}" data-action="wash-dusty" data-id="${p.id}">Dusty</button>
+        <button class="hoveritem keymachine-only ${washStates.keyMachine ? "selected" : ""}" data-action="keys-machine" data-id="${p.id}">Key machine</button>
+        <button class="hoveritem ${washStates.keyCarMissing ? "selected opt-pulse-red" : ""}" data-action="key-car-missing" data-id="${p.id}">Key/car missing</button>
+        <div class="flyout-row">
+          <div class="hoveritem flyout-anchor ${washStates.rewashSelected ? "selected" : ""} ${needsRewashPending || needsRewashNo ? "pulse-blue" : ""} ${sendToWash ? "pulse-orange" : ""}">
+            <span>Needs rewash</span>
+            <span class="carat">▸</span>
+          </div>
+          <div class="flyout">
+            <button class="hoveritem ${sendToWash ? "selected" : ""}" data-action="rewash-yes" data-id="${p.id}">Yes rewash</button>
+            <button class="hoveritem ${needsRewashNo ? "selected" : ""}" data-action="rewash-no" data-id="${p.id}">Don't rewash</button>
           </div>
         </div>
       </div>
-    `;
-  } else if (needsRewashNo) {
-    // Keep pulsing blue indicator but no dialog
-  } else if (sendToWash) {
-    // Show orange "Send to wash" state (already in button)
-  }
+    </div>
+  `;
 
-  // Dynamic valet buttons
-  const valetBtns = `
-    <div class="valet-grid">
-      ${valetNames.map((name) => `
-        <button class="btn small ${currentValet === name ? "selected optima-selected opt-pill-selected" : ""}" 
-          data-action="with-valet" 
-          data-valet-name="${escapeHtml(name)}" 
-          data-id="${p.id}">${escapeHtml(name)}</button>
-      `).join("")}
+  const valetPillClasses = ["hoverpill", "opt-pill", currentValet ? "selected" : ""]
+    .filter(Boolean)
+    .join(" ");
+
+  const valetMenu = `
+    <div class="hoverctl">
+      <div class="${valetPillClasses}">${escapeHtml(valetSelectedLabel)}</div>
+      <div class="hovermenu">
+        ${valetNames
+          .map(
+            (name) => `
+          <button class="hoveritem ${currentValet === name ? "selected" : ""}"
+            data-action="with-valet"
+            data-valet-name="${escapeHtml(name)}"
+            data-id="${p.id}">Keys with ${escapeHtml(name)}</button>
+        `
+          )
+          .join("")}
+      </div>
     </div>
   `;
 
@@ -1247,16 +1268,13 @@ function renderActiveRow(p, now) {
         <td>
           <div class="ctl-group ctl-status">
             <div class="ctl-label">STATUS / LOCATION</div>
-            <div class="status-badge opt-pill">${escapeHtml(washSelectedLabel)}</div>
-            ${washBtns}
-            ${rewashDialogHtml}
+            ${washMenu}
           </div>
         </td>
         <td>
           <div class="ctl-group ctl-keys">
             <div class="ctl-label">KEYS WITH</div>
-            <div class="status-badge opt-pill">${escapeHtml(valetSelectedLabel)}</div>
-            ${valetBtns}
+            ${valetMenu}
           </div>
         </td>
         <td><span class="timer ${valetClass} optima-link optima-time opt-pill">${valetLabelTime}</span></td>
@@ -1282,13 +1300,10 @@ function renderActiveRow(p, now) {
       <td class="cell-tag"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.tag_number)}</span></td>
       <td class="cell-customer"><span class="pill-blue optima-link opt-pill">${escapeHtml(p.customer_name)}</span></td>
       <td>
-        <div class="status-badge opt-pill">${escapeHtml(washSelectedLabel)}</div>
-        ${washBtns}
-        ${rewashDialogHtml}
+        ${washMenu}
       </td>
       <td>
-        <div class="status-badge opt-pill">${escapeHtml(valetSelectedLabel)}</div>
-        ${valetBtns}
+        ${valetMenu}
       </td>
       <td><span class="timer ${valetClass} optima-link optima-time opt-pill">${valetLabelTime}</span></td>
       <td>${notesHtml}</td>
